@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  loqt-web:
+    build: .
+    container_name: logistique
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+    environment:
+      - DB_ENGINE=${DB_ENGINE}
+      - DB_HOST=db
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DJANGO_LOGLEVEL=${DJANGO_LOGLEVEL}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+    env_file:
+      - .env
+  pgloader:
+    image: dimitri/pgloader:latest
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    networks:
+      - default  
+
+volumes:
+  pgdata:
+

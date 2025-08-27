@@ -1,0 +1,52 @@
+# Fichiers système et IDE
+.DS_Store
+.vscode
+.idea
+
+# Environnements et dépendances
+.venv
+venv
+env
+node_modules
+
+# Cache et builds
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Fichiers sensibles
+#.env
+.env.local
+secrets.yaml
+
+# Outils de développement
+docker-compose*
+#Dockerfile*
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Bases de données locales
+*.sqlite3
+*.db
+
+# Fichiers statiques/media (gérés via volumes)
+/staticfiles
+/media
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Fichiers temporaires
+*.swp
+*.swo
+*~
+
+# Fichiers de déploiement
+*.zip
+*.tar.gz
+*.tar

@@ -1,0 +1,136 @@
+.permission-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  min-height: 100vh;
+  background: var(--background, #f5f6fa);
+}
+
+.permission-card {
+  background: white;
+  padding: 30px 25px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  max-width: 600px;
+  width: 100%;
+  animation: slideIn 0.5s ease forwards;
+}
+
+.permission-card h2 {
+  margin-top: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.permission-description {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+.permission-form .form-group {
+  margin-bottom: 20px;
+}
+
+.permission-form textarea,
+.permission-form input[type="text"] {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  transition: 0.3s;
+  background-color: #f9f9f9;
+  resize: vertical;
+}
+
+.permission-form textarea:focus,
+.permission-form input:focus {
+  outline: none;
+  border-color: #007bff;
+  background-color: #fff;
+  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+}
+
+.btn-submit {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover {
+  background-color: #0056b3;
+}
+
+
+
+/* Animation */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .permission-card {
+    padding: 20px 18px;
+  }
+
+  .permission-card h2 {
+    font-size: 20px;
+  }
+}
+
+
+.confirmation-box {
+  background-color: #e8f5e9;
+  border-left: 6px solid #4caf50;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  animation: bounceIn 0.6s ease forwards;
+}
+
+.confirmation-icon {
+  font-size: 32px;
+  color: #2e7d32;
+}
+
+.confirmation-message {
+  font-size: 16px;
+  color: #2e7d32;
+  margin: 0;
+}
+
+/* Animation bounceIn */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+
+.fade-out {
+    opacity: 0;
+    transform: scale(0.98);
+    transition: all 0.4s ease;
+  }
+

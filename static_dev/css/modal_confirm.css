@@ -1,0 +1,136 @@
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; height: 0; margin: 0; padding: 0; }
+}
+.fade-out {
+  animation: fadeOut 0.4s forwards;
+}
+
+
+.btn-undo {
+  margin-top: 10px;
+  background-color: #C8E6C9;
+  color: #151d16;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  animation: fadeIn 0.4s ease;
+}
+
+#messageContainer {
+  display: none;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9999;
+  animation: fadeIn 0.4s ease;
+  background-color: #C8E6C9;
+  color: #4CAF50;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.error {
+  background-color: #FFEBEE;
+  /* border-left: 5px solid #E57373; */
+  color: #E57373;
+
+}
+
+.undo-container {
+  position: relative;
+  margin-top: 10px;
+  width: fit-content;
+}
+
+.btn-undo {
+  background-color: #1c87c9;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+}
+
+.undo-progress {
+  position: absolute;
+  bottom: 0;
+  right: 0; /* Change ici */
+  height: 3px;
+  background-color: #ff4800;
+  width: 100%;
+  z-index: 0;
+  border-radius: 0 0 5px 5px;
+  transform-origin: right; /* Vidage de droite à gauche */
+  transition: width linear;
+}
+
+.modal-overlay .modal-actions .btn-danger {
+  background-color: #ff4800;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay .modal-actions .btn-danger:hover {
+  background-color: transparent;
+  color: #ff4800;
+  border: 2px solid #ff4800;
+
+}
+
+.modal-overlay .modal-actions .btn-secondary{
+  background-color: #d7d7d6;
+  color: rgb(38, 38, 38);
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay .modal-actions .btn-secondary:hover {
+  background-color: transparent;
+  color: #323232;
+  border: 2px solid #151515;
+}
+
+
+

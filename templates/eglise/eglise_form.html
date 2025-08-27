@@ -1,0 +1,133 @@
+{% extends "base/base.html" %}
+{% block content %}
+<div>
+  <button onclick="history.back()" class="btn-retour"><i class="fas fa-arrow-left"></i> Retour</button>
+</div>
+{% load widget_tweaks %}
+
+<div class="form-preview-wrapper">
+  <div>
+    <div>
+      <h2 style="text-align:center;">Créer une Église</h2>
+    </div>
+
+    <form method="post" id="form-eglise" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="steps">
+      <!-- Étape 1 -->
+      <div class="step">
+        <h3>Étape 1 : Informations de l'église</h3>
+        <div class="form-group">
+          <label for="{{ form.nom.id_for_label }}">Nom</label>
+          {% render_field form.nom id="id_nom" class="form-control" oninput="updatePreview()" %}
+          {% if form.nom.errors %}
+            <div class="invalid-feedback d-block">{{ form.nom.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Étape 2 -->
+      <div class="step">
+        <h3>Étape 2 : Informations du pasteur</h3>
+        <div class="form-group">
+          <label for="{{ form.pasteur.id_for_label }}">Nom du pasteur</label>
+          {% render_field form.pasteur id="id_pasteur" class="form-control" oninput="updatePreview()" %}
+          {% if form.pasteur.errors %}
+            <div class="invalid-feedback d-block">{{ form.pasteur.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.phone.id_for_label }}">Téléphone du pasteur</label>
+          {% render_field form.phone id="id_phone" class="form-control" oninput="updatePreview()" %}
+          {% if form.phone.errors %}
+            <div class="invalid-feedback d-block">{{ form.phone.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.image.id_for_label }}">Image</label>
+          {% render_field form.image id="id_image" class="form-control" oninput="updatePreview();" %}
+          {% if form.image.errors %}
+            <div class="invalid-feedback d-block">{{ form.image.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Étape 3 -->
+      <div class="step">
+        <h3>Étape 3 : Informations du lieu</h3>
+        <div class="form-group">
+          <label for="{{ form.region.id_for_label }}">Région</label>
+          {% render_field form.region id="id_region" class="form-control" oninput="updatePreview()" %}
+          {% if form.region.errors %}
+            <div class="invalid-feedback d-block">{{ form.region.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.ville.id_for_label }}">Ville</label>
+          {% render_field form.ville class="form-control" id="id_ville" name="ville" oninput="updatePreview();" %}
+          {% if form.ville.errors %}
+            <div class="invalid-feedback d-block">{{ form.ville.errors|join:", " }}</div>
+          {% endif %}
+          {% render_field form.latitude class="form-control" name="latitude" id="id_latitude" type="hidden" oninput="updatePreview();" %}
+          {% if form.latitude.errors %}
+            <div class="invalid-feedback d-block">{{ form.latitude.errors|join:", " }}</div>
+          {% endif %}
+          {% render_field form.longitude class="form-control" name="longitude" id="id_longitude" type="hidden" oninput="updatePreview();" %}
+          {% if form.longitude.errors %}
+            <div class="invalid-feedback d-block">{{ form.longitude.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="step-buttons">
+      <button type="button" id="prev-btn">⬅ Précédent</button>
+      <button type="button" id="next-btn">Suivant ➡</button>
+      <button type="submit" id="submit-btn" style="display: none;">✅ Enregistrer</button>
+    </div>
+  </form>
+  </div>
+ <!-- FICHE DYNAMIQUE -->
+  <div class="preview-column">
+    <div class="preview-card" id="preview">
+      <h3>📄 Fiche de l'église</h3>
+      <p><strong>Nom :</strong> <span id="preview-nom">-</span></p>
+      <p><strong>Pasteur :</strong> <span id="preview-pasteur">-</span></p>
+      <p><strong>Téléphone :</strong> <span id="preview-phone">-</span></p>
+      <p><strong>Région :</strong> <span id="preview-region">-</span></p>
+      <p><strong>Ville :</strong> <span id="preview-ville">-</span></p>
+      <p><strong>Image :</strong><br>
+        <img id="preview-image" src="" alt="Aperçu de l'image" style="max-width: 100px; height: auto; margin-top: 10px;">
+      </p>
+
+
+      <div id="map" style="height: 250px; margin-top: 15px;"></div>
+
+      <!-- CHAMP MANUEL SI REFUS -->
+      <div id="manualLocationBlock" style="display: none;">
+          <label>📌 Entrez votre ville ou adresse :</label>
+          <input type="text" id="searchAddress">
+          <button type="button" onclick="searchAddress()">Rechercher</button>
+        <p id="manualMessage" style="display: none; color: #666">Vous pouvez entrer l'adresse manuellement si vous refusez la géolocalisation.</p>
+    </div>
+
+      <button class="print-btn" onclick="window.print()">🖨️ Imprimer</button>
+    </div>
+  </div>
+</div>
+<div id="geoPopup" class="geo-popup-overlay"> 
+  <div class="geo-popup-content">
+    <h3>📍 Autoriser la géolocalisation de l'église</h3>
+    <p>Nous aimerions utiliser votre position pour localiser votre église automatiquement sur la carte.</p>
+    <p style="background:#FFE0B2; color:#E65100; padding:20px; border-radius:12px;">⚠️ Attention, vous devez être dans votre église pour <strong>Autoriser</strong> !</p>
+    <button id="acceptGeo">✅ Autoriser</button>
+    <button id="denyGeo">❌ Refuser</button>
+  </div>
+</div>
+
+{% endblock %}

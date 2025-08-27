@@ -1,0 +1,305 @@
+
+.search-input {
+  padding: 10px 15px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  outline: none;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+.search-input:focus {
+  border-color: #ff4800;
+  box-shadow: 0 0 5px rgba(255, 72, 0, 0.3);
+}
+
+.list-materiel-dash{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.table-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+.btn-back-history{
+  padding: 20px
+}
+.materiel-list-container{
+    width: 100%;
+    padding: 20px;
+}
+#materielTable {
+  width: 100%;
+  border-collapse: collapse;
+  flex:1;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+#materielTable tbody tr {
+  transition: all 0.3s ease-in-out;
+}
+
+#materielCount {
+  font-weight: bold;
+  margin: 10px 0;
+  color: #333;
+}
+
+
+#materielTable th, #materielTable td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+#materielTable th {
+  background-color: #f4f4f4;
+}
+
+#materielTable tr:hover {
+  background-color: #fdf0e8;
+  transition: background-color 0.2s ease;
+}
+
+
+
+
+
+
+
+
+
+
+
+/* MODAL */
+
+
+.filters {
+  display: block;
+  flex: 1;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px
+}
+
+.filters select, .filters input[name="qte"], input[type="select"] {
+  padding: 10px 15px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  outline: none;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.qte:focus, .filters input[type="select"]:focus, .filters select:focus {
+  border-color: #ff4800;
+  box-shadow: 0 0 5px rgba(255, 72, 0, 0.3);
+
+}
+
+
+.filter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 200px;
+  min-width: 150px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Responsive design filter form */
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+  }
+}
+
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+.page-links a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: #ff4800;
+}
+.page-links span {
+  font-weight: bold;
+}
+
+
+
+/* Bouton ajouter */
+.materiel-actions {
+  text-align: right;
+  margin-bottom: 15px;
+}
+.btn-add {
+  background-color: #C8E6C9;
+  color: #66BB6A;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-green {
+  background-color: #BBDEFB;
+  color: #42A5F5;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+.btn-green:hover {
+  background-color: #2196F3;
+  color: #f4f4f4;
+}
+
+.btn-add:hover {
+  background-color: #218838;
+  color: #f4f4f4;
+}
+
+/* Supprimer un matériel */
+
+.btn-red
+ {
+  background-color: inherit;
+  color: rgb(221, 5, 5);
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+  gap: 10px;
+}
+/* Voir un matériel */
+.btn-view
+ {
+  background-color: inherit;
+  color: rgb(3, 131, 228);
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  gap: 10px;
+}
+/* Editer un matériel */
+.btn-blue
+ {
+  background-color: inherit;
+  color: rgb(36, 152, 63);
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  gap: 10px;
+}
+.btn-view:hover ,
+.btn-blue:hover ,
+.btn-red:hover {
+  background-color: #0056b3;
+  color: #f4f4f4;
+}
+
+/* Mini image cliquable */
+.mini-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+.mini-image:hover {
+  transform: scale(1.1);
+}
+
+
+/* .no-materiel .btn-orange{
+  background-color: #FFA726;
+  color: #4e4e4e;
+  padding: 10px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.no-materiel .btn-orange:hover {
+  background-color: transparent;
+  color: #FFA726;
+  border: 2px solid #FFA726;
+} */
+
+
+
+
+/* Bouton d'accès */
+.btn-disabled-wrapper {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.btn-add.disabled {
+  background-color: #FBE9E7;
+  cursor: not-allowed;
+  opacity: 0.7;
+  color: #FF7043;
+  border: 1px solid #FF7043;
+  transition: all 0.3s ease;
+}
+
+.small-info {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 0.3rem;
+}
+
+.link-info {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+

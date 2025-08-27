@@ -1,0 +1,94 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% load querystring_tags %}
+
+{% block content %}
+<div>
+    <button onclick="history.back()" class="btn-retour"><i class="fas fa-arrow-left"></i> Retour</button>
+</div>
+ <div class="materiel-list-container">
+  <h2>📦 Liste des Matériels</h2>
+  <h3>Nombre total de matériel : {{nb_materiels}} </h3>
+  <p id="materielCount">Total : <span id="count">{{ materiel|length }}</span> matériels affichés</p>
+  {% if request.user.eglise and object_list %}
+       <input type="text" id="searchInput" placeholder="🔍 Rechercher un matériel..." class="search-input">
+        <div class="filters">
+          <form  method="get" id="filterForm"  hx-get="{% url 'materiel-list' %}"
+      hx-target="#materielTableContainer"
+      hx-trigger="change delay:300ms"
+      hx-push-url="true"
+      autocomplete="off">
+      {% csrf_token %}
+            <label for="filterCategorie">Catégorie :</label>
+            <select id="filterCategorie">
+              <option value="">-- Toutes les catégories --</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.nom }}</option>
+              {% endfor %}
+            </select>
+
+            <label for="filterSousCategorie">Sous-catégorie :</label>
+            <select id="filterSousCategorie">
+              <option value="">-- Toutes les sous-catégories --</option>
+              {% for sous in sous_categories %}
+                <option value="{{ sous.id }}" data-categorie="{{ sous.categorie.id }}">{{ sous.nom }}</option>
+              {% endfor %}
+            </select>
+            <label for="filterLogistique">Logistique :</label>
+              <select id="filterLogistique">
+                <option value="">-- Toutes les logistiques --</option>
+                {% for log in logistiques %}
+                  <option value="{{ log.id }}">{{ log.eglise.nom }}</option>
+                {% endfor %}
+              </select>
+
+
+          <label><input type="checkbox" id="lowStockOnly"> Seulement les stocks faibles (&lt; 10)</label>
+          </form>
+        </div>
+        <a href="?{% querystring export='excel' %}" class="btn-green">📥 Exporter en Excel</a>
+        <div class="materiel-actions">
+          <a href="{% url 'materiel-create' %}" class="btn-add">
+            <i class="fas fa-plus"></i> Ajouter un matériel
+          </a>
+        </div>
+
+    <div class="table-wrapper">
+      <table id="materielTable">
+        {% include "./partials/list_materiels.html" %}
+      </table>
+    </div>
+    <div class="pagination">
+  {% if is_paginated %}
+    <div class="page-links">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">&laquo; Précédent</a>
+      {% endif %}
+
+      <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Suivant &raquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+  {% else %}
+    <div class="no-materiel">
+      <p>⚠️ Aucun matériel trouvé ou vous n’avez pas de logistique attribuée.</p>
+      <a href="{% url 'materiel-create' %}" class="btn orange">Ajouter un matériel</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Modal détail image -->
+<div id="imageModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal">&times;</span>
+    <img id="modalImg" src="" alt="">
+    <div id="modalDetails"></div>
+  </div>
+</div>
+
+{% endblock %}

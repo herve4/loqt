@@ -1,0 +1,109 @@
+{% load static %}
+{% load humanize %}
+
+<div class="event-card card h-100">
+  {% if event.image %}
+    <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.titre }}">
+  {% else %}
+    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+      <i class="fas fa-calendar-alt fa-4x text-muted"></i>
+    </div>
+  {% endif %}
+  
+  <div class="card-body d-flex flex-column">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <h5 class="card-title mb-1">
+        <a href="{% url 'event_detail' event.id %}" class="text-decoration-none text-dark">
+          {{ event.titre|truncatechars:40 }}
+        </a>
+      </h5>
+      <span class="badge event-badge badge-event-type">
+        {{ event.get_type_evenement_display }}
+      </span>
+    </div>
+    
+    <div class="mb-3">
+      <span class="badge event-badge badge-event-status">
+        <i class="fas fa-circle me-1" style="color: {{ event.status_color }};"></i>
+        {{ event.get_status_display }}
+      </span>
+    </div>
+    
+    <div class="mb-3">
+      <div class="d-flex align-items-center mb-2">
+        <div class="icon-wrapper">
+          <i class="far fa-calendar-alt"></i>
+        </div>
+        <div>
+          <div class="small text-muted">Date et heure</div>
+          <div>{{ event.date_debut|date:"d/m/Y H:i" }}
+            {% if event.date_fin %}
+              - {{ event.date_fin|date:"H:i" }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex align-items-center">
+        <div class="icon-wrapper">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <div>
+          <div class="small text-muted">Lieu</div>
+          <div class="text-ellipsis" style="max-width: 200px;">
+            {{ event.get_lieu_display }}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {% if event.description %}
+      <p class="card-text flex-grow-1">
+        {{ event.description|truncatewords:20 }}
+      </p>
+    {% endif %}
+    
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <small class="text-muted">
+        <i class="far fa-user me-1"></i>
+        {{ event.nombre_participants_attendus|default:0 }} participants
+      </small>
+      
+      <div class="btn-group">
+        <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-outline-primary">
+          <i class="far fa-eye me-1"></i> Voir
+        </a>
+        {% if user.is_authenticated and user == event.organisateur or user.is_staff %}
+          <a href="{% url 'event_update' event.id %}" class="btn btn-sm btn-outline-secondary">
+            <i class="far fa-edit"></i>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      {% if event.organisateur.avatar %}
+        <img src="{{ event.organisateur.avatar.url }}" 
+             class="rounded-circle me-2" 
+             width="24" 
+             height="24" 
+             alt="{{ event.organisateur.get_full_name }}">
+      {% else %}
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" 
+             style="width: 24px; height: 24px;">
+          {{ event.organisateur.first_name|first|upper }}{{ event.organisateur.last_name|first|upper }}
+        </div>
+      {% endif %}
+      <small class="text-muted">
+        <a href="#" class="text-decoration-none text-muted">
+          {{ event.organisateur.get_full_name }}
+        </a>
+      </small>
+    </div>
+    <small class="text-muted">
+      {{ event.date_creation|timesince }}
+    </small>
+  </div>
+</div>

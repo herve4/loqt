@@ -1,0 +1,146 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% load querystring_tags %}
+{% load permissions %}
+{% block content %}
+<div id="messageContainer"></div>
+<div class="btn-back-history">
+    <button onclick="history.back()" class="btn-retour"><i class="fas fa-arrow-left"></i> Retour</button>
+</div>
+ <div class="materiel-list-container">
+  {% if derniere_demande.statut == 'approuvee' %}
+  <div><h2>📦 Liste des Matériels</h2>
+    <p id="materielCount">Total : <span id="count">{{ materiel|length }}</span> matériels affichés</p>
+  </div>
+  {% endif %}
+  {% if request.user.eglise and object_list %}
+       <div class="list-materiel-dash">
+        
+        <div class="filters">
+          {% include "./partials/filter_forms.html" %}
+        </div>
+       </div>
+        
+  
+    <div class="table-wrapper">
+      <div>
+        <a href="#"  id="exportVisible" class="btn-green">📥 Exporter en Excel</a>
+        <!-- Bouton flottant -->
+        
+          <div class="materiel-actions">
+            <a href="{% url 'materiel-create' %}" class="btn-add">
+              <i class="fas fa-plus"></i> Ajouter un matériel
+            </a>
+          </div>
+      </div>
+     <div id="materielTable">
+
+       <table>
+        {% include "./partials/list_materiels.html" %}
+      </table>
+     </div>
+      <p id="noResultMsg" style="display:none; color: #EF5350; background: #FFCDD2; font-weight: bold; padding: 10px 12px; text-align:center;">Aucun matériel trouvé !</p>
+      {% comment %} <div id="pagination" class="pagination-controls"></div> {% endcomment %}
+
+
+    </div>
+      <div id="paginationContainer" class="pagination">
+  {% if is_paginated %}
+    <div class="page-links">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">&laquo; Précédent</a>
+      {% endif %}
+      <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Suivant &raquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+
+
+  {% else %}
+    <div class="no-materiel">
+
+  {% if derniere_demande.statut == 'approuvee' %}
+  <div class="btn-disabled-wrapper">
+    <a href="{% url 'materiel-create' %}" class="btn-add">
+      <i class="fas fa-plus"></i> Ajouter un matériel
+    </a>
+    </div>
+{% else %}
+    {% if derniere_demande.statut == 'en_attente' %}
+      <div class="btn-disabled-wrapper">
+        <button class="btn-add disabled" disabled>⏳ Demande en cours...</button>
+      </div>
+    {% elif derniere_demande.statut == 'refusee' %}
+    <div class="btn-disabled-wrapper">
+      <div class="alert-refuse">❌ Votre demande a été refusée.</div>
+      <a href="{% url 'demande-permission' %}" class="btn-orange">Refaire une demande</a>
+    </div>
+      
+    {% else %}
+    <div class="btn-disabled-wrapper">
+      <button class="btn-add disabled" disabled title="Vous n’avez pas les droits pour ajouter un matériel.">
+          <i class="fas fa-lock"></i> Ajouter un matériel
+        </button>
+      <p class="small-info">
+          🔒 Vous n’avez pas encore la permission d’ajouter un matériel.<br>
+          <a href="{% url 'demande-permission' %}" class="link-info">👉 Faire une demande d’accès</a>
+        </p>
+    </div>
+      
+    {% endif %}
+{% endif %}
+
+    </div>
+  {% endif %}
+</div>
+<button id="openTrashBtn" class="floating-trash-btn"><i class="fa-solid fa-trash"></i></button>
+{% include "./materiel_confirm_delete.html" %}
+{% include "./partials/corbeille.html" %}
+
+
+<!-- MODAL -->
+<div id="materielModal" class="modal-view-detail" style="display:none;">
+  <div class="modal-content-view-detail">
+    <span class="close" id="close" onclick="closeModal()">&times;</span>
+
+    <div class="slider-container">
+      <button class="slider-nav left" onclick="prevSlide()">&#10094;</button>
+      <div class="slider" id="slider"></div>
+      <button class="slider-nav right" onclick="nextSlide()">&#10095;</button>
+    </div>
+
+    <div class="materiel-info" id="materiel-info"></div>
+
+    <div class="modal-actions">
+      <button onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimer</button>
+      <a id="btnDownloadQR" href="#" download="qr_code.png"><i class="fa-solid fa-download"></i> Télécharger QR</a>
+      <a id="btnDownloadBARRE" href="#" download="barre_code.png"><i class="fa-solid fa-share-from-square"></i> Télécharger CODE BARRE</a>
+      <button onclick="shareMateriel()"><i class="fa-solid fa-print"></i> Partager</button>
+    </div>
+  </div>
+</div>
+
+{% block extrastyle %}
+
+  <link rel="stylesheet" href="{% static 'css/list-materiel.css' %}?v={{ STATIC_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/paginate.css' %}?v={{ STATIC_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/modal_confirm.css' %}?v={{ STATIC_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/modal_corbeille.css' %}?v={{ STATIC_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/detail-materiel.css' %}?v={{ STATIC_VERSION }}">
+  
+{% endblock extrastyle %}
+
+{% block extrahead %}
+
+  <script src="{% static 'js/search-list-materiel.js' %}?v={{ STATIC_VERSION }}"></script>
+  <script src="{% static 'js/modal_materiel.js' %}?v={{ STATIC_VERSION }}"></script>
+    
+{% endblock extrahead %}
+
+{% endblock content %}
+
+

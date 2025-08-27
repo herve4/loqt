@@ -1,0 +1,184 @@
+/* Styles pour le calendrier FullCalendar (Refactorisé) */
+:root {
+    --fc-border-color: var(--border-color);
+    --fc-today-bg-color: var(--primary-light-active);
+    --fc-event-bg-color: var(--primary);
+    --fc-event-border-color: var(--primary);
+    --fc-event-text-color: var(--white);
+}
+
+.fc {
+    font-family: var(--font-family-sans-serif);
+}
+
+/* En-tête du calendrier */
+.fc-header-toolbar {
+    margin-bottom: 1.5em !important;
+}
+
+.fc .fc-toolbar-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--headings-color);
+}
+
+/* Boutons de navigation */
+.fc .fc-button {
+    background-color: var(--body-bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    text-transform: capitalize;
+    padding: 0.4rem 0.8rem;
+    font-size: var(--font-size-sm);
+    border-radius: var(--border-radius);
+    transition: var(--transition-base);
+}
+
+.fc .fc-button:hover {
+    background-color: var(--body-bg-hover);
+    border-color: var(--border-color-hover);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+}
+
+/* Cellules et en-têtes */
+.fc .fc-daygrid-day.fc-day-today {
+    background-color: var(--fc-today-bg-color);
+}
+
+.fc .fc-col-header-cell {
+    background-color: var(--body-bg-secondary);
+    padding: 0.5rem 0;
+}
+
+.fc .fc-col-header-cell-cushion {
+    color: var(--headings-color);
+    text-decoration: none;
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Événements */
+.fc-event {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 2px 6px;
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+    margin-bottom: 2px;
+    transition: var(--transition-base);
+}
+
+.fc-event:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow);
+}
+
+/* Légende des types d'événements */
+#eventLegend {
+    margin: 1rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.event-type-legend {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    font-size: var(--font-size-xs);
+    transition: var(--transition-base);
+    opacity: 0.7;
+    border: 1px solid transparent;
+}
+
+.event-type-legend i {
+    font-size: 0.6rem;
+    vertical-align: middle;
+}
+
+.event-type-legend.active {
+    opacity: 1;
+    transform: scale(1.05);
+    border-color: var(--border-color-hover);
+}
+
+/* Styles pour les différents types d'événements */
+.event-type-reunion { background-color: var(--primary); color: var(--white); }
+.event-type-formation { background-color: var(--success); color: var(--white); }
+.event-type-conference { background-color: var(--warning); color: var(--dark); }
+.event-type-celebration { background-color: var(--danger); color: var(--white); }
+.event-type-other { background-color: var(--secondary); color: var(--white); }
+
+/* Modal de détails d'événement */
+#eventModal .modal-content {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-lg);
+    background-color: var(--card-bg-color);
+}
+
+#eventModal .modal-header {
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-header-bg);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+#eventModal .modal-title {
+    font-weight: var(--font-weight-bold);
+    color: var(--headings-color);
+}
+
+#eventModal .modal-body {
+    padding: 1.5rem;
+}
+
+#eventModal .event-details h6 {
+    color: var(--headings-color);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+#eventModal .event-details p {
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+#eventModal .modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
+    background-color: var(--card-header-bg);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .fc .fc-toolbar-title {
+        font-size: 1.25rem;
+    }
+    
+    .fc .fc-button {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    
+    #eventLegend {
+        justify-content: center;
+    }
+    
+    .event-type-legend {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.7rem;
+    }
+}

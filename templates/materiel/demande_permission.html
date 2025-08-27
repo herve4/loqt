@@ -1,0 +1,39 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+
+{% block content %}
+<div class="permission-wrapper fade-in">
+  <div class="permission-card">
+    <h2>🔐 Demande d'autorisation</h2>
+    <p class="permission-description">Vous n’avez pas la permission d’ajouter un matériel. Veuillez en faire la demande :</p>
+    
+    <form method="post" class="permission-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="id_raison">Motivation</label>
+        {{ form.raison }}
+      </div>
+
+      <button type="submit" class="btn-submit">📩 Envoyer la demande</button>
+    </form>
+
+   {% if messages %}
+<div class="confirmation-box fade-in">
+  <i class="fas fa-check-circle confirmation-icon"></i>
+  {% for message in messages %}
+    <p class="confirmation-message {{ message.tags }}">{{ message }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+  </div>
+</div>
+
+<script>
+  const form = document.querySelector(".permission-form");
+  form?.addEventListener("submit", () => {
+    form.classList.add("fade-out");
+  });
+</script>
+{% endblock %}

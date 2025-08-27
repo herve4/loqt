@@ -1,0 +1,46 @@
+<form method="post" id="filterForm" class="filter-form">
+  {% csrf_token %}
+  
+  <div class="filter-row">
+    <input type="text" id="searchInput" name="searchInput" placeholder="🔍 Rechercher un matériel..." class="search-input">
+  </div>
+
+  <div class="filter-row">
+    <div class="filter-group">
+      <label for="filterCategorie">Catégorie</label>
+      <select id="filterCategorie">
+        <option value="">-- Toutes les catégories --</option>
+        {% for cat in categories %}
+        <option value="{{ cat.id }}">{{ cat.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filterSousCategorie">Sous-catégorie</label>
+      <select id="filterSousCategorie">
+        <option value="">-- Toutes les sous-catégories --</option>
+        {% for sous in sous_categories %}
+        <option value="{{ sous.id }}" data-categorie="{{ sous.categorie.id }}">{{ sous.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <div class="filter-group">
+      <label for="filterLogistique">Logistique</label>
+      <select id="filterLogistique">
+        <option value="">-- Toutes les logistiques --</option>
+        {% for log in logistiques %}
+        <option value="{{ log.id }}">{{ log.eglise.nom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="qte">Quantité</label>
+      <input type="number" class="qte" name="qte" id="qte" placeholder="Qté min">
+    </div>
+  </div>
+</form>

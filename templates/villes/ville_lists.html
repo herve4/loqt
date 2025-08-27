@@ -1,0 +1,166 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="ville-container">
+      <!-- Bouton retour -->
+  <button onclick="history.back()" class="btn-retour">
+    <i class="fas fa-arrow-left"></i> Retour
+  </button>
+    <!-- Header Section -->
+    <div class="ville-header">
+        <h2 class="ville-title">Gestion des Villes</h2>
+        <div class="ville-actions">
+            <!-- Add City Button -->
+            <button class="btn btn-add" 
+                    hx-get="{% url 'ville-create' %}"
+                    hx-target="#ville-form-container">
+                <i class="fas fa-plus"></i> Ajouter une Ville
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter and Export Section -->
+    <div class="ville-toolbar">
+        <div class="filter-section">
+            <form method="get" class="filter-form">
+                <div class="form-group">
+                    <label for="region-filter"><i class="fas fa-filter"></i> Filtre :</label>
+                    <select name="region" id="region-filter" onchange="this.form.submit()">
+                        <option value="">Toutes les régions</option>
+                        {% for region in regions %}
+                        <option value="{{ region.id }}" 
+                            {% if selected_region == region.id|stringformat:"s" %}selected{% endif %}>
+                            {{ region.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+        
+        <div class="export-section">
+            <span class="export-label"><i class="fas fa-download"></i> Exporter :</span>
+            <div class="export-buttons">
+                <a href="?export=pdf{% if selected_region %}&region={{ selected_region }}{% endif %}" 
+                   class="btn-export pdf">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+                <a href="?export=excel{% if selected_region %}&region={{ selected_region }}{% endif %}" 
+                   class="btn-export excel">
+                    <i class="fas fa-file-excel"></i> Excel
+                </a>
+                <a href="?export=word{% if selected_region %}&region={{ selected_region }}{% endif %}" 
+                   class="btn-export word">
+                    <i class="fas fa-file-word"></i> Word
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container (for HTMX) -->
+        <div id="ville-form-container" class="modal-form-container"></div>
+
+    <!-- Cities Table -->
+    <div class="table-responsive">
+        <table class="ville-table">
+            <thead>
+                <tr>
+                    <th class="col-name">Ville</th>
+                    <th class="col-region">Région</th>
+                    <th class="col-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ville in villes %}
+                <tr id="ville-{{ ville.id }}">
+                    <td>
+                        <div class="editable-field" 
+                             hx-get="{% url 'ville-update' ville.id %}" 
+                             hx-target="#ville-{{ ville.id }}-name"
+                             hx-trigger="click">
+                            <span id="ville-{{ ville.id }}-name">{{ ville.nom }}</span>
+                            <i class="fas fa-edit edit-icon"></i>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="editable-field" 
+                             hx-get="{% url 'ville-update' ville.id %}" 
+                             hx-target="#ville-{{ ville.id }}-region"
+                             hx-trigger="click">
+                            <span id="ville-{{ ville.id }}-region">{{ ville.region.nom }}</span>
+                            <i class="fas fa-edit edit-icon"></i>
+                        </div>
+                    </td>
+                    <td>
+                       <button class="btn btn-delete" onclick="deleteVille('{% url 'ville-delete' ville.id %}', '{{ville.nom}}', this)">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                
+                   <tr>
+                        <td colspan="3" style="color:red; font-size:14px; font-weight:600; text-align:center;">
+                            Aucune ville trouvée !
+                        </td>
+                    </tr>
+                
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="pagination">
+        <div class="pagination-info">
+            Affichage de {{ page_obj.start_index }} à {{ page_obj.end_index }} sur {{ page_obj.paginator.count }} villes
+        </div>
+        <div class="pagination-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if selected_region %}&region={{ selected_region }}{% endif %}" class="page-link first">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if selected_region %}&region={{ selected_region }}{% endif %}" class="page-link previous">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            {% endif %}
+
+            <span class="current-page">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if selected_region %}&region={{ selected_region }}{% endif %}" class="page-link next">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_region %}&region={{ selected_region }}{% endif %}" class="page-link last">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal for Forms -->
+<div id="ville-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div id="modal-content"></div>
+    </div>
+</div>
+
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="{% static './css/ville/style.css' %}?v={{ STATIC_VERSION }}">
+{% endblock extrastyle %}
+    
+
+
+{% block extrahead %}
+  <script src="{% static './js/ville/script.js' %}?v={{ STATIC_VERSION }}" defer></script>
+{% endblock %}
+
+{% endblock %}

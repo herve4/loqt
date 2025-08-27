@@ -1,0 +1,69 @@
+<!-- Pagination -->
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if selected_region %}&region={{ selected_region }}{% endif %}">&laquo; première</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if selected_region %}&region={{ selected_region }}{% endif %}">précédente</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if selected_region %}&region={{ selected_region }}{% endif %}">suivante</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_region %}&region={{ selected_region }}{% endif %}">dernière &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+<style>
+    /* Styles pour le filtre */
+    .filter-container {
+        margin: 10px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 5px;
+        display: flex;
+        flex-direction:row;
+        flex: 1;
+        gap: 20px;
+        align-items: center;
+        justify-content:center;
+    }
+    
+    .filter-form, .result-count {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 500px;
+    }
+    
+    .filter-form select {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    /* Styles pour la pagination */
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .pagination a {
+        margin: 0 5px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        text-decoration: none;
+    }
+    
+    .pagination a:hover {
+        background: #f0f0f0;
+    }
+    
+    .pagination .current {
+        margin: 0 10px;
+    }
+</style>

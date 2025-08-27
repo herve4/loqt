@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Fiche de l'église</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    .fiche {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    h2 {
+      text-align: center;
+    }
+    p {
+      margin: 10px 0;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="fiche">
+    <h2>{{ object.nom }}</h2>
+
+    <div class="section">
+      <p><strong>Pasteur :</strong> {{ object.pasteur }}</p>
+      <p><strong>Téléphone :</strong> {{ object.phone }}</p>
+      <p><strong>Email :</strong> {{ object.email }}</p>
+    </div>
+
+    <div class="section">
+      <p><strong>Région :</strong> {{ object.region.nom }}</p>
+      <p><strong>Ville :</strong> {{ object.ville }}</p>
+    </div>
+
+    {% if object.latitude and object.longitude %}
+      <div class="section">
+        <p><strong>Position GPS :</strong> {{ object.latitude }}, {{ object.longitude }}</p>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+      {% load static %}
+      <div class="slides-container">
+        <!-- Événement 1 -->
+        <div class="slide active" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{% static 'img/camps/1.jpg' %}');">
+          <div class="event-info">
+            <h3 class="event-title">Camp Mondial des Lycéens</h3>
+            <div class="event-date" data-date="2025-08-05">
+              <span class="day">5-8</span>
+              <span class="month">Août</span>
+              <span class="year">2025</span>
+            </div>
+            <p class="event-description"><strong>Thème :</strong> Côte d'Ivoire, terre de jeunes leaders</p>
+            <p>Participation : <strong style="color:yellow;">20.000 FCFA</strong></p>
+          </div>
+        </div>
+        
+        <!-- Événement 2 -->
+        <div class="slide" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{% static 'img/camps/2.jpg' %}');">
+          <div class="event-info">
+            <h3 class="event-title">Camp Mondial des Collègiens</h3>
+            <div class="event-date" data-date="2024-08-19">
+              <span class="day">19-22</span>
+              <span class="month">Août</span>
+              <span class="year">2025</span>
+            </div>
+            <p class="event-description"><strong>Thème :</strong> Côte d'Ivoire, terre de jeunes leaders</p>
+            <p>Participation : <strong style="color:yellow;">20.000 FCFA</strong></p>
+          </div>
+        </div>
+        
+        <!-- Événement 3 -->
+        <div class="slide" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{% static 'img/camps/3.jpg' %}');">
+          <div class="event-info">
+            <h3 class="event-title">Camp Mondial des Enfants</h3>
+            <div class="event-date" data-date="2024-07-22">
+              <span class="day">22-25</span>
+              <span class="month">Juil.</span>
+              <span class="year">2025</span>
+            </div>
+            <p class="event-description"><strong>Thème :</strong> Parents quelle éducation pour une harmonie familiale et une réussite scolaire de vos enfants ?</p>
+            <p>Participation : <strong style="color:yellow;">20.000 FCFA</strong></p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contrôles du slideshow -->
+      <div class="slideshow-controls">
+        <button class="prev-slide"><i class="fas fa-chevron-left"></i></button>
+        <div class="slide-indicators">
+          <span class="indicator active"></span>
+          <span class="indicator"></span>
+          <span class="indicator"></span>
+        </div>
+        <button class="next-slide"><i class="fas fa-chevron-right"></i></button>
+      </div>

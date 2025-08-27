@@ -1,0 +1,114 @@
+/* Custom Modal Styles with Higher z-index */
+.modal {
+    --bs-modal-zindex: 1060; /* Bootstrap default is 1055 */
+    --bs-backdrop-zindex: 1040; /* Bootstrap default is 1050 */
+    z-index: var(--bs-modal-zindex);
+}
+
+.modal-backdrop {
+    --bs-backdrop-zindex: 1050; /* Bootstrap default is 1040 */
+    z-index: var(--bs-backdrop-zindex);
+    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+}
+
+/* Specific z-index for different modal types */
+#editEventModal {
+    z-index: 1070 !important;
+}
+
+#editMaterialModal {
+    z-index: 1071 !important;
+}
+
+#exportModal {
+    z-index: 1072 !important;
+}
+
+/* Ensure modal content is above the backdrop */
+.modal-dialog {
+    z-index: calc(var(--bs-modal-zindex) + 10) !important;
+}
+
+/* Modal header styling */
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+
+.modal-title {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+/* Modal body styling */
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Modal footer styling */
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-content {
+        border-radius: 0.5rem;
+    }
+}
+
+/* Animation for modal appearance */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal.fade .modal-dialog {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Ensure select2 dropdowns appear above modal */
+.select2-container--open {
+    z-index: 1073 !important;
+}
+
+/* Ensure datepicker appears above modal */
+.flatpickr-calendar {
+    z-index: 1074 !important;
+}
+
+/* Ensure tooltips appear above modals */
+.tooltip {
+    z-index: 1080 !important;
+}
+
+/* Ensure popovers appear above modals */
+.popover {
+    z-index: 1075 !important;
+}

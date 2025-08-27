@@ -1,0 +1,17 @@
+{
+    "redis_host": "localhost",
+    "redis_port": 6379,
+    "redis_password": "",
+    "redis_db": 0,
+    "warning_threshold": 80,
+    "critical_threshold": 90,
+    "alert_emails": [
+        "admin@votredomaine.com",
+        "devops@votredomaine.com"
+    ],
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "smtp_user": "votre-email@gmail.com",
+    "smtp_password": "votre-mot-de-passe",
+    "from_email": "monitoring@votredomaine.com"
+}

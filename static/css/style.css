@@ -1,0 +1,469 @@
+* {
+    box-sizing: border-box;
+    
+}
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+  /* Crée un conteneur horizontal pour les deux grandes parties : sidebar et main-content.
+
+    display: flex; : permet d'aligner les enfants côte à côte (en ligne). */
+}
+
+.sidebar {
+  width: 250px;
+  background: #2c3e50;
+  color: white;
+  padding: 20px;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  /* transform: translateX(-250px); */
+  /* width: 250px; : largeur fixe de la barre latérale.
+
+height: 100vh; : hauteur = 100% de la hauteur visible de l’écran. */
+}
+
+.sidebar-overlay{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: none;
+}
+
+.sidebar-overlay.active{
+  display: block;
+}
+
+.sidebar.active {
+  transform: translateX(0);
+  /* transform: translateX(0); : permet de faire apparaitre la barre latérale. */
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  /* list-style-type: none; : supprime les points de liste.
+
+padding: 0; : supprime les marges internes.
+
+margin: 0; : supprime les marges externes. */
+}
+
+.sidebar li {
+
+  cursor: pointer;
+  margin: 20px 0;
+  color: #e2e2e2;
+  
+  /* padding: 10px; : ajoute des marges internes de 10px.
+
+cursor: pointer; : change le curseur au survol. */
+}
+
+.sidebar li a{
+  list-style: none;
+  text-decoration: none;
+  color: #fff;
+}
+
+
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* backdrop-filter: saturate(180%) blur(6px);
+  background-color: rgba(84, 84, 84, 0.85); */
+  
+  /* flex-direction: column; display:flex; : permet d'aligner les enfants en colonne(verticalement). */
+  /* flex: 1; : permet de prendre toute la hauteur disponible */
+  
+}
+
+.header {
+  height: 60px;
+  background: #ecf0f1;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  position: relative;
+  border-radius: 12px;
+  margin: 20px;
+  /* align-items: center; display:flex; : permet d'aligner verticalement les enfants au centre.
+
+    padding: 0 20px; : ajoute des marges horizontales de 20px. 
+
+    */
+}
+.header h1 {
+  flex: 1;
+  margin: 0;
+  font-size: 20px;
+  /* flex: 1; : permet de prendre toute la largeur disponible.*/
+}
+.content {
+  padding: 20px;
+  background-color: rgba(224, 224, 224, 0.85);
+  flex-wrap: wrap;
+  gap: 20px;
+  display: flex;
+  z-index: 3;
+  border-radius: 12px;
+  margin: 20px;
+
+  /* flex-wrap: wrap; : permet de mettre les enfants en ligne si ils ne peuvent pas s'aligner.
+  /* flex: 1; : permet de prendre toute la hauteur disponible */
+}
+.main-content.blur {
+  filter: blur(5px);
+  pointer-events: none; /* Empêche les clics quand flouté */
+  user-select: none;
+}
+
+/* .card-dashbord {
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  flex: 1 1 30%;
+  
+} */
+/* flex: 1 1 30%; : 3 cartes par ligne sur grand écran */
+
+/* .card-dashbord div {
+  margin-bottom: 10px;
+  
+} */
+/* margin-bottom: 10px; : ajoute une marge en bas de 10px. */
+
+
+
+.menu-icon {
+  display: none;
+  cursor: pointer;
+  font-size:30px;
+  /* cursor: pointer; : change le curseur au survol. */
+  /* display: none; : cache le bouton de menu. */
+}
+
+/* Bouton fermer */
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 30px;
+  color: white;
+  float: right;
+  cursor: pointer;
+  display: none;
+}
+
+/* .content .tabs-content .tab-panel .table{
+    overflow-x: scroll;
+    flex-direction: column;
+    flex: 1;
+    
+  } */
+
+table {
+  border-collapse: collapse;
+  border: 2px solid rgb(140 140 140);
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  width: 100%;
+  overflow-x: scroll;
+}
+
+caption {
+  caption-side: bottom;
+  padding: 10px;
+  font-weight: bold;
+}
+
+thead,
+tfoot {
+  background-color: rgb(228 240 245);
+}
+
+th,
+td {
+  border: 1px solid rgb(160 160 160);
+  padding: 8px 10px;
+}
+
+td:last-of-type {
+  text-align: center;
+}
+
+tbody > tr:nth-of-type(even) {
+  background-color: rgb(237 238 242);
+}
+
+tfoot th {
+  text-align: right;
+}
+
+tfoot td {
+  font-weight: bold;
+}
+
+.input-control {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 5px;
+  margin-bottom: 20px;
+  border : 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.input-control:focus {
+  border-color: #ff4800;
+}
+
+
+/* === Sous-menu (Sidebar) === */
+.submenu {
+  margin-top: 10px;
+}
+.submenu-toggle {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 4px;
+  color: #ecf0f1;
+  transition: background 0.3s ease;
+}
+.submenu-toggle:hover {
+  background-color: #34495e;
+}
+
+.submenu-items {
+  display: none;
+  margin-left: 15px;
+  margin-top: 5px;
+}
+.submenu.open .submenu-items {
+  display: block;
+}
+.submenu-items li {
+  margin: 10px 0;
+}
+.submenu-items li a {
+  display: block;
+  padding: 8px 12px;
+  color: #bdc3c7;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background 0.2s ease-in-out;
+}
+.submenu-items li a:hover {
+  background-color: #3b5160;
+  color: white;
+}
+.submenu-items li a.active {
+  background-color: #4b6584;
+  color: #fff;
+}
+
+/* === Flèche animée === */
+.arrow {
+  transition: transform 0.3s ease;
+}
+.submenu.open .arrow {
+  transform: rotate(180deg);
+}
+
+/* === Avatar utilisateur et menu déroulant === */
+.user-menu {
+  position: relative;
+  margin-left: 10px;
+}
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  cursor: pointer;
+  object-fit: cover;
+  border: 2px solid #2c3e50;
+}
+.user-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  min-width: 150px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+.user-dropdown.show {
+  display: block;
+}
+.user-dropdown a {
+  display: block;
+  padding: 10px 15px;
+  color: #2c3e50;
+  text-decoration: none;
+  font-weight: bold;
+}
+.user-dropdown a:hover {
+  background-color: #f2f2f2;
+}
+
+
+/* ============ RESPONSIVE ============ */
+
+@media screen and (min-width: 769px) {
+  .sidebar {
+    position: relative;
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+
+  .content .tabs-content .tab-panel{
+    width: 100%;
+    flex: 1;
+    flex-direction: row;
+    gap: 20px;
+  }
+
+
+
+}
+
+@media screen and (max-width: 768px) {
+
+  .dashboard {
+    flex-direction: column;
+  }
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    /* width: 100%; : largeur = 100% de la largeur de la fenêtre.
+
+    height: auto; : hauteur = automatique.
+
+    text-align: center; : aligne le texte au centre. */
+  }
+  .sidebar-overlay.active{
+    display: block;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+    /* transform: translateX(0); : permet de faire apparaitre la barre latérale. */
+  }
+
+  .close-btn {
+    display: block;
+    /* display: block; : affiche le bouton de fermeture. */
+  }
+
+  .menu-icon {
+    display: block;
+    top: 50%;
+    left: 20px;
+    transform: translateX(-50%);
+    /* display: block; : affiche le bouton de menu. */
+  }
+  .header h1 {
+    flex: 1;
+    text-align: center;
+    /* flex: 1; : permet de prendre toute la largeur disponible. */
+    /* text-align: center; : aligne le texte au centre. */
+  }
+  /* .card-dashbord {
+    flex: 1 1 45%;
+
+  } */
+    /* flex: 1 1 45%; : 2 cartes par ligne sur petit écran */
+  .main-content {
+    flex-direction: column;
+    position: relative;
+    /* flex-direction: column; display:flex; : permet d'aligner les enfants en colonne(verticalement). */
+    /* flex: 1; : permet de prendre toute la hauteur disponible */
+  }
+
+.main-content .content {
+    flex-direction: column;
+    position: relative;
+    flex:1;
+    padding: 20px 20px 0px 0px;
+
+    /* flex-direction: column; display:flex; : permet d'aligner les enfants en colonne(verticalement). */
+  }
+
+  .content .tab-row{
+    width: 100%;
+    margin-left: 0%;
+
+    /* flex-direction: column; display:flex; : permet d'aligner les enfants en colonne(verticalement). */
+  }
+
+  .content .tabs-header{
+    flex-direction: row;
+    overflow-x: scroll;
+    /* flex-direction: row; display:flex; : permet d'aligner les enfants en ligne(horizontalement). */
+  }
+  .content .tabs-content .tab-panel{
+    width: 100%;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .content .tab-panel video{
+  width: 100% !important;
+  display: block;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+
+}
+
+/* Pour les très petits écrans (< 480px) */
+@media screen and (max-width: 480px) {
+
+  .header{
+    flex: 1;
+  }
+  .header h1 {
+    font-size: 13px;
+    /* font-size: 18px; : taille de police = 18px. */
+  }
+  .sidebar h2{
+    font-size: 12px;
+    /* font-size: 16px; : taille de police = 16px. */
+  }
+  .content .tabs-content .tab-panel .table{
+    overflow-x: scroll;
+  }
+
+}

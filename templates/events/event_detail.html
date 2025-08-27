@@ -1,0 +1,2587 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Détail de l'Événement: {{ event.titre }}{% endblock %}
+
+{% block content %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary-color: #4e73df;
+    --primary-hover: #2e59d9;
+    --secondary-color: #858796;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --light-color: #f8f9fc;
+    --dark-color: #5a5c69;
+    --shadow-sm: 0 0.15rem 0.35rem rgba(0, 0, 0, 0.075);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    --border-radius: 0.35rem;
+    --transition: all 0.3s ease;
+    --timeline-color: var(--primary-color);
+    --timeline-width: 4px;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f7fa;
+  }
+
+  /* Structure principale */
+  .event-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  /* En-tête amélioré */
+  .event-header {
+    margin-bottom: 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+  }
+  
+  .event-header:hover {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .event-header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, #f8f9fc 0%, #e9ecef 100%);
+  }
+  
+  .event-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .event-status-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .event-status-bar {
+    display: flex;
+    padding: 0.75rem 1.5rem;
+    background: white;
+    flex-wrap: wrap;
+    gap: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .status-item {
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+    color: var(--dark-color);
+    font-size: 0.9rem;
+    background: #f8f9fc;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+  }
+  
+  .status-item:hover {
+    background: var(--primary-color);
+    color: white;
+  }
+  
+  .status-item:hover i {
+    color: white !important;
+  }
+  
+  .status-item i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .event-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin: 0;
+    position: relative;
+    display: inline-block;
+  }
+
+  .event-title::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .event-title:hover::after {
+    width: 100%;
+  }
+
+  .event-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* Boutons améliorés */
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+
+  .btn:focus:not(:active)::after {
+    animation: ripple 0.6s ease-out;
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(20, 20);
+      opacity: 0;
+    }
+  }
+
+  .btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+  }
+
+  .btn-outline:hover {
+    background-color: rgba(78, 115, 223, 0.1);
+  }
+
+  .btn-danger {
+    background-color: var(--danger-color);
+    border: none;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: #d52a1a;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Contenu principal */
+  .event-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  @media (min-width: 992px) {
+    .event-content {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+
+  /* Cartes de date améliorées */
+  .event-dates {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .event-dates {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .date-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: var(--transition);
+    border-left: 4px solid var(--primary-color);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .date-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(78, 115, 223, 0.1) 0%, rgba(78, 115, 223, 0) 100%);
+    opacity: 0;
+    transition: var(--transition);
+  }
+
+  .date-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .date-card:hover::before {
+    opacity: 1;
+  }
+
+  .date-card i {
+    font-size: 2rem;
+    color: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .date-card:hover i {
+    transform: scale(1.1);
+  }
+
+  .date-card h3 {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .date-card p {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+    color: var(--dark-color);
+  }
+
+  /* Description améliorée */
+  .event-description {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+  }
+
+  .event-description:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .event-description h2 {
+    font-size: 1.5rem;
+    color: var(--dark-color);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+
+  .event-description h2::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .event-description:hover h2::after {
+    width: 100px;
+  }
+
+  .description-content {
+    line-height: 1.6;
+    color: var(--dark-color);
+  }
+
+  /* Organisateur amélioré */
+  .event-organizer {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+  }
+
+  .event-organizer:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .event-organizer h2 {
+    font-size: 1.5rem;
+    color: var(--dark-color);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+
+  .event-organizer h2::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .event-organizer:hover h2::after {
+    width: 100px;
+  }
+
+  .organizer-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  /* Sidebar améliorée */
+  .sidebar-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+  }
+
+  .sidebar-section:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .sidebar-section h2 {
+    font-size: 1.25rem;
+    color: var(--dark-color);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+
+  .sidebar-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .sidebar-section:hover h2::after {
+    width: 60px;
+  }
+
+  /* Matériel amélioré */
+  .material-list {
+    margin-bottom: 1.5rem;
+  }
+
+  .material-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.75rem;
+    background: #f8f9fc;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .material-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .material-item:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateX(5px);
+  }
+
+  .material-item:hover::before {
+    width: 5px;
+  }
+
+  .material-info h3 {
+    font-size: 1rem;
+    margin: 0 0 0.25rem;
+    color: var(--dark-color);
+  }
+
+  .material-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 50rem;
+    transition: var(--transition);
+  }
+
+  .badge-success {
+    color: #fff;
+    background-color: var(--success-color);
+  }
+
+  /* Timeline améliorée - Version moderne */
+  .timeline-container {
+    position: relative;
+    min-height: 300px;
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+  }
+
+  .timeline-container:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .timeline-navigation {
+    background: #f8f9fc;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  /* Nouveau design de timeline */
+  .timeline {
+    position: relative;
+    padding: 20px 0;
+  }
+  
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50px;
+    width: var(--timeline-width);
+    background-color: var(--timeline-color);
+    border-radius: 10px;
+    transform: translateX(-50%);
+  }
+  
+  .timeline-item {
+    position: relative;
+    padding-left: 80px;
+    margin-bottom: 30px;
+    transition: var(--transition);
+  }
+  
+  .timeline-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .timeline-point {
+    position: absolute;
+    left: 50px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--timeline-color);
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 4px var(--timeline-color);
+    transform: translateX(-50%);
+    z-index: 1;
+    transition: var(--transition);
+  }
+  
+  .timeline-item:hover .timeline-point {
+    transform: translateX(-50%) scale(1.2);
+    box-shadow: 0 0 0 6px var(--timeline-color);
+  }
+  
+  .timeline-content {
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid #e3e6f0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .timeline-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+  
+  .timeline-content:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+  
+  .timeline-content:hover::before {
+    width: 5px;
+  }
+  
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .timeline-time {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+    background-color: #f8f9fc;
+    padding: 4px 12px;
+    border-radius: 20px;
+    transition: var(--transition);
+  }
+  
+  .timeline-item:hover .timeline-time {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .timeline-actions {
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .timeline-item:hover .timeline-actions {
+    opacity: 1;
+  }
+  
+  .timeline-title {
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    color: var(--dark-color);
+    font-weight: 600;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .timeline-title::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+  
+  .timeline-item:hover .timeline-title::after {
+    width: 50px;
+  }
+  
+  .timeline-desc {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  
+  .timeline-responsable,
+  .timeline-materiels {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    margin-top: 8px;
+  }
+  
+  .timeline-responsable i,
+  .timeline-materiels i {
+    margin-right: 5px;
+    color: var(--primary-color);
+  }
+  
+  .timeline-materiels .badge {
+    margin: 0 3px;
+    font-weight: normal;
+    background-color: #f8f9fc;
+    color: var(--primary-color);
+    border: 1px solid #d1d3e2;
+  }
+
+  /* Animation pour les éléments de timeline */
+  @keyframes fadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .timeline-item {
+    animation: fadeInLeft 0.5s ease forwards;
+  }
+
+  /* Participants améliorés */
+  .participants-list {
+    margin-bottom: 1.5rem;
+  }
+
+  .participant-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    background: #f8f9fc;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .participant-item:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateX(5px);
+  }
+
+  .participant-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .participant-item:hover::before {
+    width: 5px;
+  }
+
+  .participant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--light-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: var(--primary-color);
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .participant-item:hover .participant-avatar {
+    transform: scale(1.1);
+  }
+
+  /* État vide amélioré */
+  .empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--secondary-color);
+    background: #f8f9fc;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+  }
+
+  .empty-state:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+    opacity: 0.5;
+    transition: var(--transition);
+  }
+
+  .empty-state:hover i {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  .empty-state p {
+    margin: 0;
+  }
+
+  /* Custom modal sans Bootstrap */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal-container {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(-50px);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .modal-overlay.active .modal-container {
+    transform: translateY(0);
+  }
+
+  .modal-header {
+    padding: 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    background: #f8f9fc;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+
+  /* Drag and drop pour la timeline */
+  .timeline-item.dragging {
+    opacity: 0.5;
+    background: #f8f9fc;
+    border: 2px dashed var(--primary-color);
+  }
+
+  .timeline-item.placeholder {
+    background: #f8f9fc;
+    border: 2px dashed var(--primary-color);
+    height: 100px;
+    margin-bottom: 30px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .event-header-main {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .event-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    
+    .event-status-bar {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .status-item {
+      margin-right: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline::before {
+      left: 40px;
+    }
+
+    .timeline-item {
+      padding-left: 70px;
+    }
+
+    .timeline-point {
+      left: 40px;
+    }
+  }
+
+  /* Animation pour les éléments */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in-up {
+    animation: fadeInUp 0.5s ease forwards;
+  }
+
+  /* Animation pour les éléments de la timeline */
+  @keyframes timelineItemAppear {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .timeline-item {
+    animation: timelineItemAppear 0.5s ease forwards;
+    animation-delay: calc(var(--item-index) * 0.1s);
+  }
+
+
+
+  /* Vue Liste (par défaut) */
+  .timeline-list .timeline-item {
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  
+  /* Vue Grille */
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .timeline-grid .timeline-item {
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+  
+  .timeline-grid .timeline-point {
+    display: none;
+  }
+  
+  .timeline-grid::before {
+    display: none;
+  }
+  
+  /* Vue Calendrier */
+  .timeline-calendar {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 15px;
+    padding: 20px;
+  }
+  
+  @media (min-width: 768px) {
+    .timeline-calendar {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 992px) {
+    .timeline-calendar {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .timeline-calendar .timeline-item {
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+  
+  .timeline-calendar .timeline-point {
+    display: none;
+  }
+  
+  .timeline-calendar::before {
+    display: none;
+  }
+  
+  .timeline-calendar .timeline-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .timeline-calendar .timeline-time {
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+</style>
+
+
+<!-- Styles pour le modal d'exportation -->
+<style>
+  .export-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  @media (min-width: 992px) {
+    .export-modal-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  .export-section {
+    margin-bottom: 1.5rem;
+    background: #f8f9fc;
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+  }
+  
+  .export-section-title {
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+  }
+  
+  .export-section-title i {
+    color: var(--primary-color);
+    width: 24px;
+    text-align: center;
+  }
+  
+  .format-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .format-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    background: white;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid #e3e6f0;
+  }
+  
+  .format-option:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .format-option.active {
+    border-color: var(--primary-color);
+    background-color: rgba(78, 115, 223, 0.1);
+  }
+  
+  .format-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  #formatPdf .format-icon {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+  }
+  
+  #formatExcel .format-icon {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+  }
+  
+  #formatWord .format-icon {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+  }
+  
+  #formatJson .format-icon {
+    background-color: rgba(33, 37, 41, 0.1);
+    color: #212529;
+  }
+  
+  .format-info h5 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+  }
+  
+  .format-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+  }
+  
+  .content-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .content-option {
+    margin-bottom: 0.5rem;
+  }
+  
+  .content-checkbox {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+  
+  .content-checkbox input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  .checkmark {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    min-width: 20px;
+    background-color: white;
+    border: 1px solid #d1d3e2;
+    border-radius: 4px;
+    margin-right: 1rem;
+    margin-top: 2px;
+  }
+  
+  .content-checkbox input:checked ~ .checkmark {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+  
+  .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 7px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  
+  .content-checkbox input:checked ~ .checkmark:after {
+    display: block;
+  }
+  
+  .content-info h5 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .content-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+  }
+  
+  .export-preview {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    min-height: 200px;
+    border: 1px solid #e3e6f0;
+  }
+  
+  .preview-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 150px;
+    color: var(--secondary-color);
+  }
+  
+  .preview-placeholder i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  
+  .preview-placeholder p {
+    margin: 0;
+  }
+</style>
+{% endblock extra_css %}
+
+<div class="event-detail-container">
+  <!-- En-tête amélioré -->
+  <div class="event-header fade-in-up">
+    <div class="event-header-main">
+      <div class="event-title-wrapper">
+        <h1 class="event-title">{{ event.titre }}</h1>
+        <div class="event-status-badge badge bg-{{ event.get_status_class }}">
+          {{ event.get_status_display }}
+        </div>
+      </div>
+      <div class="event-actions">
+        <button type="button" class="btn btn-primary" id="exportBtn">
+          <i class="fas fa-file-export"></i> Exporter
+        </button>
+        
+        <button class="btn btn-primary" id="editEventBtn">
+          <i class="fas fa-edit"></i> Modifier
+        </button>
+        <button class="btn btn-danger" id="deleteEventBtn" data-url="{% url 'events:event_delete' event.pk %}">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+        <a href="{% url 'events:event_calendar' %}" class="btn btn-outline">
+          <i class="fas fa-calendar-alt"></i> Calendrier
+        </a>
+      </div>
+    </div>
+    
+    <!-- Barre d'état améliorée -->
+    <div class="event-status-bar">
+      <div class="status-item">
+        <i class="fas fa-calendar-day"></i>
+        <span>Début: {{ event.date_debut|date:"d/m/Y H:i" }}</span>
+      </div>
+      <div class="status-item">
+        <i class="fas fa-calendar-times"></i>
+        <span>Fin: {{ event.date_fin|date:"d/m/Y H:i" }}</span>
+      </div>
+      <div class="status-item">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>{{ event.lieu|default:"Lieu non spécifié" }}</span>
+      </div>
+      <div class="status-item">
+        <i class="fas fa-users"></i>
+        <span>{{ event.participants.count }} participant{{ event.participants.count|pluralize:"s" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="event-content">
+    <div class="event-main">
+      <!-- Dates améliorées -->
+      <div class="event-dates">
+        <div class="date-card fade-in-up">
+          <i class="fas fa-calendar-day"></i>
+          <div>
+            <h3>Date de début</h3>
+            <p>{{ event.date_debut|date:"l d F Y" }}</p>
+            <p>{{ event.date_debut|time:"H:i" }}</p>
+          </div>
+        </div>
+        
+        <div class="date-card fade-in-up" style="animation-delay: 0.1s">
+          <i class="fas fa-calendar-times"></i>
+          <div>
+            <h3>Date de fin</h3>
+            <p>{{ event.date_fin|date:"l d F Y" }}</p>
+            <p>{{ event.date_fin|time:"H:i" }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Description améliorée -->
+      <div class="event-description fade-in-up" style="animation-delay: 0.2s">
+        <h2>Description</h2>
+        <div class="description-content">
+          {{ event.description|linebreaks }}
+        </div>
+      </div>
+      
+      <!-- Organisateur amélioré -->
+      <div class="event-organizer fade-in-up" style="animation-delay: 0.3s">
+        <h2>Organisateur</h2>
+        <div class="organizer-card">
+          {% if event.organisateur.profile.image %}
+          <img src="{{ event.organisateur.profile.image.url }}" alt="{{ event.organisateur.get_full_name }}" class="rounded-circle" width="80" height="80">
+          {% else %}
+          <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+            <i class="fas fa-user text-muted" style="font-size: 2rem;"></i>
+          </div>
+          {% endif %}
+          <div>
+            <h3>{{ event.organisateur.get_full_name }}</h3>
+            {% if event.eglise %}
+            <p><i class="fas fa-church me-2"></i>{{ event.eglise.nom }}</p>
+            {% endif %}
+            {% if event.organisateur.profile.phone %}
+            <p><i class="fas fa-phone me-2"></i>{{ event.organisateur.profile.phone }}</p>
+            {% endif %}
+            <p><i class="fas fa-envelope me-2"></i>{{ event.organisateur.email }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sidebar améliorée -->
+    <div class="event-sidebar">
+      <!-- Matériel amélioré -->
+      <div class="sidebar-section fade-in-up" style="animation-delay: 0.4s">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="mb-0">Matériel réservé</h2>
+          <span class="badge bg-primary">{{ reservations|length }} article{{ reservations|length|pluralize:"s" }}</span>
+        </div>
+        
+        {% if reservations %}
+        <div class="material-list">
+          {% for reservation in reservations %}
+          <div class="material-item" data-reservation-id="{{ reservation.id }}">
+            <div class="material-info flex-grow-1">
+              <div class="d-flex justify-content-between">
+                <h5 class="mb-1">{{ reservation.materiel.nom }}</h5>
+                <div class="material-actions">
+                  {% if request.user == event.organisateur or request.user.is_staff %}
+                  <button class="btn btn-sm btn-link p-0 me-1 edit-material" 
+                          data-reservation-id="{{ reservation.id }}"
+                          data-material-id="{{ reservation.materiel.id }}"
+                          data-quantity="{{ reservation.quantite }}"
+                          title="Modifier">
+                    <i class="fas fa-edit text-primary"></i>
+                  </button>
+                  <button class="btn btn-sm btn-link p-0 remove-material" 
+                          data-reservation-id="{{ reservation.id }}"
+                          title="Retirer">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                  </button>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <div>
+                  <span class="badge bg-light text-dark">
+                    <i class="fas fa-boxes me-1"></i> {{ reservation.quantite }} unité{{ reservation.quantite|pluralize }}
+                  </span>
+                  {% if reservation.materiel.reference %}
+                  <span class="badge bg-light text-dark ms-1">
+                    <i class="fas fa-barcode me-1"></i> {{ reservation.materiel.reference }}
+                  </span>
+                  {% endif %}
+                </div>
+                <span class="badge bg-{{ reservation.get_status_class }}">
+                  {{ reservation.get_status_display }}
+                </span>
+              </div>
+              {% if reservation.notes %}
+              <div class="material-notes mt-2">
+                <small class="text-muted">{{ reservation.notes|truncatechars:50 }}</small>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state py-4">
+          <i class="fas fa-boxes"></i>
+          <p class="mb-0">Aucun matériel réservé</p>
+        </div>
+        {% endif %}
+        
+        {% if request.user == event.organisateur or request.user.is_staff %}
+        <div class="mt-3">
+          <button class="btn btn-primary btn-block" id="addMaterialBtn">
+            <i class="fas fa-plus me-2"></i> Ajouter du matériel
+          </button>
+        </div>
+        {% endif %}
+      </div>
+      
+      <!-- Timeline améliorée -->
+      <div class="sidebar-section fade-in-up" style="animation-delay: 0.5s">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="mb-0">Programme</h2>
+          <div>
+            {% if can_edit %}
+            <button class="btn btn-sm btn-primary" id="addChronoBtn">
+              <i class="fas fa-plus me-1"></i> Ajouter
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="timeline-container">
+          <div class="timeline-navigation">
+            <div class="timeline-zoom">
+              <button class="btn btn-sm btn-outline" id="zoomInBtn">
+                <i class="fas fa-search-plus"></i>
+              </button>
+              <button class="btn btn-sm btn-outline" id="zoomOutBtn">
+                <i class="fas fa-search-minus"></i>
+              </button>
+            </div>
+            <div class="timeline-view">
+              <button class="btn btn-sm btn-outline active" data-view="list">
+                <i class="fas fa-list"></i>
+              </button>
+              <button class="btn btn-sm btn-outline" data-view="grid">
+                <i class="fas fa-th"></i>
+              </button>
+              <button class="btn btn-sm btn-outline" data-view="calendar">
+                <i class="fas fa-calendar-alt"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="timeline" id="timeline">
+            {% if chronogram_items %}
+              {% for item in chronogram_items %}
+              <div class="timeline-item" data-id="{{ item.id }}" style="--item-index: {{ forloop.counter0 }};">
+                <div class="timeline-point"></div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="timeline-time">
+                      {{ item.heure_debut|time:"H:i" }} - {{ item.heure_fin|time:"H:i" }}
+                    </span>
+                    {% if can_edit %}
+                    <div class="timeline-actions">
+                      <button class="btn btn-sm btn-link p-0 me-1 edit-chrono" 
+                              data-id="{{ item.id }}" 
+                              data-url="{% url 'events:edit_chronogram_item' item.pk %}"
+                              title="Modifier">
+                        <i class="fas fa-edit text-primary"></i>
+                      </button>
+                      <button class="btn btn-sm btn-link p-0 delete-chrono" 
+                              data-id="{{ item.id }}" 
+                              data-url="{% url 'events:delete_chronogram_item' item.pk %}"
+                              title="Supprimer">
+                        <i class="fas fa-trash text-danger"></i>
+                      </button>
+                    </div>
+                    {% endif %}
+                  </div>
+                  <h4 class="timeline-title">{{ item.titre }}</h4>
+                  {% if item.description %}
+                  <p class="timeline-desc">{{ item.description }}</p>
+                  {% endif %}
+                  {% if item.responsable %}
+                  <div class="timeline-responsable">
+                    <i class="fas fa-user-tie"></i> {{ item.responsable }}
+                  </div>
+                  {% endif %}
+                  {% if item.materiels_needed.all %}
+                  <div class="timeline-materiels">
+                    <i class="fas fa-tools"></i>
+                    {% for materiel in item.materiels_needed.all %}
+                      <span class="badge bg-light text-dark">{{ materiel.nom }}</span>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state py-4">
+                <i class="fas fa-list-alt"></i>
+                <p class="mb-0">Aucun élément au programme pour le moment.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Timeline Summary -->
+        <div class="timeline-summary mt-3 d-flex justify-content-between">
+          <div class="summary-item">
+            <i class="fas fa-clock text-primary me-2"></i>
+            <span>Total: <strong id="totalDuration">0h 00min</strong></span>
+          </div>
+          <div class="summary-item">
+            <i class="fas fa-list text-primary me-2"></i>
+            <span>Activités: <strong id="activityCount">{{ chronogram_items|length }}</strong></span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Participants améliorés -->
+      <div class="sidebar-section fade-in-up" style="animation-delay: 0.6s">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="mb-0">Participants</h2>
+          <span class="badge bg-primary">{{ event.participants.count }} / {{ event.nb_places_max|default:'∞' }}</span>
+        </div>
+        
+        {% if event.participants.exists %}
+          <div class="participants-list">
+            {% for participant in event.participants.all %}
+              <div class="participant-item">
+                <div class="participant-avatar">
+                  {% if participant.profile.image %}
+                  <img src="{{ participant.profile.image.url }}" alt="{{ participant.get_full_name }}" class="rounded-circle" width="40" height="40">
+                  {% else %}
+                  <i class="fas fa-user"></i>
+                  {% endif %}
+                </div>
+                <div class="participant-info flex-grow-1">
+                  <div class="d-flex justify-content-between">
+                    <strong>{{ participant.get_full_name|default:participant.username }}</strong>
+                    {% if participant == event.organisateur %}
+                      <span class="badge bg-primary">Organisateur</span>
+                    {% endif %}
+                  </div>
+                  <small class="text-muted">{{ participant.email }}</small>
+                </div>
+                {% if request.user == event.organisateur and participant != event.organisateur %}
+                  <button class="btn btn-sm btn-link text-danger remove-participant" 
+                          data-participant-id="{{ participant.id }}"
+                          title="Retirer le participant">
+                    <i class="fas fa-times"></i>
+                  </button>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state py-4">
+            <i class="fas fa-users-slash"></i>
+            <p class="mb-0">Aucun participant pour l'instant</p>
+          </div>
+        {% endif %}
+        
+        {% if request.user == event.organisateur or request.user.is_staff %}
+          <div class="mt-3">
+            <button class="btn btn-primary btn-block" id="inviteParticipantsBtn">
+              <i class="fas fa-user-plus me-2"></i> Inviter des participants
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals personnalisés -->
+
+<!-- Modal de modification de l'événement -->
+{% comment %} <div class="modal-overlay" id="editEventModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-edit me-2"></i>Modifier l'Événement</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="editEventForm" action="{% url 'events:event_update' event.pk %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="closeEditEventModal">Fermer</button>
+      <button type="submit" form="editEventForm" class="btn btn-primary">
+        <i class="fas fa-save me-2"></i> Enregistrer
+      </button>
+    </div>
+  </div>
+</div> {% endcomment %}
+{% include 'events/modals/edit_event_modal.html' %}
+
+<!-- Modal d'ajout de matériel -->
+<div class="modal-overlay" id="addMaterialModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-boxes me-2"></i>Ajouter du Matériel</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addMaterielForm" action="{% url 'events:add_materiel' event.pk %}" method="post">
+        {% csrf_token %}
+        {{ materiel_form.as_p }}
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="closeAddMaterialModal">Fermer</button>
+      <button type="submit" form="addMaterielForm" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Ajouter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'ajout d'activité au chronogramme -->
+<div class="modal-overlay" id="chronoModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-calendar-plus me-2"></i>Ajouter une Activité</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="addChronoForm" action="{% url 'events:add_chronogramme_item' event.pk %}" method="post">
+        {% csrf_token %}
+        {{ chronogramme_form.as_p }}
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="closeChronoModal">Fermer</button>
+      <button type="submit" form="addChronoForm" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Ajouter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de modification du matériel -->
+<div class="modal-overlay" id="editMaterialModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-edit me-2"></i>Modifier la réservation
+      </h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <form id="editMaterialForm" action="{% url 'events:update_materiel' 0 %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" id="editReservationId" name="reservation_id">
+      <input type="hidden" id="editMaterialId" name="material_id">
+      
+      <div class="modal-body">
+        <div id="materialEditError" class="alert alert-danger d-none"></div>
+        
+        <div class="form-group mb-3">
+          <label for="editMaterialName" class="form-label fw-bold">Matériel</label>
+          <input type="text" class="form-control-plaintext" id="editMaterialName" readonly>
+        </div>
+        
+        <div class="form-group mb-3">
+          <label for="editQuantity" class="form-label fw-bold">Quantité <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" id="editQuantity" name="quantity" min="1" required
+                 data-max-available=""
+                 oninput="this.value = Math.min(parseInt(this.getAttribute('data-max-available')), parseInt(this.value) || 1)">
+          <small class="form-text text-muted" id="availableQuantityText"></small>
+        </div>
+        
+        <div class="form-group mb-3">
+          <label for="editNotes" class="form-label fw-bold">Notes</label>
+          <textarea class="form-control" id="editNotes" name="notes" rows="3" 
+                    placeholder="Ajoutez des notes ou des instructions spécifiques..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" id="closeEditMaterialModal">
+          <i class="fas fa-times me-1"></i> Annuler
+        </button>
+        <button type="submit" class="btn btn-primary" id="saveMaterialChanges">
+          <i class="fas fa-save me-1"></i> Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal d'invitation des participants -->
+<div class="modal-overlay" id="inviteParticipantsModal">
+  <div class="modal-container" style="max-width: 600px;">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-user-plus me-2"></i>Inviter des participants
+      </h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <form id="inviteParticipantsForm" action="{% url 'events:invite_participants' event.id %}" method="POST">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label for="participants" class="form-label">Sélectionnez les participants</label>
+          <select class="form-control select2-multiple" id="participants" name="participants" multiple="multiple" style="width: 100%;">
+            {% for user in available_users %}
+              <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }} ({{ user.email }})</option>
+            {% endfor %}
+          </select>
+          <small class="form-text text-muted">Utilisez la recherche pour trouver des utilisateurs</small>
+        </div>
+        <div class="form-group mb-3">
+          <label for="customMessage" class="form-label">Message personnalisé (optionnel)</label>
+          <textarea class="form-control" id="customMessage" name="message" rows="3" placeholder="Ajoutez un message personnalisé..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="closeInviteParticipantsModal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-paper-plane me-2"></i> Envoyer les invitations
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Export Modal amélioré -->
+<!-- Export Modal amélioré -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal-container" style="max-width: 900px;">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-file-export me-2"></i>Options d'exportation</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="exportError" class="alert alert-danger d-none"></div>
+      <div id="exportSuccess" class="alert alert-success d-none"></div>
+      
+      <div class="export-modal-grid">
+        <!-- Colonne de gauche : Format d'exportation -->
+        <div class="export-format-col">
+          <div class="export-section">
+            <h4 class="export-section-title">
+              <i class="fas fa-file-alt me-2"></i>Format d'exportation
+            </h4>
+            <div class="format-options">
+              <div class="format-option active" data-format="pdf" id="formatPdf">
+                <div class="format-icon">
+                  <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="format-info">
+                  <h5>PDF</h5>
+                  <p>Document formaté (recommandé)</p>
+                </div>
+              </div>
+              
+              <div class="format-option" data-format="excel" id="formatExcel">
+                <div class="format-icon">
+                  <i class="fas fa-file-excel"></i>
+                </div>
+                <div class="format-info">
+                  <h5>Excel</h5>
+                  <p>Données tabulaires</p>
+                </div>
+              </div>
+              
+              <div class="format-option" data-format="word" id="formatWord">
+                <div class="format-icon">
+                  <i class="fas fa-file-word"></i>
+                </div>
+                <div class="format-info">
+                  <h5>Word</h5>
+                  <p>Document éditable</p>
+                </div>
+              </div>
+              
+              <div class="format-option" data-format="json" id="formatJson">
+                <div class="format-icon">
+                  <i class="fas fa-code"></i>
+                </div>
+                <div class="format-info">
+                  <h5>JSON</h5>
+                  <p>Données brutes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Options spécifiques au format -->
+          <div class="export-section" id="exportOptions">
+            <h4 class="export-section-title">
+              <i class="fas fa-cog me-2"></i>Options
+            </h4>
+            
+            <!-- Options PDF/Word -->
+            <div id="documentOptions">
+              <div class="form-group">
+                <label for="documentOrientation">Orientation</label>
+                <select class="form-control" id="documentOrientation">
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Paysage</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="documentSize">Taille de page</label>
+                <select class="form-control" id="documentSize">
+                  <option value="a4">A4</option>
+                  <option value="letter">Lettre</option>
+                  <option value="a3">A3</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Options Excel -->
+            <div id="excelOptions" class="d-none">
+              <div class="form-group">
+                <label for="excelFormat">Format des données</label>
+                <select class="form-control" id="excelFormat">
+                  <option value="xlsx">XLSX (Excel 2007+)</option>
+                  <option value="xls">XLS (Excel 97-2003)</option>
+                  <option value="csv">CSV (Valeurs séparées par des virgules)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Colonne de droite : Contenu à inclure -->
+        <div class="export-content-col">
+          <div class="export-section">
+            <h4 class="export-section-title">
+              <i class="fas fa-clipboard-list me-2"></i>Contenu à inclure
+            </h4>
+            
+            <div class="content-options">
+              <div class="content-option">
+                <label class="content-checkbox">
+                  <input type="checkbox" id="includeDetails" checked>
+                  <span class="checkmark"></span>
+                  <div class="content-info">
+                    <h5><i class="fas fa-calendar-alt me-2"></i>Détails de l'événement</h5>
+                    <p>Titre, dates, lieu, description, organisateur</p>
+                  </div>
+                </label>
+              </div>
+              
+              <div class="content-option">
+                <label class="content-checkbox">
+                  <input type="checkbox" id="includeChronogram" checked>
+                  <span class="checkmark"></span>
+                  <div class="content-info">
+                    <h5><i class="fas fa-list-ol me-2"></i>Programme</h5>
+                    <p>Liste des activités planifiées avec horaires</p>
+                  </div>
+                </label>
+              </div>
+              
+              <div class="content-option">
+                <label class="content-checkbox">
+                  <input type="checkbox" id="includeMaterials">
+                  <span class="checkmark"></span>
+                  <div class="content-info">
+                    <h5><i class="fas fa-boxes me-2"></i>Matériel réservé</h5>
+                    <p>Liste du matériel avec quantités et notes</p>
+                  </div>
+                </label>
+              </div>
+              
+              <div class="content-option">
+                <label class="content-checkbox">
+                  <input type="checkbox" id="includeParticipants">
+                  <span class="checkmark"></span>
+                  <div class="content-info">
+                    <h5><i class="fas fa-users me-2"></i>Liste des participants</h5>
+                    <p>Noms et coordonnées des participants</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Aperçu des options sélectionnées -->
+          <div class="export-section">
+            <h4 class="export-section-title">
+              <i class="fas fa-eye me-2"></i>Aperçu
+            </h4>
+            <div class="export-preview" id="exportPreview">
+              <div class="preview-placeholder">
+                <i class="fas fa-file-export"></i>
+                <p>Sélectionnez des options pour voir un aperçu</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="closeExportModal">Annuler</button>
+      <button type="button" class="btn btn-primary" id="confirmExport">
+        <i class="fas fa-file-export me-2"></i> Exporter
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<!-- Bibliothèques pour l'exportation côté client -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+
+<script>
+// Gestion des vues de la timeline
+function setupTimelineViews() {
+  const timeline = document.getElementById('timeline');
+  if (!timeline) return;
+
+  // Initialisation de la vue par défaut
+  let currentView = localStorage.getItem('timelineView') || 'list';
+  
+  // Fonction pour changer la vue
+  function changeView(view) {
+    // Retirer toutes les classes de vue
+    timeline.classList.remove('timeline-list', 'timeline-grid', 'timeline-calendar');
+    
+    // Ajouter la classe correspondante à la vue sélectionnée
+    timeline.classList.add(`timeline-${view}`);
+    
+    // Mettre à jour le bouton actif
+    document.querySelectorAll('[data-view]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // Sauvegarder la préférence
+    localStorage.setItem('timelineView', view);
+    
+    // Animation de transition
+    timeline.style.opacity = '0';
+    setTimeout(() => {
+      timeline.style.opacity = '1';
+      timeline.style.transition = 'opacity 0.3s ease';
+    }, 10);
+  }
+
+  // Écouteurs d'événements pour les boutons de vue
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      changeView(this.dataset.view);
+    });
+  });
+
+  // Appliquer la vue initiale
+  changeView(currentView);
+}
+// Initialiser les vues au chargement
+document.addEventListener('DOMContentLoaded', function() {
+  setupTimelineViews();
+  
+  // Gestion du zoom
+  document.getElementById('zoomInBtn')?.addEventListener('click', function() {
+    const currentWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--timeline-width')) || 4;
+    document.documentElement.style.setProperty('--timeline-width', `${Math.min(currentWidth + 1, 8)}px`);
+  });
+  
+  document.getElementById('zoomOutBtn')?.addEventListener('click', function() {
+    const currentWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--timeline-width')) || 4;
+    document.documentElement.style.setProperty('--timeline-width', `${Math.max(currentWidth - 1, 2)}px`);
+  });
+});
+// Déclarer currentFormat en tant que variable globale
+let currentFormat = 'pdf';
+
+// Initialisation après le chargement du DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des modals personnalisés
+    function setupModal(openBtnId, modalId, closeBtnId) {
+        const openBtn = document.getElementById(openBtnId);
+        const modal = document.getElementById(modalId);
+        const closeBtn = document.getElementById(closeBtnId);
+        
+        if (openBtn && modal && closeBtn) {
+            openBtn.addEventListener('click', () => {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            modal.querySelector('.modal-close').addEventListener('click', () => {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+    }
+    
+    // Configuration des modals
+    setupModal('editEventBtn', 'editEventModal', 'closeEditEventModal');
+    setupModal('addMaterialBtn', 'addMaterialModal', 'closeAddMaterialModal');
+    setupModal('addChronoBtn', 'chronoModal', 'closeChronoModal');
+    setupModal('exportBtn', 'exportModal', 'closeExportModal');
+    setupModal('inviteParticipantsBtn', 'inviteParticipantsModal', 'closeInviteParticipantsModal');
+    
+    // Initialisation de Select2
+    $('.select2-multiple').select2({
+        placeholder: 'Rechercher des utilisateurs...',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#inviteParticipantsModal .modal-container')
+    });
+
+    // Gestion du modal d'exportation
+    const exportModal = document.getElementById('exportModal');
+    
+    // Gestion du changement de format d'export
+    document.querySelectorAll('[data-format]').forEach(button => {
+        button.addEventListener('click', function() {
+            currentFormat = this.dataset.format;
+            
+            // Mise à jour de l'interface
+            document.querySelectorAll('[data-format]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Afficher/masquer les options spécifiques
+            const documentOptions = document.getElementById('documentOptions');
+            const excelOptions = document.getElementById('excelOptions');
+            
+            if (['pdf', 'word'].includes(currentFormat)) {
+                documentOptions.classList.remove('d-none');
+                excelOptions.classList.add('d-none');
+            } else if (currentFormat === 'excel') {
+                documentOptions.classList.add('d-none');
+                excelOptions.classList.remove('d-none');
+            } else {
+                documentOptions.classList.add('d-none');
+                excelOptions.classList.add('d-none');
+            }
+            
+            updateExportPreview();
+        });
+    });
+    
+    // Gestion du clic sur le bouton d'export
+    document.getElementById('confirmExport').addEventListener('click', function() {
+        const options = {
+            format: currentFormat,
+            includeDetails: document.getElementById('includeDetails').checked,
+            includeChronogram: document.getElementById('includeChronogram').checked,
+            includeMaterials: document.getElementById('includeMaterials').checked,
+            includeParticipants: document.getElementById('includeParticipants').checked,
+            orientation: document.getElementById('documentOrientation').value,
+            size: document.getElementById('documentSize').value,
+            excelFormat: document.getElementById('excelFormat').value
+        };
+        
+        exportModal.classList.remove('active');
+        document.body.style.overflow = '';
+        showToast('Préparation de l\'export en cours...', 'info');
+        
+        setTimeout(() => {
+            switch(options.format) {
+                case 'pdf':
+                    exportToPDF(options);
+                    break;
+                case 'excel':
+                    exportToExcel(options);
+                    break;
+                case 'word':
+                    exportToWord(options);
+                    break;
+                case 'json':
+                    exportToJSON(options);
+                    break;
+            }
+            showToast('Export terminé avec succès!', 'success');
+        }, 1000);
+    });
+    
+    // Mise à jour de l'aperçu
+    document.querySelectorAll('input[type="checkbox"], select').forEach(element => {
+        element.addEventListener('change', updateExportPreview);
+    });
+    
+    // Initialiser l'aperçu
+    updateExportPreview();
+    
+    // Gestion de la suppression d'un événement
+    document.getElementById('deleteEventBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.')) {
+            fetch(this.dataset.url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '{% url "events:events" %}';
+                } else {
+                    showToast('Erreur lors de la suppression', 'error');
+                }
+            });
+        }
+    });
+    
+    // Gestion de la modification du matériel
+    document.querySelectorAll('.edit-material').forEach(button => {
+        button.addEventListener('click', function() {
+            const reservationId = this.dataset.reservationId;
+            const materialId = this.dataset.materialId;
+            const currentQuantity = this.dataset.quantity;
+            
+            // Remplir le modal de modification
+            document.getElementById('editReservationId').value = reservationId;
+            document.getElementById('editMaterialId').value = materialId;
+            document.getElementById('editQuantity').value = currentQuantity;
+            
+            // Afficher le modal
+            document.getElementById('editMaterialModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+    
+    // Calcul de la durée totale du programme
+    calculateTotalDuration();
+    
+    // Gestion du drag and drop pour la timeline
+    if (document.getElementById('timeline')) {
+        new Sortable(document.getElementById('timeline'), {
+            animation: 150,
+            handle: '.timeline-content',
+            ghostClass: 'dragging',
+            chosenClass: 'dragging',
+            dragClass: 'dragging',
+            onEnd: function(evt) {
+                // Envoyer la nouvelle position au serveur
+                const itemId = evt.item.dataset.id;
+                const newIndex = evt.newIndex;
+                
+                fetch('{% url "events:reorder_chronogram_items" event.pk %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        item_id: itemId,
+                        new_index: newIndex
+                    })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (!data.success) {
+                          showToast('Erreur lors du réordonnancement', 'error');
+                      }
+                  });
+            }
+        });
+    }
+    
+    // Gestion des vues de la timeline
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const timeline = document.getElementById('timeline');
+            timeline.className = 'timeline';
+            timeline.classList.add(`timeline-${view}`);
+            
+            // Sauvegarder la préférence de vue
+            localStorage.setItem('timelineView', view);
+        });
+    });
+    
+    // Restaurer la vue précédente
+    const savedView = localStorage.getItem('timelineView') || 'list';
+    document.querySelector(`[data-view="${savedView}"]`).click();
+    
+    // Gestion du zoom de la timeline
+    document.getElementById('zoomInBtn').addEventListener('click', function() {
+        const timeline = document.querySelector('.timeline');
+        const currentWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--timeline-width')) || 4;
+        document.documentElement.style.setProperty('--timeline-width', `${Math.min(currentWidth + 1, 8)}px`);
+    });
+    
+    document.getElementById('zoomOutBtn').addEventListener('click', function() {
+        const timeline = document.querySelector('.timeline');
+        const currentWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--timeline-width')) || 4;
+        document.documentElement.style.setProperty('--timeline-width', `${Math.max(currentWidth - 1, 2)}px`);
+    });
+});
+
+// Fonction pour mettre à jour l'aperçu de l'export
+function updateExportPreview() {
+    const preview = document.getElementById('exportPreview');
+    if (!preview) return;
+    
+    const includeDetails = document.getElementById('includeDetails').checked;
+    const includeChronogram = document.getElementById('includeChronogram').checked;
+    const includeMaterials = document.getElementById('includeMaterials').checked;
+    const includeParticipants = document.getElementById('includeParticipants').checked;
+    
+    let previewHtml = '<div class="preview-content">';
+    previewHtml += '<h6 class="fw-bold mb-3">Aperçu de l\'export</h6>';
+    previewHtml += '<div class="preview-sections">';
+    
+    if (includeDetails) {
+        previewHtml += `
+        <div class="preview-section mb-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                <strong>Détails de l'événement</strong>
+            </div>
+            <div class="preview-details ps-4">
+                <div class="preview-line">• {{ event.titre|truncatechars:40 }}</div>
+                <div class="preview-line">• {{ event.date_debut|date:"d/m/Y H:i" }} - {{ event.date_fin|date:"d/m/Y H:i" }}</div>
+                <div class="preview-line">• {{ event.lieu|default:"Non spécifié"|truncatechars:30 }}</div>
+            </div>
+        </div>`;
+    }
+    
+    if (includeChronogram) {
+        previewHtml += `
+        <div class="preview-section mb-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-list-ol text-primary me-2"></i>
+                <strong>Programme</strong>
+            </div>
+            <div class="preview-details ps-4">
+                <div class="preview-line">• [09:00-09:30] Accueil</div>
+                <div class="preview-line">• [09:30-11:00] Session principale</div>
+                <div class="preview-line">• [12:00-13:30] Déjeuner</div>
+                <div class="preview-line text-muted">+ {{ event.chronogramme_items.count|default:0 }} autres activités</div>
+            </div>
+        </div>`;
+    }
+    
+    if (includeMaterials) {
+        previewHtml += `
+        <div class="preview-section mb-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-boxes text-primary me-2"></i>
+                <strong>Matériel réservé</strong>
+            </div>
+            <div class="preview-details ps-4">
+                <div class="preview-line">• Projecteur (x2)</div>
+                <div class="preview-line">• Micro (x4)</div>
+                <div class="preview-line text-muted">+ {{ event.materiels.count|default:0 }} autres articles</div>
+            </div>
+        </div>`;
+    }
+    
+    if (includeParticipants) {
+        previewHtml += `
+        <div class="preview-section">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-users text-primary me-2"></i>
+                <strong>Participants</strong>
+            </div>
+            <div class="preview-details ps-4">
+                <div class="preview-line">• Jean Dupont (jean@example.com)</div>
+                <div class="preview-line">• Marie Martin (marie@example.com)</div>
+                <div class="preview-line text-muted">+ {{ event.participants.count|default:0 }} autres participants</div>
+            </div>
+        </div>`;
+    }
+    
+    previewHtml += '</div>';
+    previewHtml += `<div class="preview-footer mt-3 small text-muted">Format : ${currentFormat.toUpperCase()}</div>`;
+    previewHtml += '</div>';
+    
+    preview.innerHTML = previewHtml;
+}
+
+// Fonction pour calculer la durée totale du programme
+function calculateTotalDuration() {
+    // Cette fonction devrait calculer la durée totale à partir des éléments du chronogramme
+    // Pour l'exemple, nous utilisons une valeur fixe
+    const totalMinutes = 480; // 8 heures
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    document.getElementById('totalDuration').textContent = 
+        `${hours}h ${minutes.toString().padStart(2, '0')}min`;
+}
+
+// Fonction pour afficher une notification toast
+function showToast(message, type = 'info', duration = 3000) {
+    const toastContainer = document.querySelector('.toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast show ${type}`;
+    
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : type === 'warning' ? 'exclamation-circle' : 'info-circle'}"></i>
+        </div>
+        <div class="toast-content">
+            ${message}
+        </div>
+        <button class="toast-close">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Fermer le toast au clic
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        toast.remove();
+    });
+    
+    // Supprimer le toast après la durée spécifiée
+    setTimeout(() => {
+        toast.remove();
+    }, duration);
+}
+
+// Fonctions d'exportation
+function exportToPDF(options) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: options.orientation,
+            unit: 'mm',
+            format: options.size
+        });
+        
+        const eventData = getEventData();
+        
+        // Titre
+        doc.setFontSize(22);
+        doc.text(`Événement: ${eventData.titre}`, 14, 20);
+        
+        // Informations de base
+        doc.setFontSize(12);
+        doc.text(`Type: ${eventData.type_evenement}`, 14, 35);
+        doc.text(`Statut: ${eventData.statut}`, 14, 45);
+        doc.text(`Date de début: ${eventData.date_debut}`, 14, 55);
+        doc.text(`Date de fin: ${eventData.date_fin}`, 14, 65);
+        doc.text(`Lieu: ${eventData.lieu || 'Non spécifié'}`, 14, 75);
+        
+        // Description
+        if (options.includeDetails) {
+            doc.text('Description:', 14, 90);
+            const splitDescription = doc.splitTextToSize(eventData.description || 'Aucune description fournie.', 180);
+            doc.text(splitDescription, 20, 100);
+        }
+        
+        // Programme
+        if (options.includeChronogram) {
+            doc.addPage();
+            doc.setFontSize(18);
+            doc.text('Programme', 14, 20);
+            
+            doc.setFontSize(12);
+            doc.text('09:00 - 09:30: Accueil des participants', 14, 35);
+            doc.text('09:30 - 11:00: Session 1', 14, 45);
+            // Ajouter plus d'éléments selon les données réelles
+        }
+        
+        // Matériel
+        if (options.includeMaterials) {
+            doc.addPage();
+            doc.setFontSize(18);
+            doc.text('Matériel réservé', 14, 20);
+            
+            doc.setFontSize(12);
+            doc.text('Projecteur: 1 unité', 14, 35);
+            doc.text('Microphones: 2 unités', 14, 45);
+            // Ajouter plus d'éléments selon les données réelles
+        }
+        
+        // Participants
+        if (options.includeParticipants) {
+            doc.addPage();
+            doc.setFontSize(18);
+            doc.text('Participants', 14, 20);
+            
+            doc.setFontSize(12);
+            doc.text('Jean Dupont (jean@example.com)', 14, 35);
+            doc.text('Marie Martin (marie@example.com)', 14, 45);
+            // Ajouter plus d'éléments selon les données réelles
+        }
+        
+        doc.save(`evenement_${eventData.id}.pdf`);
+    } catch (error) {
+        console.error('Erreur lors de la génération du PDF:', error);
+        showToast('Erreur lors de la génération du PDF', 'error');
+    }
+}
+
+function exportToExcel(options) {
+    try {
+        const eventData = getEventData();
+        const data = [];
+        
+        if (options.includeDetails) {
+            data.push({
+                'Type': 'Détails de l\'événement',
+                'Titre': eventData.titre,
+                'Type': eventData.type_evenement,
+                'Statut': eventData.statut,
+                'Date de début': eventData.date_debut,
+                'Date de fin': eventData.date_fin,
+                'Lieu': eventData.lieu || 'Non spécifié',
+                'Description': eventData.description || 'Aucune description fournie.'
+            });
+        }
+        
+        if (options.includeChronogram) {
+            data.push({
+                'Type': 'Programme',
+                'Heure début': '09:00',
+                'Heure fin': '09:30',
+                'Activité': 'Accueil des participants',
+                'Responsable': 'Jean Dupont'
+            });
+            // Ajouter plus d'éléments selon les données réelles
+        }
+        
+        if (options.includeMaterials) {
+            data.push({
+                'Type': 'Matériel',
+                'Nom': 'Projecteur',
+                'Quantité': '1',
+                'Référence': 'PROJ-001'
+            });
+            // Ajouter plus d'éléments selon les données réelles
+        }
+        
+        if (options.includeParticipants) {
+            data.push({
+                'Type': 'Participant',
+                'Nom': 'Jean Dupont',
+                'Email': 'jean@example.com'
+            });
+            // Ajouter plus d'éléments selon les données réelles
+        }
+        
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Événement');
+        XLSX.writeFile(wb, `evenement_${eventData.id}.${options.excelFormat === 'csv' ? 'csv' : 'xlsx'}`);
+    } catch (error) {
+        console.error('Erreur lors de la génération du fichier Excel:', error);
+        showToast('Erreur lors de la génération du fichier Excel', 'error');
+    }
+}
+
+async function exportToWord(options) {
+    try {
+        const { Document, Paragraph, TextRun, HeadingLevel, Packer } = docx;
+        const eventData = getEventData();
+        
+        const doc = new Document({
+            sections: [{
+                properties: {},
+                children: [
+                    new Paragraph({
+                        text: eventData.titre,
+                        heading: HeadingLevel.HEADING_1,
+                        spacing: { after: 200 }
+                    }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: 'Type: ',
+                                bold: true
+                            }),
+                            new TextRun(eventData.type_evenement)
+                        ]
+                    }),
+                    // Ajouter plus de contenu selon les options sélectionnées
+                ]
+            }]
+        });
+        
+        const buffer = await Packer.toBlob(doc);
+        saveAs(buffer, `evenement_${eventData.id}.docx`);
+    } catch (error) {
+        console.error('Erreur lors de la génération du document Word:', error);
+        showToast('Erreur lors de la génération du document Word', 'error');
+    }
+}
+
+function exportToJSON(options) {
+    try {
+        const eventData = getEventData();
+        const exportData = {};
+        
+        if (options.includeDetails) {
+            exportData.details = {
+                titre: eventData.titre,
+                type_evenement: eventData.type_evenement,
+                statut: eventData.statut,
+                date_debut: eventData.date_debut,
+                date_fin: eventData.date_fin,
+                lieu: eventData.lieu,
+                description: eventData.description
+            };
+        }
+        
+        if (options.includeChronogram) {
+            exportData.chronogramme = [
+                { heure_debut: "09:00", heure_fin: "09:30", titre: "Accueil", description: "Accueil des participants" }
+                // Ajouter plus d'éléments selon les données réelles
+            ];
+        }
+        
+        if (options.includeMaterials) {
+            exportData.materiels = [
+                { nom: "Projecteur", quantite: 1, reference: "PROJ-001" }
+                // Ajouter plus d'éléments selon les données réelles
+            ];
+        }
+        
+        if (options.includeParticipants) {
+            exportData.participants = [
+                { nom: "Jean Dupont", email: "jean@example.com" }
+                // Ajouter plus d'éléments selon les données réelles
+            ];
+        }
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        saveAs(dataBlob, `evenement_${eventData.id}.json`);
+    } catch (error) {
+        console.error('Erreur lors de la génération du fichier JSON:', error);
+        showToast('Erreur lors de la génération du fichier JSON', 'error');
+    }
+}
+
+// Fonction utilitaire pour récupérer les données de l'événement
+function getEventData() {
+    return {
+        id: '{{ event.id }}',
+        titre: '{{ event.titre|escapejs }}',
+        type_evenement: '{{ event.get_type_evenement_display|escapejs }}',
+        statut: '{{ event.get_status_display|escapejs }}',
+        date_debut: '{{ event.date_debut|date:"d/m/Y H:i" }}',
+        date_fin: '{{ event.date_fin|date:"d/m/Y H:i" }}',
+        lieu: '{{ event.lieu|default:""|escapejs }}',
+        description: '{{ event.description|default:""|escapejs|linebreaksbr }}'.replace(/<br\s*\/?>/g, '\n')
+    };
+}
+</script>
+{% endblock extra_scripts %}

@@ -1,0 +1,220 @@
+
+    .form-preview-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    flex:1;
+  }
+
+  .form-column, .preview-column {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  .preview-card {
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+#map {
+  height: 250px;
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+
+  .print-btn {
+    margin-top: 10px;
+    background: #333;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+
+
+.form-preview-wrapper  #form-eglise {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  /* Progress bar */
+.form-preview-wrapper  .progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: #eee;
+    border-radius: 4px;
+    margin-bottom: 30px;
+    overflow: hidden;
+  }
+
+.form-preview-wrapper  .progress-bar {
+    height: 100%;
+    width: 0;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+  }
+
+.form-preview-wrapper  .steps {
+    position: relative;
+  }
+
+.form-preview-wrapper  .step {
+    display: none;
+    animation: fade 0.3s ease-in-out forwards;
+  }
+
+.form-preview-wrapper  .step.active {
+    display: block;
+  }
+
+.form-preview-wrapper  .form-group {
+    margin-bottom: 20px;
+  }
+
+.form-preview-wrapper  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+.form-preview-wrapper  .form-group input,
+.form-preview-wrapper  .form-group select,
+.form-preview-wrapper  .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+  }
+
+.form-preview-wrapper  .form-group .invalid-feedback {
+    font-size: 0.85rem;
+    color: #d9534f;
+    margin-top: 5px;
+  }
+
+.form-preview-wrapper  .step-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 25px;
+  }
+
+.form-preview-wrapper  .step-buttons button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+.form-preview-wrapper  .step-buttons button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+.form-preview-wrapper  .step-buttons button:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .step-buttons {
+      flex-direction: column;
+    }
+  }
+
+.geo-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.geo-popup-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.geo-popup button {
+  margin: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+#acceptGeo {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+#denyGeo {
+  background-color: #f44336;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+#acceptGeo:hover, #denyGeo:hover {
+  opacity: 0.8;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

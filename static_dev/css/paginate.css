@@ -1,0 +1,20 @@
+.pagination {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.page-links a {
+  margin: 0 10px;
+  padding: 5px 10px;
+  background: #C5CAE9;
+  color: #3F51B5;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.page-links a:hover {
+  background-color: transparent;
+  color: #3F51B5;
+  border: 1px solid #3F51B5;
+  transition: all 0.3s ease-in-out;
+}

@@ -1,0 +1,560 @@
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background-color: #f5f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.signup-steps-container {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Step Header */
+.step-header {
+  text-align: center;
+  padding: 30px 20px 20px;
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  color: white;
+  position: relative;
+}
+
+.step-header .logo {
+  width: 80px;
+  height: auto;
+  margin-bottom: 15px;
+}
+
+.step-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.step-indicator {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+/* Step Content */
+.step-content {
+  padding: 25px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 500;
+}
+
+/* Floating Labels */
+.form-group.floating {
+  position: relative;
+}
+
+.form-group.floating input {
+  width: 100%;
+  padding: 15px 15px 15px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group.floating label {
+  position: absolute;
+  left: 45px;
+  top: 15px;
+  color: #888;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  background: white;
+  padding: 0 5px;
+}
+
+.form-group.floating input:focus,
+.form-group.floating input:not(:placeholder-shown) {
+  border-color: #6e8efb;
+  outline: none;
+}
+
+.form-group.floating input:focus + label,
+.form-group.floating input:not(:placeholder-shown) + label {
+  top: -10px;
+  left: 30px;
+  font-size: 0.8rem;
+  color: #6e8efb;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 15px;
+  color: #888;
+}
+
+/* Role Selection */
+.role-options {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.role-option {
+  flex: 1;
+}
+
+.role-option input {
+  display: none;
+}
+
+.role-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.role-card i {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: #888;
+}
+
+.role-option input:checked + .role-card {
+  border-color: #6e8efb;
+  background-color: rgba(110, 142, 251, 0.1);
+}
+
+.role-option input:checked + .role-card i {
+  color: #6e8efb;
+}
+
+/* Image Upload */
+.upload-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.preview-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.default-icon {
+  font-size: 3rem;
+  color: #ccc;
+}
+
+#previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+}
+
+.btn-upload {
+  display: inline-block;
+  padding: 10px 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.btn-upload:hover {
+  background: #e0e0e0;
+}
+
+#id_image {
+  display: none;
+}
+
+/* Password Toggle */
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  cursor: pointer;
+  color: #888;
+}
+
+/* Checkbox */
+.checkbox-group {
+  margin: 20px 0;
+}
+
+.accept-terms {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.accept-terms input {
+  opacity: 0;
+  position: absolute;
+}
+
+.accept-terms .checkmark {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  margin-right: 8px;
+  position: relative;
+}
+
+.accept-terms input:checked ~ .checkmark {
+  background-color: #6e8efb;
+  border-color: #6e8efb;
+}
+
+.accept-terms .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.accept-terms input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.accept-terms a {
+  color: #6e8efb;
+  text-decoration: none;
+}
+
+.accept-terms a:hover {
+  text-decoration: underline;
+}
+
+/* Step Actions */
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 25px 25px;
+}
+
+.btn-prev, .btn-next, .btn-submit {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-prev {
+  background: #f5f5f5;
+  color: #555;
+}
+
+.btn-prev:hover {
+  background: #e0e0e0;
+}
+
+.btn-next, .btn-submit {
+  background: linear-gradient(135deg, #6e8efb, #a777e3);
+  color: white;
+  box-shadow: 0 4px 15px rgba(110, 142, 251, 0.3);
+}
+
+.btn-next:hover, .btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(110, 142, 251, 0.4);
+}
+
+.btn-submit {
+  position: relative;
+}
+
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  display: none;
+}
+
+/* Feedback */
+.feedback {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  padding-left: 5px;
+}
+
+.feedback .valid {
+  color: #4CAF50;
+}
+
+.feedback .invalid {
+  color: #F44336;
+}
+
+.input-requirements {
+  font-size: 0.75rem;
+  color: #777;
+  margin-top: 5px;
+  padding-left: 5px;
+}
+
+/* Animations */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hide steps by default */
+.signup-step {
+  display: none;
+}
+
+.signup-step.active {
+  display: block;
+  animation: fadeIn 0.5s ease-out;
+}
+
+
+    /* Styles supplémentaires pour l'amélioration UX */
+    .role-section {
+      margin: 2rem 0;
+    }
+    
+    .permissions-display {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .permission-card {
+      flex: 1;
+      padding: 1.5rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #e0e0e0;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .permission-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .permission-card.active {
+      background: rgba(110, 142, 251, 0.1);
+      border-color: #6e8efb;
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(110, 142, 251, 0.2);
+    }
+    
+    .permission-card i {
+      font-size: 2rem;
+      color: #6e8efb;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .permission-card.active i {
+      color: #4a6fdc;
+      transform: scale(1.1);
+    }
+    
+    .permission-card h4 {
+      margin: 0.5rem 0;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    
+    .permission-card p {
+      color: #7f8c8d;
+      font-size: 0.9rem;
+      margin: 0;
+      line-height: 1.4;
+    }
+    
+    .role-options {
+      display: none; /* Masqué car nous utilisons les permission-cards */
+    }
+    
+    /* Animation de transition entre étapes */
+    .signup-step {
+      transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+    
+    .signup-step:not(.active) {
+      transform: translateX(20px);
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      width: 100%;
+    }
+
+        /* Styles pour les tooltips */
+    .permission-card {
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .tooltip {
+      visibility: hidden;
+      width: 220px;
+      background-color: rgba(0,0,0,0.85);
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: absolute;
+      z-index: 100;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      /* transition: opacity 0.3s, transform 0.3s; */
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .tooltip:after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -8px;
+      border-width: 8px;
+      border-style: solid;
+      border-color: rgba(0,0,0,0.85) transparent transparent transparent;
+    }
+    
+    .permission-card:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(-5px);
+      transition-delay: 0.1s;
+    }
+    
+    .tooltip ul {
+      text-align: left;
+      padding-left: 16px;
+      margin: 8px 0 0 0;
+      font-size: 0.85rem;
+    }
+    
+    .tooltip li {
+      margin-bottom: 4px;
+      position: relative;
+      line-height: 1.4;
+    }
+    
+    .tooltip li:before {
+      content: "•";
+      color: #6e8efb;
+      font-weight: bold;
+      display: inline-block;
+      width: 1em;
+      margin-left: -1em;
+    }
+    
+    /* Animation des cartes */
+    .permission-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .permission-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .permission-card.active {
+      border-color: #6e8efb;
+      background-color: rgba(110, 142, 251, 0.1);
+      transform: translateY(-3px);
+    }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .step-header {
+    padding: 20px 15px 15px;
+  }
+  
+  .step-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .step-content {
+    padding: 20px 15px;
+  }
+  
+  .role-options {
+    flex-direction: column;
+  }
+  .tooltip {
+    width: 180px;
+    font-size: 0.8rem;
+  }
+}

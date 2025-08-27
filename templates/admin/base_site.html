@@ -1,0 +1,17 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% load querystring_tags %}
+
+{% block extrastyle %}
+  <link rel="stylesheet" href="{% static 'admin/css/custom.css' %}?v={{ STATIC_VERSION }}">
+{% endblock %}
+
+{% block title %}{{ title|default:"Logistique CI" }}{% endblock %}
+
+{% block extrahead %}
+  <script src="{% static 'admin/js/dropdown.js' %}?v={{ STATIC_VERSION }}" defer></script>
+{% endblock %}
+
+{# Supprime tout branding personnalisé #}
+{# Ne définis pas {% block branding %} ici pour que Django affiche son entête par défaut #}
+

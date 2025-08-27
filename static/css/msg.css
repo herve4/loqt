@@ -1,0 +1,59 @@
+.messages {
+  margin: 20px;
+}
+.message {
+  padding: 12px 15px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.message.disappear {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+.message.error {
+  background-color: #FFEBEE;
+  border-left: 5px solid #E57373;
+  color: #E57373;
+}
+.message.success {
+  background-color: #E8F5E9;
+  border-left: 5px solid #66BB6A;
+  color: #66BB6A;
+}
+.message.warning {
+  background-color: #FFE0B2;
+  border-left: 5px solid #FFB300;
+  color: #FFB300;
+}
+
+.message.info{
+  background-color: #B2EBF2 !important;
+  border-left: 5px solid #039BE5 !important;
+  color: #039BE5 !important;
+}
+
+.message .close-btn {
+  margin-left: auto;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 20px;
+  padding: 0 5px;
+  color: inherit;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.message .close-btn:hover {
+  background-color: inherit;
+  color: inherit;
+}

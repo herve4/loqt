@@ -1,0 +1,98 @@
+services:
+  web:
+    build: .
+    command: >
+      bash -c "
+      echo 'Waiting for database to be ready...' &&
+      ./wait-for-db.sh &&
+      echo 'Running migrations...' &&
+      python manage.py migrate --noinput &&
+      echo 'Collecting static files...' &&
+      python manage.py collectstatic --noinput --clear &&
+      echo 'Starting Gunicorn...' &&
+      exec gunicorn loqt.wsgi:application \
+        --bind 0.0.0.0:8000 \
+        --workers 3 \
+        --timeout 120 \
+        --keep-alive 5 \
+        --worker-class sync \
+        --log-level=info \
+        --access-logfile - \
+        --error-logfile -"
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    env_file:
+      - .env
+    environment:
+      - DB_ENGINE=${DB_ENGINE}
+      - DB_HOST=db
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DJANGO_LOGLEVEL=${DJANGO_LOGLEVEL}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: ["http", "--log=stdout", "--authtoken=${NGROK_AUTH_TOKEN}", "web:8000"]
+    ports:
+      - "4040:4040"
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

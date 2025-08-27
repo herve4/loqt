@@ -1,0 +1,289 @@
+
+{% load querystring_tags %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Inscription</title>
+  <link rel="stylesheet" href="{% static 'css/signup.css' %}?v={{ STATIC_VERSION }}">
+  <link rel="stylesheet" href="{% static 'css/msg.css' %}?v={{ STATIC_VERSION }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<style>
+  #form-error-container {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 15px 0;
+    display: none;
+    border: 1px solid #ef9a9a;
+}
+
+.permission-card.error {
+    border: 2px solid #c62828 !important;
+}
+</style>
+<body style="background-image: url('{% static 'img/bg.jpg' %}'); background-size: cover; background-position: center;">
+  <div class="signup-steps-container">
+    <div id="form-error-container" class="alert alert-danger" style="display: none;"></div>
+    <!-- Étape 1 - Informations personnelles -->
+    <div class="signup-step active" id="step1">
+      <!-- ... (contenu existant inchangé) ... -->
+      <div class="step-header">
+        <img src="{% static 'img/logo-loqt.png' %}" alt="Logo" class="logo">
+        <h1>Créer un compte</h1>
+        <div class="step-indicator">Étape 1/3</div>
+      </div>
+      
+      <div class="step-content">
+
+        <div class="form-group floating">
+          <input type="text" name="last_name" id="last_name" required>
+          <label for="last_name">Nom</label>
+          <i class="fas fa-user input-icon"></i>
+        </div>
+        
+        <div class="form-group floating">
+          <input type="text" name="first_name" id="first_name" required>
+          <label for="first_name">Prénom</label>
+          <i class="fas fa-user input-icon"></i>
+        </div>
+        
+        <div class="form-group floating">
+          <input type="email" name="email" id="email" required>
+          <label for="email">Email</label>
+          <i class="fas fa-envelope input-icon"></i>
+        </div>
+        
+        <div class="form-group floating">
+          <input type="tel" name="phone" id="phone" required>
+          <label for="phone">Téléphone</label>
+          <i class="fas fa-phone input-icon"></i>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button type="button" onclick="history.back()" class="btn-prev"><i class="fa fas-arrow"></i> Se connecter</button>
+        <button type="button" class="btn-next" onclick="validateAndGoToStep(1, 2)">Suivant</button>
+      </div>
+    </div>
+    
+    <!-- Étape 2 - Rôle et photo -->
+    <div class="signup-step" id="step2">
+      <div class="step-header">
+        <img src="{% static 'img/logo-loqt.png' %}" alt="Logo" class="logo">
+        <h1>Votre profil</h1>
+        <div class="step-indicator">Étape 2/3</div>
+      </div>
+      
+      <div class="step-content">
+        <div class="form-group role-section">
+          <label class="section-title" style="margin-top:-30px;">Sélectionnez votre rôle</label>
+          <div class="permissions-display" style="margin-top:10px;">
+            <!-- Option Membre -->
+            <div class="permission-card active" data-role="membre" onclick="selectRole(this)">
+              <i class="fas fa-user"></i>
+              <h4>Membre</h4>
+              <div class="tooltip">
+                <p>Accès aux fonctionnalités de base</p>
+                <ul>
+                  <li>Consulter les événements</li>
+                  <li>Participer aux discussions</li>
+                  <li>Accéder aux ressources</li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- Option Pasteur -->
+            <div class="permission-card" data-role="pasteur" onclick="selectRole(this)">
+              <i class="fas fa-church"></i>
+              <h4>Pasteur</h4>
+              <div class="tooltip">
+                <p>Gestion des activités spirituelles</p>
+                <ul>
+                  <li>Toutes les permissions membres</li>
+                  <li>Créer des événements</li>
+                  <li>Gérer les groupes</li>
+                  <li>Publier des annonces</li>
+                </ul>
+              </div>
+            </div>
+            
+            <!-- Option Responsable -->
+            <div class="permission-card" data-role="responsable" onclick="selectRole(this)">
+              <i class="fas fa-user-tie"></i>
+              <h4>Responsable</h4>
+              <div class="tooltip">
+                <p>Administration complète</p>
+                <ul>
+                  <li>Toutes les permissions pasteur</li>
+                  <li>Gérer les utilisateurs</li>
+                  <li>Configurer la plateforme</li>
+                  <li>Accès aux statistiques</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <input type="hidden" name="role" id="selectedRole"  required>
+          
+        </div>
+        
+        <div class="form-group image-upload">
+          <label class="section-title">Photo de profil</label>
+          <p class="section-subtitle">Ajoutez une photo pour votre profil (optionnel)</p>
+          
+          <div class="upload-container">
+            <div class="preview-container" id="imagePreview">
+              <i class="fas fa-user-circle default-icon"></i>
+              <img id="previewImage" style="display: none;">
+            </div>
+            <div class="upload-btn">
+              <label for="image" class="btn-upload">
+                <i class="fas fa-cloud-upload-alt"></i> Choisir une image
+              </label>
+              <input type="file" name="image" id="image" accept="image/*" style="display:none;">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="step-actions">
+        <button type="button" class="btn-prev" onclick="changeStep(2, 1)">
+          <i class="fas fa-arrow-left"></i> Précédent
+        </button>
+        <button type="button" class="btn-next" onclick="validateAndGoToStep(2, 3)">
+          Suivant <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Étape 3 - Mot de passe et conditions -->
+    <div class="signup-step" id="step3">
+      <!-- ... (contenu existant inchangé) ... -->
+      <div class="step-header">
+        <img src="{% static 'img/logo-loqt.png' %}" alt="Logo" class="logo">
+        <h1>Sécurité du compte</h1>
+        <div class="step-indicator">Étape 3/3</div>
+      </div>
+      
+      <div class="step-content">
+        {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+              <div class="message {{ message.tags }}">
+                <i class="fas 
+                {% if message.tags == 'success' %}fa-circle-check{% endif %}
+                {% if message.tags == 'info' %}fa-circle-info{% endif %}
+                {% if message.tags == 'error' %}fa-circle-xmark{% endif %}
+                {% if message.tags == 'warning' %}fa-triangle-exclamation{% endif %}
+              "></i>
+                {{ message }}
+                <span class="close-btn" onclick="this.parentElement.remove()">x</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="form-group floating">
+          <input type="password" name="password1" id="password1" required>
+          <label for="password1">Mot de passe</label>
+          <i class="fas fa-lock input-icon"></i>
+          <span class="toggle-password" data-target="password1">
+            <i class="fa fa-eye"></i>
+          </span>
+        </div>
+        
+        <div class="form-group floating">
+          <input type="password" name="password2" id="password2" required>
+          <label for="password2">Confirmer le mot de passe</label>
+          <i class="fas fa-lock input-icon"></i>
+          <span class="toggle-password" data-target="password2">
+            <i class="fa fa-eye"></i>
+          </span>
+        </div>
+        
+        <div class="form-group checkbox-group">
+          <label class="accept-terms">
+            <input type="checkbox" name="accept_terms" id="accept_terms">
+            <span class="checkmark"></span>
+            J'accepte les <a href="#">conditions d'utilisation</a> et la <a href="#">politique de confidentialité</a>
+          </label>
+        </div>
+        <div class="step-actions">
+        <button type="button" class="btn-prev" onclick="changeStep(3, 2)">Précédent</button>
+        <button type="button" class="btn-submit">
+            <span class="btn-text">S'inscrire</span>
+            <span class="loader" style="display:none;"></span>
+        </button>
+        
+      </div>
+    </div>
+  </div>
+  
+  <!-- Formulaire caché pour la soumission finale -->
+  <form method="post" enctype="multipart/form-data" id="mainForm" style="display: none;">
+    {% csrf_token %}
+    <!-- ... (champs cachés existants) ... -->
+    <input type="hidden" name="last_name" id="form_last_name">
+    <input type="hidden" name="first_name" id="form_first_name">
+    <input type="hidden" name="email" id="form_email">
+    <input type="hidden" name="phone" id="form_phone">
+    <input type="hidden" name="role" id="form_role">
+    <input type="hidden" name="password1" id="form_password1">
+    <input type="hidden" name="password2" id="form_password2">
+    <input type="hidden" name="accept_terms" id="form_accept_terms">
+  </form>
+
+  <script>
+// Sélection du rôle avec feedback visuel
+    function selectRole(card) {
+      // Retire la classe active de toutes les cartes
+      document.querySelectorAll('.permission-card').forEach(c => {
+        c.classList.remove('active');
+      });
+      
+      // Ajoute la classe active à la carte sélectionnée
+      card.classList.add('active');
+      
+      // Met à jour le champ caché
+      //document.getElementById('selectedRole').value = card.dataset.role;
+      // Mettre à jour le champ caché
+      const role = card.getAttribute('data-role');
+      document.getElementById('selectedRole').value = role;
+      
+      console.log('Rôle sélectionné:', role); // Pour debug
+    }
+    
+    // Version mobile - remplace le hover par un click pour afficher le tooltip
+    if (window.innerWidth < 768) {
+      document.querySelectorAll('.permission-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+          if (!this.classList.contains('active')) {
+            // Si c'est un premier click, sélectionne le rôle
+            selectRole(this);
+            e.stopPropagation();
+          } else {
+            // Si c'est un deuxième click, montre le tooltip
+            const tooltip = this.querySelector('.tooltip');
+            tooltip.style.visibility = 'visible';
+            tooltip.style.opacity = '1';
+            
+            // Cache le tooltip quand on clique ailleurs
+            setTimeout(() => {
+              document.addEventListener('click', function hideTooltip() {
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.opacity = '0';
+                document.removeEventListener('click', hideTooltip);
+              });
+            }, 10);
+          }
+        });
+      });
+    }
+  </script>
+  
+  <script src="{% static 'js/signup.js' %}?v={{ STATIC_VERSION }}" defer></script>
+</body>
+</html>

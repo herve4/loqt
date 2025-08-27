@@ -1,0 +1,134 @@
+{% extends "base/base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container">
+  <h2>✏️ Modifier l’Église : {{ form.instance.nom }}</h2>
+  <form method="post" enctype="multipart/form-data" class="form-style">
+    {% csrf_token %}
+    <div class="form-section">
+      <label for="{{ form.nom.id_for_label }}">Nom</label>
+      {% render_field form.nom class="form-control" %}
+    </div>
+
+    <div class="form-section">
+      <label for="{{ form.pasteur.id_for_label }}">Pasteur</label>
+      {% render_field form.pasteur class="form-control" %}
+    </div>
+
+    <div class="form-section">
+      <label for="{{ form.phone.id_for_label }}">Téléphone</label>
+      {% render_field form.phone class="form-control" %}
+    </div>
+
+    <div class="form-section">
+      <label for="{{ form.region.id_for_label }}">Région</label>
+      {% render_field form.region class="form-control" %}
+    </div>
+
+    <div class="form-section">
+      <label for="{{ form.ville.id_for_label }}">Ville</label>
+      {% render_field form.ville class="form-control" %}
+    </div>
+
+    <div class="form-section">
+        <label for="{{ form.latitude.id_for_label }}">Latitude : {{latitude|default:"Rien"}} </label>
+        {% render_field form.latitude class="form-control" readonly="readonly" %}
+    </div>
+
+    <div class="form-section">
+        <label for="{{ form.longitude.id_for_label }}">Longitude : {{longitude|default:"Rien"}} </label>
+        {% render_field form.longitude class="form-control" readonly="readonly" %}
+
+    </div>
+
+
+    {% if longitude and latitude %}
+        <div id="map" style="height: 300px; margin-top: 20px;"></div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-valider">💾 Enregistrer les modifications</button>
+    <a href="#" onclick="history.back()" class="btn btn-retour-update">Retour</a>
+  </form>
+</div>
+
+<!-- Leaflet map -->
+<script>
+
+
+document.addEventListener('DOMContentLoaded',()=>{
+const latitudeupdate = {{ latitude }};
+const longitudeupdate = {{longitude}};
+const map = L.map('map').setView([latitudeupdate, longitudeupdate], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+}).addTo(map);
+L.marker([latitudeupdate, longitudeupdate]).addTo(map)
+    .bindPopup("📍 Position actuelle de l’église").openPopup();
+});
+
+</script>
+
+<style>
+  .container {
+    max-width: 700px;
+    margin: auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+
+  .form-section {
+    margin-bottom: 15px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  .btn {
+    padding: 10px 20px;
+  }
+  .btn-valider{
+    margin : 10px 0;
+    background : #80DEEA;
+    color : #00838F;
+    border-radius : 8px;
+    border : none;
+    transition : background 0.3s ease;
+    cursor : pointer;
+  }
+  .btn-valider:hover{
+    background : #00838F;
+    color : white;
+  }
+
+    .btn-retour-update{
+    margin : 10px 0;
+    background : #E0E0E0;
+    color :rgb(0, 0, 0);
+    border-radius : 8px;
+    border : none;
+    transition : background 0.3s ease;
+    cursor : pointer;
+  }
+  a{
+    text-decoration: none;
+  }
+  .btn-retour-update:hover{
+    background :rgb(68, 68, 68);
+    color : white;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+</style>
+{% endblock %}
+{% comment %} style="background-image: url('{% static 'img/bg.jpg' %}'); background-size: cover; background-position: center;" {% endcomment %}
+{% comment %} ?v={{ STATIC_VERSION }} {% endcomment %}
