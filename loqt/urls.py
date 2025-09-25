@@ -25,10 +25,14 @@ from logistque.views import geocode_city, login_view, logout_view, logout_confir
 from django.contrib.staticfiles.views import serve as static_serve
 from django.views.static import serve as media_serve
 from .health import health_check
+from api.routers import urlpatterns as api_urls
 
 urlpatterns = [
     # Endpoint de santé pour les vérifications de santé (healthchecks)
     path('health/', health_check, name='health_check'),
+    
+    # API Endpoints
+    path('api/', include(api_urls)),
     path('admin/', admin_site.urls),
     path('', include('logistque.urls')),
     path('api-auth/', include('rest_framework.urls')),

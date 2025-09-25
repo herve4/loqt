@@ -1,0 +1,80 @@
+import pandas as pd
+
+# Créer un DataFrame avec des exemples de données
+data = {
+    'nom': [
+        'Région 1',
+        'Région 2',
+        'Région 3',
+        'Région 4',
+        'Région 5'
+    ]
+}
+
+# Créer un DataFrame
+df = pd.DataFrame(data)
+
+# Créer un écrivain Excel
+with pd.ExcelWriter('/home/herve/loqt/static/templates/import_region_template.xlsx', engine='xlsxwriter') as writer:
+    # Écrire les données dans la première feuille
+    df.to_excel(writer, sheet_name='Régions', index=False)
+    
+    # Obtenir le classeur et la feuille de calcul
+    workbook = writer.book
+    worksheet = writer.sheets['Régions']
+    
+    # Ajouter un format pour l'en-tête
+    header_format = workbook.add_format({
+        'bold': True,
+        'text_wrap': True,
+        'valign': 'top',
+        'fg_color': '#4472C4',
+        'font_color': 'white',
+        'border': 1
+    })
+    
+    # Appliquer le format à l'en-tête
+    for col_num, value in enumerate(df.columns.values):
+        worksheet.write(0, col_num, value, header_format)
+    
+    # Ajuster la largeur des colonnes
+    for i, col in enumerate(df.columns):
+        # Trouver la longueur maximale dans la colonne
+        max_length = max(
+            df[col].astype(str).apply(len).max(),
+            len(str(col))  # Longueur du nom de la colonne
+        )
+        # Ajouter une marge
+        adjusted_width = (max_length + 2) * 1.2
+        worksheet.set_column(i, i, adjusted_width)
+    
+    # Ajouter des validations de données
+    validation = {
+        'validate': 'length',
+        'criteria': '>=',
+        'value': 2,
+        'input_title': 'Nom de la région',
+        'input_message': 'Le nom de la région doit contenir au moins 2 caractères.'
+    }
+    
+    # Appliquer la validation à la colonne 'nom'
+    worksheet.data_validation(1, 0, 100, 0, validation)
+    
+    # Ajouter des instructions
+    instructions = """
+    Instructions pour l'importation :
+    1. Remplissez la colonne 'nom' avec les noms des régions.
+    2. Chaque ligne représente une région à importer.
+    3. Les noms de régions doivent être uniques.
+    4. Sauvegardez le fichier au format .xlsx
+    5. Utilisez le bouton 'Importer' pour charger le fichier.
+    """
+    
+    # Ajouter une feuille d'instructions
+    worksheet = workbook.add_worksheet('Instructions')
+    worksheet.set_column('A:A', 80)
+    worksheet.write('A1', 'MODÈLE D\'IMPORTATION DE RÉGIONS', workbook.add_format({'bold': True, 'size': 14}))
+    worksheet.write('A3', instructions)
+    
+    # Protéger la feuille pour éviter les modifications accidentelles
+    worksheet.protect()

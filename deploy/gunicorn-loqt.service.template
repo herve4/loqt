@@ -1,0 +1,21 @@
+# /etc/systemd/system/gunicorn-loqt.service
+[Unit]
+Description=gunicorn daemon for loqt
+Requires=gunicorn-loqt.socket
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/home/herve/loqt
+Environment="PATH=/home/herve/loqt/venv/bin"
+EnvironmentFile=/home/herve/loqt/.env
+ExecStart=/home/herve/loqt/venv/bin/gunicorn loqt.wsgi:application \
+          --bind unix:/run/gunicorn-loqt.sock \
+          --workers 3 \
+          --timeout 120
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

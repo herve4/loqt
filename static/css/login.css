@@ -454,6 +454,9 @@ input[type="password"]:focus {
 @media (max-width: 768px) {
   .main-container {
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
   }
   
   .events-slideshow {
@@ -462,6 +465,96 @@ input[type="password"]:focus {
   
   .login-container {
     width: 100%;
-    height: 100%;
+    height: auto;
+    min-height: 100vh;
+    padding: 1.5rem;
+    max-width: 420px;
+    margin: 0 auto;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    border-radius: 12px;
+  }
+
+  /* Allow scroll on small screens */
+  body {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
+/* Mobile small: improve readability and touch targets */
+@media (max-width: 480px) {
+  html, body {
+    font-size: 16px; /* Avoid iOS zoom and improve readability */
+  }
+
+  .logo img {
+    max-width: 140px;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group { margin-bottom: 1.25rem; }
+
+  .input-icon {
+    left: 14px;
+    font-size: 1rem;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    font-size: 1rem; /* 16px base */
+    padding: 14px 16px 14px 46px; /* bigger touch target */
+    border-radius: 10px;
+  }
+
+  .toggle-password {
+    right: 14px;
+    font-size: 1.05rem;
+  }
+
+  .form-extra {
+    font-size: 1rem;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .checkmark {
+    width: 20px; height: 20px;
+  }
+  .checkmark:after { left: 6px; top: 3px; }
+
+  .btn-login {
+    padding: 14px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+  }
+
+  .social-login p { font-size: 1rem; }
+  .social-icon { width: 44px; height: 44px; font-size: 1.25rem; }
+
+  .register-link { font-size: 1rem; }
+}
+
+/* Very small devices */
+@media (max-width: 360px) {
+  .login-container {
+    max-width: 360px;
+    padding: 1.25rem;
+  }
+
+  h2 { font-size: 1.5rem; }
+
+  input[type="text"],
+  input[type="password"] {
+    padding: 12px 14px 12px 44px;
+  }
+
+  .btn-login {
+    padding: 12px;
+    font-size: 1.05rem;
   }
 }

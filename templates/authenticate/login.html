@@ -3,6 +3,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Connexion</title>
   <link rel="stylesheet" href="{% static 'css/login.css' %}?v={{ STATIC_VERSION }}">
   <link rel="stylesheet" href="{% static 'css/msg.css' %}?v={{ STATIC_VERSION }}">
@@ -22,7 +23,7 @@
       <audio id="notifSound" src="{% static 'notify/notif2.mp3' %}" preload="auto"></audio>
       <div class="login-form">
         <div class="logo">
-          <img src="{% static 'img/logo-loqt.png' %}" alt="Logo">
+          <img src="{% static 'img/logo.jpg' %}" alt="Logo">
         </div>
         <h2>Connexion</h2>
         {% if error %}

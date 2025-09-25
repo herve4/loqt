@@ -1,0 +1,12 @@
+# /etc/systemd/system/gunicorn-loqt.socket
+[Unit]
+Description=gunicorn socket for loqt
+
+[Socket]
+ListenStream=/run/gunicorn-loqt.sock
+SocketUser=www-data
+SocketGroup=www-data
+SocketMode=0660
+
+[Install]
+WantedBy=sockets.target

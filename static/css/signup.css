@@ -538,6 +538,9 @@ body {
 
 /* Responsive */
 @media (max-width: 480px) {
+  html, body { font-size: 16px; }
+  body { min-height: 100vh; padding: 16px; }
+  .signup-steps-container { max-width: 420px; width: 100%; margin: 0 auto; border-radius: 12px; }
   .step-header {
     padding: 20px 15px 15px;
   }
@@ -545,16 +548,30 @@ body {
   .step-header h1 {
     font-size: 1.5rem;
   }
+  .step-header .logo { width: 70px; }
   
   .step-content {
     padding: 20px 15px;
   }
+  .form-group { margin-bottom: 16px; }
+  .form-group.floating input { padding: 14px 14px 14px 46px; border-radius: 10px; }
+  .form-group.floating label { left: 46px; top: 14px; }
+  .input-icon { left: 16px; top: 16px; }
   
   .role-options {
     flex-direction: column;
   }
+  .permissions-display { flex-direction: column; gap: 12px; }
   .tooltip {
     width: 180px;
     font-size: 0.8rem;
   }
+  .step-actions { flex-direction: column; gap: 12px; padding: 0 15px 20px; }
+  .btn-prev, .btn-next, .btn-submit { width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 10px; }
+}
+
+/* Tablets and small laptops */
+@media (max-width: 768px) {
+  .signup-steps-container { max-width: 500px; width: 100%; margin: 0 auto; }
+  body { overflow: auto; }
 }

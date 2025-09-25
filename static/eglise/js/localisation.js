@@ -11,25 +11,89 @@ latInput.name = 'latitude';
 lonInput.name = 'longitude';
 
 
-    
-  const hasLocation = sessionStorage.getItem("location_granted");
-
-  if (hasLocation === null) {
+    // Attendre que Leaflet (L) soit disponible avant d'initialiser la carte
+ function onLeafletReady(callback) {
+   if (window.L) return callback();
+   let tries = 0;
+   const maxTries = 100; // ~5s
+   const timer = setInterval(() => {
+     if (window.L) {
+       clearInterval(timer);
+       callback();
+     } else if (++tries >= maxTries) {
+       clearInterval(timer);
+       console.error('Leaflet n\'a pas été chargé.');
+     }
+   }, 50);
+ }
+  const shouldAsk = (!latInput.value && !lonInput.value);
+  // Toujours afficher notre popup personnalisé si aucune coordonnée n'est renseignée
+  if (shouldAsk) {
     showLocationPopup();
-  } else if (hasLocation === "true") {
-    getUserLocation();
-  } else {
-    fallbackToManualSearch();
   }
 
   function showLocationPopup() {
-    if (confirm("Souhaitez-vous partager votre position pour localiser votre église automatiquement ?")) {
-      sessionStorage.setItem("location_granted", "true");
-      getUserLocation();
-    } else {
-      sessionStorage.setItem("location_granted", "false");
-      fallbackToManualSearch();
+    const popup = document.getElementById('geoPopup');
+    if (!popup) return;
+    popup.classList.add('active');
+    document.body.classList.add('no-scroll');
+    const allowBtn = document.getElementById('acceptGeo');
+    const denyBtn = document.getElementById('denyGeo');
+    const closeBtn = document.getElementById('closeGeo');
+    const spinner = document.getElementById('geoSpinner');
+
+    function ensureMap(cb) {
+      if (mapInstance) return cb(mapInstance);
+      onLeafletReady(() => {
+        const map = initMap();
+        cb(map);
+      });
     }
+
+    if (allowBtn) {
+      allowBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (spinner) spinner.style.display = 'block';
+        allowBtn.disabled = true;
+        if (denyBtn) denyBtn.disabled = true;
+        if (closeBtn) closeBtn.disabled = true;
+        ensureMap((map) => {
+          locateUser(
+            map,
+            () => {
+              if (spinner) spinner.style.display = 'none';
+              popup.classList.remove('active');
+              document.body.classList.remove('no-scroll');
+              allowBtn.disabled = false;
+              if (denyBtn) denyBtn.disabled = false;
+              if (closeBtn) closeBtn.disabled = false;
+            },
+            () => {
+              if (spinner) spinner.style.display = 'none';
+              popup.classList.remove('active');
+              document.body.classList.remove('no-scroll');
+              allowBtn.disabled = false;
+              if (denyBtn) denyBtn.disabled = false;
+              if (closeBtn) closeBtn.disabled = false;
+            }
+          );
+        });
+      };
+    }
+
+    const handleDeny = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      popup.classList.remove('active');
+      document.body.classList.remove('no-scroll');
+      if (spinner) spinner.style.display = 'none';
+      document.getElementById('manualLocationBlock').style.display = 'block';
+      document.getElementById('manualMessage').style.display = 'block';
+      fallbackToManualSearch();
+    };
+
+    if (denyBtn) denyBtn.onclick = handleDeny;
+    if (closeBtn) closeBtn.onclick = handleDeny;
   }
 
   function getUserLocation() {
@@ -76,7 +140,7 @@ lonInput.name = 'longitude';
 let mapInstance = null; // globale
 
 function displayMap(lat, lon) {
-  if (!L) return;
+  if (typeof L === 'undefined') return;
 
   if (mapInstance !== null) {
     mapInstance.remove(); // détruire l’ancienne carte proprement
@@ -112,10 +176,13 @@ function initMap(lat = 7.5, lon = -5.5) {
     document.getElementById('id_latitude').value = e.latlng.lat;
     document.getElementById('id_longitude').value = e.latlng.lng;
   });
+  // exposer l'instance globalement
+  mapInstance = map;
   return map;
 }
 
-function locateUser(map) {
+function locateUser(map, done, fail) {
+  const options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
   navigator.geolocation.getCurrentPosition(pos => {
     const lat = pos.coords.latitude;
     const lon = pos.coords.longitude;
@@ -123,9 +190,17 @@ function locateUser(map) {
     document.getElementById('id_longitude').value = lon;
     map.setView([lat, lon], 13);
     L.marker([lat, lon]).addTo(map).bindPopup("Votre position").openPopup();
-  }, () => {
+    if (typeof done === 'function') done(true);
+  }, (err) => {
     document.getElementById('manualLocationBlock').style.display = 'block';
     document.getElementById('manualMessage').style.display = 'block';
+    if (window.showToast) {
+      const msg = err && err.code === 1 ? "Permission de géolocalisation refusée." : "Géolocalisation indisponible ou expirée (8s).";
+      window.showToast(msg + " Vous pouvez saisir l'adresse manuellement.", 'warning', 6000);
+    } else {
+      alert('La géolocalisation a échoué. Veuillez saisir votre adresse manuellement.');
+    }
+    if (typeof fail === 'function') fail(err);
   });
 
     // Exemple après obtention de la position
@@ -148,39 +223,16 @@ function searchAddress() {
         const lon = data[0].lon;
         document.getElementById('id_latitude').value = lat;
         document.getElementById('id_longitude').value = lon;
-        map.setView([lat, lon], 13);
-        L.marker([lat, lon]).addTo(map).bindPopup("Position choisie").openPopup();
+        if (mapInstance) {
+          mapInstance.setView([lat, lon], 13);
+          L.marker([lat, lon]).addTo(mapInstance).bindPopup("Position choisie").openPopup();
+        }
       }
     });
 }
 
 
-if (hasLocation !== null){
-  const popup = document.getElementById('geoPopup');
-  popup.style.display = 'none';
-  const map = initMap();
-  locateUser(map);
-}else{
-const popup = document.getElementById('geoPopup');
-const map = initMap();
-
-window.onload = function() {
-  
-  const allowBtn = document.getElementById('acceptGeo');
-  const denyBtn = document.getElementById('denyGeo');
-
-  
-  allowBtn.onclick = () => {
-    popup.style.display = 'none';
-    locateUser(map);
-  };
-  denyBtn.onclick = () => {
-    popup.style.display = 'none';
-    document.getElementById('manualLocationBlock').style.display = 'block';
-    document.getElementById('manualMessage').style.display = 'block';
-  };
-};
-}
+// Plus de double initialisation en bas; la logique ci-dessus décide déjà quoi faire
 
 });
 

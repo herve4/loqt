@@ -2,6 +2,14 @@
     box-sizing: border-box;
     
 }
+
+/* Header scrolled state */
+.header.scrolled {
+  background: rgba(236, 240, 241, 0.75);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  backdrop-filter: saturate(180%) blur(8px);
+  -webkit-backdrop-filter: saturate(180%) blur(8px);
+}
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -20,7 +28,7 @@ body {
   color: white;
   padding: 20px;
   transition: transform 0.3s ease-in-out;
-  z-index: 1000;
+  z-index: 2500;
   /* transform: translateX(-250px); */
   /* width: 250px; : largeur fixe de la barre latérale.
 
@@ -35,13 +43,19 @@ height: 100vh; : hauteur = 100% de la hauteur visible de l’écran. */
   bottom: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.4);
   z-index: 1000;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
 }
 
 .sidebar-overlay.active{
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.25s ease, visibility 0s;
 }
 
 .sidebar.active {
@@ -97,19 +111,21 @@ cursor: pointer; : change le curseur au survol. */
   display: flex;
   align-items: center;
   padding: 0 20px;
-  position: relative;
-  border-radius: 12px;
-  margin: 20px;
-  /* align-items: center; display:flex; : permet d'aligner verticalement les enfants au centre.
-
-    padding: 0 20px; : ajoute des marges horizontales de 20px. 
-
-    */
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  border-radius: 10px;
+  margin: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .header h1 {
   flex: 1;
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   /* flex: 1; : permet de prendre toute la largeur disponible.*/
 }
 .content {
@@ -152,7 +168,10 @@ cursor: pointer; : change le curseur au survol. */
 .menu-icon {
   display: none;
   cursor: pointer;
-  font-size:30px;
+  font-size:28px;
+  line-height: 1;
+  padding: 10px;
+  border-radius: 8px;
   /* cursor: pointer; : change le curseur au survol. */
   /* display: none; : cache le bouton de menu. */
 }
@@ -356,6 +375,32 @@ tfoot td {
   .dashboard {
     flex-direction: column;
   }
+  /* Better readability and spacing */
+  .header {
+    height: auto;
+    min-height: 64px;
+    padding: 10px 16px;
+    margin: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* menu | title | avatar */
+    align-items: center;
+    column-gap: 8px;
+  }
+  .header h1 {
+    font-size: 18px;
+    text-align: center;
+    justify-self: center;
+  }
+  /* Hide verbose email text to keep header compact */
+  .header > p { display: none; }
+  /* Improve tap targets */
+  .menu-icon { font-size: 28px; padding: 10px; margin-right: 6px; }
+  .user-avatar { width: 36px; height: 36px; }
   .sidebar {
     position: fixed;
     top: 0;
@@ -363,6 +408,11 @@ tfoot td {
     height: 100vh;
     transform: translateX(-100%);
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    width: 85%;
+    max-width: 340px;
+    z-index: 3000; /* Above header/menu */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     /* width: 100%; : largeur = 100% de la largeur de la fenêtre.
 
     height: auto; : hauteur = automatique.
@@ -412,10 +462,25 @@ tfoot td {
     flex-direction: column;
     position: relative;
     flex:1;
-    padding: 20px 20px 0px 0px;
+    padding: 12px;
+    gap: 12px;
+    margin: 12px;
 
     /* flex-direction: column; display:flex; : permet d'aligner les enfants en colonne(verticalement). */
   }
+
+  /* Make tables horizontally scrollable on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  th, td {
+    white-space: nowrap;
+  }
+
+  /* Hide heavy blurred background on mobile for clarity/perf */
+  .bg-content { display: none; }
 
   .content .tab-row{
     width: 100%;
@@ -453,17 +518,23 @@ tfoot td {
 
   .header{
     flex: 1;
+    min-height: 60px;
+    padding: 10px 12px;
   }
   .header h1 {
-    font-size: 13px;
+    font-size: 18px;
     /* font-size: 18px; : taille de police = 18px. */
   }
+  .menu-icon { font-size: 28px; padding: 10px; }
   .sidebar h2{
-    font-size: 12px;
+    font-size: 14px;
     /* font-size: 16px; : taille de police = 16px. */
   }
+  .user-avatar { width: 32px; height: 32px; }
   .content .tabs-content .tab-panel .table{
     overflow-x: scroll;
   }
 
+  /* Extra compact spacing for content blocks */
+  .content { padding: 10px; margin: 10px; gap: 10px; }
 }

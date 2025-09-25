@@ -1,0 +1,328 @@
+{% load widget_tweaks %}
+<div class="form-container">
+    <h3 class="mb-4">
+        {% if form.instance.pk %}
+            <i class="fas fa-edit me-2"></i>Modifier la région
+        {% else %}
+            <i class="fas fa-plus-circle me-2"></i>Ajouter une région
+        {% endif %}
+    </h3>
+    
+    <div id="form-errors" class="alert alert-danger d-none">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="error-message"></span>
+        <ul id="error-list" class="mb-0 mt-2"></ul>
+    </div>
+    
+    <form id="region-form" method="post" 
+          {% if form.instance.pk %}
+              hx-post="{% url 'region-update' form.instance.pk %}"
+          {% else %}
+              hx-post="{% url 'region-create' %}"
+          {% endif %}
+          hx-target="#region-list"
+          hx-swap="beforeend"
+          hx-trigger="submit"
+          hx-indicator="#submit-button"
+          hx-headers='{"X-Requested-With": "XMLHttpRequest"}'
+          onsubmit="return handleFormSubmit(event, this);">
+        
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.nom.id_for_label }}" class="form-label">
+                Nom de la région <span class="text-danger">*</span>
+            </label>
+            {{ form.nom|add_class:"form-control"|attr:"autofocus" }}
+            <div class="form-text text-muted">Le nom doit être unique et contenir au moins 3 caractères.</div>
+            <div class="invalid-feedback">
+                {% if form.nom.errors %}
+                    {{ form.nom.errors|join:", " }}
+                {% else %}
+                    Veuillez entrer un nom valide.
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <button type="button" class="btn btn-outline-secondary" 
+                    onclick="closeModal('region-modal')">
+                <i class="fas fa-times me-1"></i> Annuler
+            </button>
+            <button id="submit-button" type="submit" class="btn btn-primary">
+                <span class="htmx-indicator">
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Enregistrement...
+                </span>
+                <span class="htmx-indicator-none">
+                    <i class="fas fa-save me-1"></i> Enregistrer
+                </span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Fonction pour fermer le modal
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // Vider le contenu du modal
+    const modalContent = document.querySelector(`#${modalId} .modal-content`);
+    if (modalContent) {
+        modalContent.innerHTML = '';
+    }
+}
+
+// Gestion de la soumission du formulaire
+function handleFormSubmit(event, form) {
+    // Réinitialiser les erreurs
+    const errorContainer = document.getElementById('form-errors');
+    const errorMessage = document.getElementById('error-message');
+    const errorList = document.getElementById('error-list');
+    
+    errorContainer.classList.add('d-none');
+    errorMessage.textContent = '';
+    errorList.innerHTML = '';
+    
+    // Valider le formulaire côté client
+    const nomInput = document.getElementById('{{ form.nom.id_for_label }}');
+    if (!nomInput.value.trim()) {
+        event.preventDefault();
+        showFormError('Le nom de la région est obligatoire.');
+        nomInput.focus();
+        return false;
+    }
+    
+    return true;
+}
+
+// Afficher les erreurs de formulaire
+function showFormError(message, errors = {}) {
+    const errorContainer = document.getElementById('form-errors');
+    const errorMessage = document.getElementById('error-message');
+    const errorList = document.getElementById('error-list');
+    
+    errorMessage.textContent = message;
+    errorList.innerHTML = '';
+    
+    // Ajouter les erreurs spécifiques
+    Object.entries(errors).forEach(([field, fieldErrors]) => {
+        fieldErrors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = `${field}: ${error.message}`;
+            errorList.appendChild(li);
+            
+            // Mettre en surbrillance le champ en erreur
+            const input = document.querySelector(`[name="${field}"]`);
+            if (input) {
+                input.classList.add('is-invalid');
+                
+                // Supprimer la classe d'erreur lors de la modification
+                input.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                }, { once: true });
+            }
+        });
+    });
+    
+    errorContainer.classList.remove('d-none');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Gestion des réponses HTMX
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    const form = document.getElementById('region-form');
+    if (!form || !form.contains(evt.detail.elt)) return;
+    
+    if (evt.detail.successful) {
+        // Fermer le modal
+        closeModal('region-modal');
+        
+        // Afficher le message de succès
+        showToast('Région enregistrée avec succès', 'success');
+        
+        // Vider le formulaire si c'est un ajout
+        if (evt.detail.requestConfig.verb === 'post') {
+            const form = document.querySelector('#region-modal form');
+            if (form) form.reset();
+        }
+    }
+});
+</script>
+
+<style>
+.form-container {
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-container h3 {
+    margin-top: 0;
+    color: #333;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn i {
+    margin-right: 0.5rem;
+    font-size: 0.8em;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #e44d07;
+    border-color: #d84600;
+}
+
+.btn-primary:hover {
+    background-color: #d13e00;
+    border-color: #b83800;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+</style>
+
+<script>
+// Gestion des erreurs de formulaire HTMX
+function handleFormErrors(event) {
+    if (event.detail.xhr.status === 400) {
+        // Si le serveur renvoie une erreur 400, on affiche le message d'erreur
+        event.detail.target.innerHTML = event.detail.xhr.responseText;
+        event.preventDefault(); // Empêche le comportement par défaut
+    }
+}
+
+function handleFormSubmit(event, form) {
+    event.preventDefault();
+    
+    // Désactiver le bouton de soumission
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+    }
+    
+    // Envoyer la requête AJAX
+    htmx.ajax('POST', form.getAttribute('action'), {
+        target: '#region-form-container',
+        swap: 'innerHTML',
+        values: {
+            'nom': form.querySelector('input[name="nom"]').value,
+            'csrfmiddlewaretoken': form.querySelector('input[name="csrfmiddlewaretoken"]').value
+        },
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).then(function(response) {
+        // Si la réponse est un objet JSON (réussite)
+        if (response && typeof response === 'object') {
+            if (response.success) {
+                // Afficher le message de succès
+                showToast(response.message || 'Opération réussie', 'success');
+                
+                // Fermer le modal
+                const modal = document.getElementById('region-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+                
+                // Rafraîchir la liste des régions
+                htmx.trigger('body', 'refreshRegions');
+            } else {
+                // Afficher les erreurs de validation
+                showToast(response.message || 'Erreur lors de l\'enregistrement', 'error');
+            }
+        }
+    }).catch(function(error) {
+        console.error('Erreur:', error);
+        showToast('Une erreur est survenue', 'error');
+    }).finally(function() {
+        // Réactiver le bouton de soumission
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
+        }
+    });
+}
+</script>

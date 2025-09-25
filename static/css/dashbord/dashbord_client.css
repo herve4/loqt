@@ -408,14 +408,29 @@
     .dashboard-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 12px;
+        padding: 10px 0;
     }
+    .dashboard-header h1 { font-size: 1.25rem; }
+    .user-role-badge { padding: 8px 12px; font-size: 0.95rem; }
+    .chart-container { padding: 15px; }
 }
 
 @media (max-width: 480px) {
     .stats-cards {
         grid-template-columns: 1fr;
     }
+    .dashboard-container { padding: 12px; }
+    .dashboard-header { gap: 10px; }
+    .dashboard-header h1 { font-size: 1.15rem; }
+    .user-role-badge { width: 100%; justify-content: center; }
+    .stat-card, .stat-card-pastor, .stat-card-region, .stat-card-forme, .stat-membre { padding: 16px; }
+    .card-content h3 { font-size: 1.6rem; }
+    .card-content p, .stat-item p { font-size: 0.95rem; }
+    .grid-container { grid-template-columns: 1fr; gap: 12px; }
+    .inventory-stats { flex-direction: column; gap: 10px; }
+    .btn-action { display: inline-flex; width: 100%; justify-content: center; }
+    .chart-wrapper { height: 240px; }
 }
 
 

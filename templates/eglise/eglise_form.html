@@ -122,11 +122,13 @@
 </div>
 <div id="geoPopup" class="geo-popup-overlay"> 
   <div class="geo-popup-content">
+    <button type="button" id="closeGeo" class="geo-close-btn" aria-label="Fermer">&times;</button>
     <h3>📍 Autoriser la géolocalisation de l'église</h3>
     <p>Nous aimerions utiliser votre position pour localiser votre église automatiquement sur la carte.</p>
     <p style="background:#FFE0B2; color:#E65100; padding:20px; border-radius:12px;">⚠️ Attention, vous devez être dans votre église pour <strong>Autoriser</strong> !</p>
-    <button id="acceptGeo">✅ Autoriser</button>
-    <button id="denyGeo">❌ Refuser</button>
+    <div id="geoSpinner" class="geo-spinner" aria-hidden="true" style="display:none;"></div>
+    <button type="button" id="acceptGeo">✅ Autoriser</button>
+    <button type="button" id="denyGeo">❌ Refuser</button>
   </div>
 </div>
 

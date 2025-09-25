@@ -13,27 +13,43 @@ document.addEventListener('DOMContentLoaded', function() {
                  evt.detail.target.id.includes('-region'))) {
                 document.getElementById('modal-content').innerHTML = evt.detail.target.innerHTML;
                 modal.style.display = 'block';
+                document.body.classList.add('no-scroll');
                 evt.detail.target.innerHTML = '';
             }
             
         });
         
-        // Fermer le modal
-        closeBtn.onclick = function() {
+        // Fermer le modal (helper)
+        function closeModalAndRefresh() {
             modal.style.display = 'none';
+            document.body.classList.remove('no-scroll');
             window.location.reload();
         }
+
+        // Bouton fermer
+        closeBtn.onclick = closeModalAndRefresh;
         
         // Fermer en cliquant à l'extérieur
         window.onclick = function(event) {
             if (event.target === modal) {
-                modal.style.display = 'none';
-                window.location.reload();
+                closeModalAndRefresh();
             }
         }
-                
 
-
+        // Fermer avec Échap
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                closeModalAndRefresh();
+            }
+        });
+        // Réagir aux créations via HTMX (HX-Trigger)
+        document.body.addEventListener('regionAdded', function() {
+            closeModalAndRefresh();
+        });
+        document.body.addEventListener('villeAdded', function() {
+            closeModalAndRefresh();
+        });
+        
     });
 
 document.addEventListener('DOMContentLoaded', function() {

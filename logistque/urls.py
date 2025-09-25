@@ -9,7 +9,6 @@ export_materiels_excel)
 from django.conf import settings
 from django.conf.urls.static import static
 # Importer les URLs des événements avec leur espace de noms
-from logistque.events import urls as events_urls
 
 urlpatterns = [
     path('', DashboardView.as_view(), name='dashboard-client'),
@@ -46,18 +45,25 @@ urlpatterns = [
 
 
 
-
 urlpatterns_ville = [
+    # Villes
     path('villes/', VilleListView.as_view(), name='ville-list'),
-    path('villes/ajouter/', VilleCreateView.as_view(), name='ville-create'),  # Nouvelle URL pou
-    path('ville/<int:pk>/modifier/', VilleUpdateView.as_view(), name='ville-update'),
-    path('ville/<int:pk>/supprimer/', VilleDeleteView.as_view(), name='ville-delete'),
+    path('villes/ajouter/', VilleCreateView.as_view(), name='ville-create'),
+    path('villes/<int:pk>/modifier/', VilleUpdateView.as_view(), name='ville-update'),
+    path('villes/<int:pk>/supprimer/', VilleDeleteView.as_view(), name='ville-delete'),
+    
+    # Régions
+    path('regions/', RegionListView.as_view(), name='region-list'),
+    path('regions/ajouter/', RegionCreateView.as_view(), name='region-create'),
+    path('regions/<int:pk>/modifier/', RegionUpdateView.as_view(), name='region-update'),
+     path('region/edit/<int:pk>/', region_edit, name='region-edit'),
+    path('regions/<int:pk>/supprimer/', RegionDeleteView.as_view(), name='region-delete'),
+    path('regions/importer/', RegionImportView.as_view(), name='region-import'),
+    path('regions/rechercher/', RegionSearchView.as_view(), name='region-search'),
+    path('regions/exporter/<str:format>/', RegionListView.as_view(), name='export-regions'),
 ]
 
 
-
-# Ajout des URLs de l'application 'events'
-urlpatterns += [path('', include(events_urls))]
 
 urlpatterns += urlpatterns_ville
 urlpatterns += staticfiles_urlpatterns()

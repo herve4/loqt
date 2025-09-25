@@ -81,10 +81,10 @@ WSGI_APPLICATION = 'loqt.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', ''),
-        'USER': os.environ.get('DB_USER', ''),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'db'),
+        'NAME': os.environ.get('DB_NAME', 'loqt'),
+        'USER': os.environ.get('DB_USER', 'loqt'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'loqt264'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
@@ -195,8 +195,8 @@ LOGIN_URL = 'login'
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Configuration des hôtes autorisés
-ALLOWED_HOSTS = ['*']  # Accepter tous les hôtes en développement
+# En production, ALLOWED_HOSTS doit provenir de l'env (voir plus haut).
+# En développement, le bloc DEBUG ci-dessous forcera ALLOWED_HOSTS=['*'].
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -219,6 +219,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://*.ngrok.io",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://sglci.sajholding.org",
 ]
 
 # Configuration CORS pour les requêtes cross-origin
@@ -229,6 +230,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://*.ngrok.io",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://sglci.sajholding.org",
 ]
 
 # Désactiver la vérification du host header en développement
@@ -266,12 +268,7 @@ CSRF_COOKIE_HTTPONLY = True
 
 
 
-# CORS settings (if needed)
-CORS_ALLOWED_ORIGINS = [
-    "https://votre-domaine.com",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+# CORS settings (if needed) - déjà défini plus haut; éviter les doublons
 
 # REST Framework settings
 REST_FRAMEWORK = {
