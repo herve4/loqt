@@ -11,19 +11,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 evt.detail.target.id.includes('ville-') && 
                 (evt.detail.target.id.includes('-name') || 
                  evt.detail.target.id.includes('-region'))) {
-                document.getElementById('modal-content').innerHTML = evt.detail.target.innerHTML;
-                modal.style.display = 'block';
-                document.body.classList.add('no-scroll');
+                // Sauvegarder le contenu original
+                const content = evt.detail.target.innerHTML;
+                // Vider la cible HTMX
                 evt.detail.target.innerHTML = '';
+                
+                // Mettre à jour le contenu de la modale
+                const modalContent = document.getElementById('modal-content');
+                if (modalContent) {
+                    modalContent.innerHTML = content;
+                    // Afficher la modale avec une légère attente pour permettre le rendu
+                    setTimeout(() => {
+                        modal.style.display = 'flex';
+                        modal.style.opacity = '1';
+                        document.body.classList.add('no-scroll');
+                    }, 10);
+                }
             }
-            
         });
         
         // Fermer le modal (helper)
         function closeModalAndRefresh() {
-            modal.style.display = 'none';
-            document.body.classList.remove('no-scroll');
-            window.location.reload();
+            if (modal) {
+                // Animation de fermeture
+                modal.style.opacity = '0';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    document.body.classList.remove('no-scroll');
+                    // Vider le contenu de la modale après l'animation
+                    const modalContent = document.getElementById('modal-content');
+                    if (modalContent) {
+                        modalContent.innerHTML = '';
+                    }
+                    // Recharger la page uniquement si nécessaire
+                    if (window.location.search.includes('saved=') || window.location.search.includes('deleted=')) {
+                        window.location.reload();
+                    }
+                }, 300);
+            }
         }
 
         // Bouton fermer

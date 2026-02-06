@@ -1,803 +1,345 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-{% block content %}
 {% block extrastyle %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/ville/style.css' %}?v={{ STATIC_VERSION }}">
+<link rel="stylesheet" href="{% static 'css/region/style.css' %}?v={{ STATIC_VERSION }}">
 {% endblock extrastyle %}
+
+{% block content %}
 <div class="region-container">
-    <!-- Bouton retour -->
-    <button onclick="history.back()" class="btn btn-outline-secondary mb-3">
-        <i class="fas fa-arrow-left me-2"></i> Retour
-    </button>
-    
-    <!-- Header Section -->
+    <!-- Titre principal -->
+    <div class="region-main-title text-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-map-marked-alt me-3"></i>Gestion des Régions
+        </h1>
+    </div>
+
+    <!-- Header avec boutons -->
     <div class="region-header">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="region-title mb-0">
-                <i class="fas fa-map-marked-alt me-2"></i>Gestion des Régions
-            </h2>
-            
-            <!-- Boutons d'export -->
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-download me-2"></i>Exporter
+        <div class="d-flex justify-content-between align-items-center mb-4" style="min-height: 50px;">
+            <!-- Bouton retour -->
+            <div class="flex-grow-0">
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Retour
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item export-option" href="#" data-format="excel"><i class="fas fa-file-excel text-success me-2"></i>Excel (.xlsx)</a></li>
-                    <li><a class="dropdown-item export-option" href="#" data-format="csv"><i class="fas fa-file-csv text-info me-2"></i>CSV (.csv)</a></li>
-                    <li><a class="dropdown-item export-option" href="#" data-format="json"><i class="fas fa-file-code text-warning me-2"></i>JSON (.json)</a></li>
-                </ul>
-            </div>
+            </div><hr><br>
+
+            <!-- L'espace flexible pour aligner à droite est maintenant géré dans region_table.html -->
+            <div class="flex-grow-1"></div>
         </div>
-        
-        <!-- Barre de recherche, filtres et actions -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-3">
-                <div class="row g-3">
-                    <!-- Barre de recherche principale -->
-                    <div class="col-md-5">
-                        <form method="get" id="searchForm" 
-                              hx-get="{% url 'region-list' %}"
-                              hx-trigger="keyup changed delay:500ms, submit"
-                              hx-target="#regions-table-container"
-                              hx-indicator="#searchIndicator">
-                            <label for="searchInput" class="form-label small text-muted mb-1">Rechercher une région</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0">
-                                    <i class="fas fa-search text-muted"></i>
-                                </span>
-                                <input type="text" 
-                                       id="searchInput"
-                                       name="q" 
-                                       class="form-control border-start-0" 
-                                       placeholder="Saisissez un nom de région..." 
-                                       value="{{ search_query|default:'' }}"
-                                       autocomplete="off">
-                                {% if search_query %}
-                                <button class="btn btn-outline-secondary" type="button" id="clearSearch" title="Effacer la recherche">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                {% endif %}
-                            </div>
-                            <div id="searchIndicator" class="search-indicator mt-1" style="display: none;">
-                                <div class="d-flex align-items-center">
-                                    <div class="spinner-border spinner-border-sm me-2" role="status">
-                                        <span class="visually-hidden">Chargement...</span>
-                                    </div>
-                                    <small class="text-muted">Recherche en cours...</small>
+    </div>
+
+    <!-- Barre de recherche, filtres et actions -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row g-3">
+                <!-- Barre de recherche principale -->
+                <div class="col-lg-6">
+                    <form method="get" id="searchForm" hx-get="{% url 'region-list' %}" hx-trigger="keyup changed delay:500ms, submit" hx-target="#regions-table-container" hx-indicator="#searchIndicator">
+                        <label for="searchInput" class="form-label small text-muted mb-1">Rechercher une région</label>
+                        <div class="search-container position-relative">
+                            <input type="text"
+                                   id="searchInput"
+                                   name="q"
+                                   class="form-control search-input ps-5"
+                                   placeholder="Saisissez un nom de région..."
+                                   value="{{ search_query|default:'' }}"
+                                   autocomplete="off">
+{% if search_query %}<button class="btn btn-outline-secondary search-clear-btn" type="button" id="clearSearch" title="Effacer la recherche"><i class="fas fa-times"></i></button>{% endif %}
+                        </div>
+                        <div id="searchIndicator" class="search-indicator mt-1" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Chargement...</span>
                                 </div>
+                                <small class="text-muted">Recherche en cours...</small>
                             </div>
-                        </form>
-                    </div>
-
-                    <!-- Filtres avancés -->
-                    <div class="col-md-4">
-                        <label class="form-label small text-muted mb-1">Filtres avancés</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0">
-                                <i class="fas fa-filter text-muted"></i>
-                            </span>
-                            <select class="form-select" id="filterStatus">
-                                <option value="" selected>Tous les statuts</option>
-                                <option value="active">Actives</option>
-                                <option value="inactive">Inactives</option>
-                            </select>
-                            <button class="btn btn-outline-secondary" type="button" id="applyFilters">
-                                <i class="fas fa-check"></i>
-                            </button>
                         </div>
-                    </div>
+                    </form>
+                </div>
 
-                    <!-- Actions rapides -->
-                    <div class="col-md-3 d-flex align-items-end">
-                        <div class="d-flex w-100 gap-2">
-                            <button class="btn btn-outline-secondary flex-grow-1" 
-                                    data-bs-toggle="tooltip" 
-                                    title="Rafraîchir"
-                                    onclick="window.location.reload()">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                            <button class="btn btn-primary flex-grow-1" 
-                                    onclick="RegionManager.openCreateForm()"
-                                    data-bs-toggle="tooltip"
-                                    title="Ajouter une région">
-                                <i class="fas fa-plus me-1"></i> Nouvelle
-                            </button>
-                        </div>
+                <!-- Actions rapides -->
+                <div class="col-lg-3 d-flex align-items-end">
+                    <div class="d-flex w-100 gap-2">
+                        <button class="btn btn-outline-secondary flex-grow-1"
+                                data-bs-toggle="tooltip"
+                                title="Rafraîchir"
+                                onclick="window.location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Statistiques rapides -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-0 fw-bold">{{ total_regions|default:0 }}</h2>
-                            <span class="small">Régions enregistrées</span>
-                        </div>
-                        <div class="bg-white bg-opacity-20 p-3 rounded-circle">
-                            <i class="fas fa-map-marked-alt fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-2 border-top border-white border-opacity-25">
-                        <div class="d-flex justify-content-between small">
-                            <span>Actives</span>
-                            <span class="fw-medium">{{ active_regions|default:total_regions|default:0 }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card bg-success text-white h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-0 fw-bold">{{ total_villes|default:0 }}</h2>
-                            <span class="small">Villes enregistrées</span>
-                        </div>
-                        <div class="bg-white bg-opacity-20 p-3 rounded-circle">
-                            <i class="fas fa-city fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-2 border-top border-white border-opacity-25">
-                        <div class="d-flex justify-content-between small">
-                            <span>Moyenne par région</span>
-                            <span class="fw-medium">{{ avg_villes_per_region|default:0|floatformat:1 }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card bg-info text-white h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-0 fw-bold">{{ total_eglises|default:0 }}</h2>
-                            <span class="small">Églises enregistrées</span>
-                        </div>
-                        <div class="bg-white bg-opacity-20 p-3 rounded-circle">
-                            <i class="fas fa-church fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-2 border-top border-white border-opacity-25">
-                        <div class="d-flex justify-content-between small">
-                            <span>Moyenne par ville</span>
-                            <span class="fw-medium">{{ avg_eglises_per_ville|default:0|floatformat:1 }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card bg-purple text-white h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="mb-0 fw-bold">{{ last_month_regions|default:0 }}</h2>
-                            <span class="small">Nouvelles régions (30j)</span>
-                        </div>
-                        <div class="bg-white bg-opacity-20 p-3 rounded-circle">
-                            <i class="fas fa-chart-line fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-2 border-top border-white border-opacity-25">
-                        <div class="d-flex justify-content-between small">
-                            <span>Évolution</span>
-                            <span class="fw-medium">
-                                {% if region_growth > 0 %}
-                                    <i class="fas fa-arrow-up text-success"></i> {{ region_growth|default:0 }}%
-                                {% elif region_growth < 0 %}
-                                    <i class="fas fa-arrow-down text-danger"></i> {{ region_growth|default:0|stringformat:"d"|slice:"1:" }}%
-                                {% else %}
-                                    <i class="fas fa-equals text-muted"></i> 0%
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Regions Table Container -->
     <div id="regions-table-container">
-        {% include 'villes/partials/region_table.html' with regions=regions search_query=search_query sort_field=sort_field sort_order=sort_order %}
-    </div>
-
-    <!-- Modal pour les formulaires -->
-    <div class="modal fade" id="regionModal" tabindex="-1" aria-labelledby="regionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="regionModalLabel">
-                        <i class="fas fa-map-marked-alt me-2"></i>
-                        <span id="modalTitle">Nouvelle Région</span>
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- Le contenu du formulaire sera chargé ici -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de confirmation de suppression -->
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h5 class="modal-title">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmation de suppression
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Êtes-vous sûr de vouloir supprimer la région <strong id="regionNameToDelete"></strong> ?</p>
-                    <p class="text-danger"><small>Cette action est irréversible.</small></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
-                </div>
-            </div>
-        </div>
+        {% include 'villes/partials/region_table.html' with regions=page_obj search_query=search_query sort_field=sort_field sort_order=sort_order %}
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
 
-{% block extrastyle %}
 
-<style>
-    .region-container {
-        padding: 20px;
-    }
-    
-    .region-header {
-        display: flex;
-        justify-content: between;
-        align-items: center;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    
-    .region-title {
-        color: #2c3e50;
-        margin: 0;
-        flex: 1;
-    }
-    
-    .search-container {
-        flex: 0 1 300px;
-        position: relative;
-    }
-    
-    .region-actions {
-        flex: 0 0 auto;
-    }
-    
-    .table-actions {
-        display: flex;
-        gap: 5px;
-        justify-content: flex-end;
-    }
-    
-    .btn-action {
-        padding: 4px 8px;
-        font-size: 0.875rem;
-    }
-    
-    /* Animation pour les nouvelles lignes */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .fade-in {
-        animation: fadeIn 0.3s ease-in;
-    }
-    
-    /* Styles pour les statuts */
-    .status-badge {
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    
-    /* Loading states */
-    .loading {
-        opacity: 0.6;
-        pointer-events: none;
-    }
-    
-    /* Toast notifications */
-    .toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-    }
-    
-    .toast {
-        min-width: 300px;
-    }
-</style>
-{% endblock %}
 
 {% block extra_scripts %}
+<!-- Bibliothèques pour l'exportation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wordexport/1.6.1/index.min.js"></script>
+
+<!-- Script d'exportation personnalisé -->
+<script src="{% static 'js/regions/export.js' %}" type="module"></script>
 
 <script>
-// Gestionnaire principal des régions
-class RegionManager {
-    static init() {
-        this.setupEventListeners();
-        this.setupHTMXHandlers();
-        console.log('RegionManager initialisé');
+// Format date function for compatibility with existing code
+window.formatDate = function(date, format = 'YYYY-MM-DD') {
+    const pad = num => num.toString().padStart(2, '0');
+    const d = date instanceof Date ? date : new Date(date);
+    const replacements = {
+        'YYYY': d.getFullYear(),
+        'MM': pad(d.getMonth() + 1),
+        'DD': pad(d.getDate()),
+        'HH': pad(d.getHours()),
+        'mm': pad(d.getMinutes()),
+        'ss': pad(d.getSeconds())
+    };
+    
+    return format.replace(/YYYY|MM|DD|HH|mm|ss/g, match => replacements[match]);
+};
+
+// Show toast notification
+window.showToast = function(message, type = 'info') {
+    if (typeof RegionManager !== 'undefined' && typeof RegionManager.showToast === 'function') {
+        RegionManager.showToast(message, type);
+        return;
     }
     
-    static setupEventListeners() {
-        // Gestionnaire de recherche
-        const searchInput = document.querySelector('input[name="q"]');
-        if (searchInput) {
-            searchInput.addEventListener('input', this.debounce(() => {
-                document.getElementById('searchForm').requestSubmit();
-            }, 500));
-        }
+    // Fallback toast implementation
+    const toastContainer = document.getElementById('toast-container') || (() => {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+        return container;
+    })();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast show align-items-center text-white bg-${type} border-0`;
+    toast.role = 'alert';
+    toast.ariaLive = 'assertive';
+    toast.ariaAtomic = 'true';
+    
+    const icons = {
+        'success': 'check-circle',
+        'error': 'exclamation-circle',
+        'warning': 'exclamation-triangle',
+        'info': 'info-circle'
+    };
+    
+    const icon = icons[type] || 'info-circle';
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-${icon} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Remove toast after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+        // Ouvrir le modal et charger le formulaire
+        openModal();
         
-        // Effacer la recherche
-        const clearSearchBtn = document.getElementById('clearSearch');
-        if (clearSearchBtn) {
-            clearSearchBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                document.getElementById('searchForm').requestSubmit();
-            });
-        }
-        
-        // Confirmation de suppression
-        document.getElementById('confirmDeleteBtn')?.addEventListener('click', this.confirmDelete.bind(this));
-    }
-    
-    static setupHTMXHandlers() {
-        // Gestion des erreurs HTMX
-        document.body.addEventListener('htmx:responseError', (event) => {
-            console.error('Erreur HTMX:', event.detail);
-            this.showToast('Une erreur est survenue', 'error');
-        });
-        
-        // Après le chargement du contenu
-        document.body.addEventListener('htmx:afterSwap', (event) => {
-            if (event.detail.target.id === 'regions-table-container') {
-                this.animateRows();
-            }
-        });
-    }
-    
-    static debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-    
-    static async openCreateForm() {
-        try {
-            const response = await fetch('{% url "region-create" %}', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            
-            if (!response.ok) throw new Error('Erreur de chargement');
-            
-            const html = await response.text();
-            this.showModal('Nouvelle Région', html);
-        } catch (error) {
-            this.showToast('Erreur lors du chargement du formulaire', 'error');
-        }
-    }
-    
-    static async showRegionDetails(regionId) {
-        try {
-            // Afficher un indicateur de chargement
-            const modal = document.getElementById('regionDetailsModal');
-            const modalInstance = new bootstrap.Modal(modal);
-            
-            // Mettre à jour le contenu du modal avec un indicateur de chargement
-            document.getElementById('regionName').textContent = 'Chargement...';
-            document.getElementById('cityCount').textContent = '...';
-            document.getElementById('creationDate').textContent = '...';
-            document.getElementById('citiesList').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Chargement...</span></div></div>';
-            
-            // Afficher le modal
-            modalInstance.show();
-            
-            // Récupérer les détails de la région via une requête AJAX
-            const response = await fetch(`/api/regions/${regionId}/`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            });
-            
-            if (!response.ok) throw new Error('Erreur lors du chargement des détails');
-            
-            const region = await response.json();
-            
-            // Mettre à jour le contenu du modal avec les données de la région
-            document.getElementById('regionName').textContent = region.nom;
-            document.getElementById('cityCount').textContent = region.ville_count || 0;
-            
-            // Formater la date de création
-            if (region.created_at) {
-                const date = new Date(region.created_at);
-                document.getElementById('creationDate').textContent = date.toLocaleDateString('fr-FR', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }
-            
-            // Afficher la liste des villes
-            const citiesList = document.getElementById('citiesList');
-            if (region.villes && region.villes.length > 0) {
-                citiesList.innerHTML = region.villes.map(ville => `
-                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span>${ville.nom}</span>
-                        <span class="badge bg-primary rounded-pill">${ville.eglise_count || 0} églises</span>
+        // Charger le formulaire via HTMX
+        const modalBody = document.getElementById('editRegionModalBody');
+        htmx.ajax('GET', editUrl, {
+            target: '#editRegionModalBody',
+            swap: 'innerHTML',
+            onError: function() {
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Une erreur est survenue lors du chargement du formulaire.
                     </div>
-                `).join('');
-            } else {
-                citiesList.innerHTML = `
-                    <div class="alert alert-light text-center">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Aucune ville enregistrée pour cette région
+                    <div class="text-center mt-3">
+                        <button class="btn btn-outline-secondary" onclick="closeModal()">
+                            <i class="fas fa-times me-2"></i> Fermer
+                        </button>
                     </div>
                 `;
             }
-            
-        } catch (error) {
-            console.error('Erreur:', error);
-            this.showToast('Impossible de charger les détails de la région', 'error');
-            
-            // Afficher un message d'erreur dans le modal
-            const modal = document.getElementById('regionDetailsModal');
-            const modalInstance = bootstrap.Modal.getInstance(modal);
-            if (modalInstance) {
-                modalInstance.hide();
-            }
-        }
-    }
-    
-    static async openEditForm(regionId) {
-        try {
-            const response = await fetch(`{% url 'region-update' 0 %}`.replace('0', regionId), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': this.getCSRFToken()
-                }
-            });
-            
-            if (!response.ok) throw new Error('Erreur de chargement');
-            
-            const html = await response.text();
-            this.showModal('Modifier la Région', html);
-        } catch (error) {
-            console.error('Erreur:', error);
-            this.showToast('Erreur lors du chargement du formulaire: ' + error.message, 'error');
-        }
-    }
-    
-    static showModal(title, content) {
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('modalBody').innerHTML = content;
-        
-        const modal = new bootstrap.Modal(document.getElementById('regionModal'));
-        modal.show();
-        
-        // Configurer le formulaire dans le modal
-        this.setupFormHandler();
-    }
-    
-    static setupFormHandler() {
-        const form = document.getElementById('regionForm');
-        if (!form) return;
-        
-        form.addEventListener('submit', this.handleFormSubmit.bind(this));
-    }
-    
-    static async handleFormSubmit(event) {
-        event.preventDefault();
-        
-        const form = event.target;
-        const formData = new FormData(form);
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        // État de chargement
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enregistrement...';
-        
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': this.getCSRFToken()
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
-                this.showToast(result.message || 'Région enregistrée avec succès', 'success');
-                this.closeModal();
-                
-                // Recharger la liste après un délai
-                setTimeout(() => {
-                    htmx.trigger('#searchForm', 'submit');
-                }, 1000);
-                
-            } else {
-                this.displayFormErrors(result.errors);
-                this.showToast(result.message || 'Erreur lors de l\'enregistrement', 'error');
-            }
-            
-        } catch (error) {
-            console.error('Erreur de connexion:', error);
-            this.showToast('Erreur de connexion au serveur', 'error', 'Veuillez vérifier votre connexion internet.');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-        }
-    }
-    
-    static displayFormErrors(errors) {
-        // Réinitialiser les erreurs
-        document.querySelectorAll('.is-invalid').forEach(el => {
-            el.classList.remove('is-invalid');
         });
-        document.querySelectorAll('.invalid-feedback').forEach(el => {
-            el.remove();
-        });
-        
-        // Afficher les nouvelles erreurs
-        for (const [field, messages] of Object.entries(errors)) {
-            const input = document.querySelector(`[name="${field}"]`);
-            if (input) {
-                input.classList.add('is-invalid');
-                const feedback = document.createElement('div');
-                feedback.className = 'invalid-feedback';
-                feedback.innerHTML = Array.isArray(messages) ? messages.join('<br>') : messages;
-                input.parentNode.appendChild(feedback);
-            }
-        }
-    }
-    
-    static promptDelete(regionId, regionName) {
-        document.getElementById('regionNameToDelete').textContent = regionName;
-        this.currentDeleteId = regionId;
-        
-        const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-        modal.show();
-    }
-    
-    static async confirmDelete() {
-        if (!this.currentDeleteId) return;
-        
-        const deleteBtn = document.getElementById('confirmDeleteBtn');
-        const originalText = deleteBtn.innerHTML;
-        
-        deleteBtn.disabled = true;
-        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Suppression...';
-        
-        try {
-            const response = await fetch(`{% url 'region-delete' 0 %}`.replace('0', this.currentDeleteId), {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': this.getCSRFToken(),
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ csrfmiddlewaretoken: this.getCSRFToken() })
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
-                this.showToast('Région supprimée avec succès', 'success');
-                this.closeDeleteModal();
-                
-                // Recharger la liste
-                htmx.trigger('#searchForm', 'submit');
-                
-            } else {
-                this.showToast(result.message || 'Erreur lors de la suppression', 'error');
-            }
-            
-        } catch (error) {
-            console.error('Erreur de connexion:', error);
-            this.showToast('Erreur de connexion au serveur', 'error', 'Veuillez vérifier votre connexion internet.');
-        } finally {
-            deleteBtn.disabled = false;
-            deleteBtn.innerHTML = originalText;
-            this.currentDeleteId = null;
-        }
-    }
-    
-    static closeModal() {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('regionModal'));
-        modal.hide();
-    }
-    
-    static closeDeleteModal() {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
-        modal.hide();
-    }
-    
-    static animateRows() {
-        const rows = document.querySelectorAll('#regions-table-body tr');
-        rows.forEach((row, index) => {
-            row.classList.add('fade-in');
-            row.style.animationDelay = `${index * 0.05}s`;
-        });
-    }
-    
-    /**
-     * Affiche une notification toast
-     * @param {string} message - Le message à afficher
-     * @param {string} type - Le type de notification (success, error, warning, info)
-     * @param {string} details - Détails supplémentaires pour le débogage (optionnel)
-     */
-    static showToast(message, type = 'success', details = '') {
-        // Créer ou réutiliser le conteneur de toasts
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-        }
-        
-        const toast = document.createElement('div');
-        toast.className = `toast show align-items-center text-bg-${type === 'error' ? 'danger' : type} border-0`;
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas fa-${this.getToastIcon(type)} me-2"></i>
-                    ${message}
-                    ${details ? `<div class="small mt-1">${details}</div>` : ''}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        `;
-        
-        container.appendChild(toast);
-        
-        const bsToast = new bootstrap.Toast(toast, { delay: 4000 });
-        bsToast.show();
-        
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
-        });
-    }
-    
-    static getToastIcon(type) {
-        const icons = {
-            success: 'check-circle',
-            error: 'exclamation-circle',
-            warning: 'exclamation-triangle',
-            info: 'info-circle'
-        };
-        return icons[type] || 'info-circle';
-    }
-    
-    /**
-     * Récupère le token CSRF depuis le cookie ou le DOM
-     * @returns {string} Le token CSRF
-     */
-    static getCSRFToken() {
-        // Essayer de récupérer depuis le cookie
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, 'csrftoken='.length) === 'csrftoken=') {
-                    cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
-                    break;
-                }
-            }
-        }
-        
-        // Si pas trouvé dans les cookies, essayer le DOM
-        if (!cookieValue) {
-            const csrfTokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
-            if (csrfTokenElement) {
-                cookieValue = csrfTokenElement.value;
-            }
-        }
-        
-        return cookieValue || '';
+    }, 5000);
+};
+
+// Fonction pour afficher le modal
+function showRegionModal() {
+    const modal = document.getElementById('editRegionModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    if (modal && backdrop) {
+        modal.style.display = 'block';
+        backdrop.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        // Forcer le recalcul des styles pour déclencher l'animation
+        void modal.offsetWidth;
+        modal.classList.add('show');
+        backdrop.classList.add('show');
     }
 }
 
-// Initialisation au chargement du document
-document.addEventListener('DOMContentLoaded', function() {
-    RegionManager.init();
-    
-    // Gestion des exports
-    document.querySelectorAll('.export-option').forEach(option => {
-        option.addEventListener('click', function(e) {
-            e.preventDefault();
-            const format = this.dataset.format;
-            exportRegions(format);
-        });
-    });
-    
-    // Fonction pour exporter les régions
-    function exportRegions(format) {
-        // Récupérer les paramètres de recherche actuels
-        const searchParams = new URLSearchParams(window.location.search);
-        
-        // Mettre à jour le paramètre d'export
-        searchParams.set('export', format);
-        
-        // Créer l'URL d'export
-        const exportUrl = `${window.location.pathname}?${searchParams.toString()}`;
-        
-        // Créer un lien temporaire pour le téléchargement
-        const link = document.createElement('a');
-        link.href = exportUrl;
-        link.download = `regions.${format}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Afficher une notification de succès
-        RegionManager.showToast(
-            'Export réussi', 
-            'success', 
-            `Les données ont été exportées au format ${format.toUpperCase()}.`
-        );
+// Fonction pour masquer le modal
+function hideRegionModal() {
+    const modal = document.getElementById('editRegionModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    if (modal && backdrop) {
+        modal.classList.remove('show');
+        backdrop.classList.remove('show');
+        // Attendre la fin de l'animation avant de cacher l'élément
+        setTimeout(() => {
+            modal.style.display = 'none';
+            backdrop.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300); // Correspond à la durée de la transition CSS
     }
-    
-    // Gestion du bouton de réinitialisation de la recherche
-    const clearSearchBtn = document.getElementById('clearSearch');
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', function() {
-            const searchInput = document.querySelector('input[name="q"]');
-            searchInput.value = '';
-            document.getElementById('searchForm').dispatchEvent(new Event('submit'));
-        });
+}
+
+// Gestionnaire d'événements pour le bouton de fermeture
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.region-close-btn') || 
+        event.target.closest('#cancelModalBtn') ||
+        event.target.id === 'modalBackdrop') {
+        hideRegionModal();
     }
 });
 
-// Exposer les fonctions globales
-window.RegionManager = RegionManager;
-window.openRegionForm = RegionManager.openCreateForm;
-window.editRegion = RegionManager.openEditForm;
-window.deleteRegion = RegionManager.promptDelete;
+// Gestionnaire d'événements pour la touche Escape
+document.addEventListener('keydown', function(event) {
+    const modal = document.getElementById('editRegionModal');
+    if (event.key === 'Escape' && modal && modal.style.display === 'block') {
+        hideRegionModal();
+    }
+});
+
+// Fonction pour charger le formulaire dans le modal personnalisé
+function loadEditForm(url) {
+    const modalBody = document.getElementById('editRegionModalBody');
+    
+    // Afficher l'indicateur de chargement
+    modalBody.innerHTML = `
+        <div class="loading-indicator">
+            <div class="spinner"></div>
+            <p>Chargement du formulaire...</p>
+        </div>
+    `;
+    
+    // Afficher le modal
+    showRegionModal();
+    
+    // Charger le formulaire via HTMX
+    htmx.ajax('GET', url, {
+        target: '#editRegionModalBody',
+        swap: 'innerHTML',
+        onSuccess: function() {
+            // Gérer la soumission du formulaire
+            const form = document.querySelector('#editRegionModal form');
+            if (form) {
+                // Mettre à jour l'ID du formulaire pour correspondre au bouton d'enregistrement
+                form.id = 'regionForm';
+                
+                // Activer le bouton d'enregistrement
+                const saveBtn = document.getElementById('saveRegionBtn');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                }
+                
+                // Gérer la soumission du formulaire
+                form.addEventListener('htmx:afterRequest', function(event) {
+                    if (event.detail.successful) {
+                        // Fermer la modale
+                        hideRegionModal();
+                        // Rafraîchir le tableau
+                        htmx.trigger('#searchForm', 'submit');
+                        // Afficher un message de succès
+                        showToast('Région mise à jour avec succès', 'success');
+                    }
+                });
+            }
+        },
+        onError: function() {
+            showToast('Une erreur est survenue lors du chargement du formulaire', 'error');
+            hideRegionModal();
+        }
+    });
+    
+    // Retourner false pour empêcher le comportement par défaut
+    return false;
+}
+
+// Gestionnaire d'événements pour les boutons de modification
+document.addEventListener('click', function(event) {
+    // Gestion de l'ouverture du modal
+    // const editBtn = event.target.closest('.edit-region-btn');
+    // if (editBtn) {
+    //     event.preventDefault();
+    //     const url = editBtn.getAttribute('hx-get');
+    //     loadEditForm(url);
+    // }
+    
+    // Gestion de la fermeture du modal
+    // const closeBtn = event.target.closest('.region-close-btn, #cancelModalBtn, #closeModalBtn');
+    // if (closeBtn) {
+    //     event.preventDefault();
+    //     hideRegionModal();
+    // }
+    
+    // Fermer en cliquant en dehors du contenu du modal
+    // if (event.target.classList.contains('region-modal')) {
+    //     hideRegionModal();
+    // }
+});
+
+// Gestion de la touche Échap pour fermer le modal
+// document.addEventListener('keydown', function(event) {
+//     const modal = document.getElementById('editRegionModal');
+//     if (event.key === 'Escape' && modal && modal.style.display === 'block') {
+//         hideRegionModal();
+//     }
+// });
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear search functionality
+    const clearSearchBtn = document.getElementById('clearSearch');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            // Trigger the search form submission
+            const searchForm = document.getElementById('searchForm');
+            if (searchForm) {
+                searchForm.dispatchEvent(new Event('submit', { bubbles: true }));
+                searchForm.dispatchEvent(new Event('keyup', { bubbles: true }));
+            }
+        });
+    }
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
 </script>
-{% endblock %}
+{% endblock extra_scripts %}

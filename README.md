@@ -1,6 +1,6 @@
 # LOQT - Système de Gestion Logistique
 
-Application web de gestion logistique développée avec Django et des fonctionnalités temps réel avec Django Channels et Redis.
+Application web de gestion logistique développée avec Django et des fonctionnalités temps réel avec Django Channels et Redis, daphne.
 
 ## Fonctionnalités principales
 

@@ -1,5 +1,9 @@
+{% extends 'base/base.html' %}
+
 {% load widget_tweaks %}
-<style>
+
+{% block content %}
+    <style>
     .form-group {
         margin-bottom: 1rem;
     }
@@ -36,8 +40,7 @@
     }
 </style>
 <form method="post" 
-      hx-post="{% if object %}{% url 'ville-update' object.id %}{% else %}{% url 'ville-create' %}{% endif %}"
-      hx-target="#ville-form-container">
+      action="{% url 'ville-create' %}">
     {% csrf_token %}
     
     <div class="form-group">
@@ -50,3 +53,5 @@
     </div>
     <button type="submit" class="btn btn-primary">Enregistrer</button>
 </form>
+{% endblock content %}
+    

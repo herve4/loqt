@@ -1,10 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+// Vérifier si on est sur une page qui utilise la localisation
 const latInput = document.getElementById('id_latitude');
 const lonInput = document.getElementById('id_longitude');
 const mapContainer = document.getElementById('map');
 const previewVille = document.getElementById('preview-ville');
 
+// Si les champs de localisation ne sont pas présents, on ne fait rien
+if (!latInput || !lonInput) return;
 
+// Masquer les champs de formulaire
 latInput.type = 'hidden';
 lonInput.type = 'hidden';
 latInput.name = 'latitude';
@@ -27,9 +31,13 @@ lonInput.name = 'longitude';
    }, 50);
  }
   const shouldAsk = (!latInput.value && !lonInput.value);
-  // Toujours afficher notre popup personnalisé si aucune coordonnée n'est renseignée
+  // Afficher le popup de localisation si nécessaire
   if (shouldAsk) {
-    showLocationPopup();
+    // Vérifier si on a les éléments nécessaires pour le popup
+    const popup = document.getElementById('geoPopup');
+    if (popup) {
+      showLocationPopup();
+    }
   }
 
   function showLocationPopup() {
@@ -250,10 +258,15 @@ function searchAddress() {
     const submitBtn = document.getElementById("submit-btn");
     const progressBar = document.getElementById("progressBar");
 
+    // Vérifier si on est sur une page avec des étapes
+    if (steps.length === 0) return;
+
     let currentStep = 0;
     const totalSteps = steps.length;
 
-    steps[currentStep].classList.add("active");
+    if (steps[currentStep]) {
+      steps[currentStep].classList.add("active");
+    }
     updateButtons();
     updateProgress();
 

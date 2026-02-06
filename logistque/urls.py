@@ -48,12 +48,14 @@ urlpatterns = [
 urlpatterns_ville = [
     # Villes
     path('villes/', VilleListView.as_view(), name='ville-list'),
+    path('api/regions/export/', ExportRegionsAPIView.as_view(), name='export-regions-api'),
     path('villes/ajouter/', VilleCreateView.as_view(), name='ville-create'),
-    path('villes/<int:pk>/modifier/', VilleUpdateView.as_view(), name='ville-update'),
+    path('villes/<int:pk>/modifier/', VilleUpdateView.as_view(), name='ville-edit'),
     path('villes/<int:pk>/supprimer/', VilleDeleteView.as_view(), name='ville-delete'),
     
     # Régions
     path('regions/', RegionListView.as_view(), name='region-list'),
+    path('regions/<int:pk>/', RegionDetailView.as_view(), name='region-detail'),
     path('regions/ajouter/', RegionCreateView.as_view(), name='region-create'),
     path('regions/<int:pk>/modifier/', RegionUpdateView.as_view(), name='region-update'),
      path('region/edit/<int:pk>/', region_edit, name='region-edit'),

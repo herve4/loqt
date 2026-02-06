@@ -1,65 +1,43 @@
-<tr>
-    {% if region and region.pk %}
-    <td>{{ region.nom }}</td>
-    <td class="text-end">
-        {% with region_id=region.pk|default:0 %}
-        <button class="btn btn-sm btn-primary"
-                {% if region_id %}
-                hx-get="{% url 'region-update' region_id %}"
-                hx-target="#modal-content"
-                hx-trigger="click"
-                hx-swap="innerHTML"
-                data-bs-toggle="modal"
-                data-bs-target="#region-modal"
-                hx-on::before-request="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i>'"
-                hx-on::after-request="this.disabled=false; this.innerHTML='<i class=\'fas fa-edit\'></i>'"
-                onclick="document.getElementById('region-modal').style.display='block'; return false;"
-                {% else %}
-                disabled
-                title="ID de région manquant"
-                {% endif %}>
-            <i class="fas fa-edit"></i>
-        </button>
-        <button class="btn btn-sm btn-danger ms-1"
-                {% if region_id %}
-                hx-get="{% url 'region-delete' region_id %}"
-                hx-target="#modal-content"
-                hx-trigger="click"
-                hx-swap="innerHTML"
-                data-bs-toggle="modal"
-                data-bs-target="#region-modal"
-                hx-on::before-request="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i>'"
-                hx-on::after-request="this.disabled=false; this.innerHTML='<i class=\'fas fa-trash\'></i>'"
-                onclick="document.getElementById('region-modal').style.display='block'; return false;"
-                {% else %}
-                disabled
-                title="ID de région manquant"
-                {% endif %}>
-            <i class="fas fa-trash"></i>
-        </button>
-        {% endwith %}
-    </td>
-    {% else %}
-    <td colspan="2" class="text-danger">
-        <i class="fas fa-exclamation-triangle"></i> Erreur: Données de région invalides
-        {% if debug %}
-        <div class="small text-muted">
-            Region: {{ region|default:"Non défini" }}
-            {% if region %}
-            <br>ID: {{ region.id|default:"Non défini" }}
-            {% endif %}
+<tr data-region-id="{{ region.id }}" class="fade-in border-top">
+    <td class="py-3 table-cell-responsive">
+        <div class="region-name-container">
+            <div class="region-icon">
+                <i class="fas fa-map-marker-alt text-primary"></i>
+            </div>
+            <div class="region-name-text">
+                <h6 class="mb-0 fw-semibold text-truncate" title="{{ region.nom }}">
+                    {{ region.nom }}
+                </h6>
+            </div>
         </div>
-        {% endif %}
     </td>
-    {% endif %}
+    <td class="py-3">
+        <div class="d-flex flex-column">
+            <span class="fw-medium">{{ region.created_at|date:"d/m/Y" }}</span>
+            <small class="text-muted">{{ region.created_at|date:"H:i" }}</small>
+        </div>
+    </td>
+    <td class="text-end pe-3 py-3">
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-sm btn-soft-info btn-icon"
+                    title="Détails - Bientôt disponible"
+                    data-bs-toggle="tooltip">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            <a href="{% url 'region-update' region.id %}" 
+               class="btn btn-sm btn-outline-primary btn-action"
+               title="Modifier la région {{ region.nom }}"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               aria-label="Modifier la région {{ region.nom }}">
+                <i class="fas fa-edit"></i>
+                <span class="d-none d-md-inline ms-1">Modifier</span>
+            </a>
+            <button class="btn btn-sm btn-soft-danger btn-icon"
+                    title="Supprimer - Bientôt disponible"
+                    data-bs-toggle="tooltip">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </td>
 </tr>
-
-<script>
-// Gestion des erreurs HTMX
-document.body.addEventListener('htmx:responseError', function(evt) {
-    if (evt.detail.requestConfig.elt.matches('[hx-get*="region-"]')) {
-        console.error('Erreur lors de la requête:', evt.detail);
-        showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
-    }
-});
-</script>

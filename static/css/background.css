@@ -1,0 +1,18 @@
+/* Style pour l'arrière-plan du tableau de bord */
+.bg-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    filter: blur(12px) brightness(0.8);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Classe spécifique pour l'image de fond */
+.bg-login-image {
+    background-image: url('../img/bg-login.jpeg');
+}

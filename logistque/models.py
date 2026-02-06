@@ -30,11 +30,11 @@ from django.contrib.auth.models import User
 User = CustomUser
 class Region(models.Model):
     nom = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.nom
-    
+
     class Meta:
         verbose_name = "Région"
         verbose_name_plural = "Régions"

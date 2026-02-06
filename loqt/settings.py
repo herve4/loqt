@@ -223,14 +223,38 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Configuration CORS pour les requêtes cross-origin
-CORS_ALLOW_ALL_ORIGINS = True  # Autoriser toutes les origines en développement
+CORS_ALLOW_ALL_ORIGINS = False  # Désactiver l'accès depuis toutes les origines pour plus de sécurité
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://*.ngrok-free.app",
-    "https://*.ngrok.io",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://sglci.sajholding.org",
+    "https://sglci.sajholding.org",  # Votre domaine de production
+    "https://*.sajholding.org",      # Sous-domaines
+    "http://localhost:8000",         # Développement local
+    "http://127.0.0.1:8000",         # Développement local
+    "https://*.ngrok-free.app",       # Pour le tunneling local
+    "https://*.ngrok.io",             # Pour le tunneling local
+]
+
+# Autoriser les en-têtes personnalisés
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Méthodes HTTP autorisées
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 # Désactiver la vérification du host header en développement

@@ -1,39 +1,209 @@
 <div class="card shadow-sm border-0">
-    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
-        <h6 class="mb-0 fw-semibold">
-            <i class="fas fa-layer-group text-primary me-2"></i>Liste des Régions
-        </h6>
-        <div class="d-flex align-items-center">
-            <span class="badge bg-soft-primary text-primary fw-normal me-3">
-                <i class="fas fa-database me-1"></i> {{ regions.paginator.count|default:0 }} région(s)
-            </span>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="perPageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ regions.paginator.per_page }} par page
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="perPageDropdown">
-                    <li><a class="dropdown-item" href="?per_page=10{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}">10 par page</a></li>
-                    <li><a class="dropdown-item" href="?per_page=25{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}">25 par page</a></li>
-                    <li><a class="dropdown-item" href="?per_page=50{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}">50 par page</a></li>
-                    <li><a class="dropdown-item" href="?per_page=100{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}">100 par page</a></li>
-                </ul>
-            </div>
+    <!-- En-tête avec compteur -->
+    <div class="card-header bg-light border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+                <i class="fas fa-layer-group text-primary me-2"></i>Liste des Régions
+            </h5>
+            <div class="d-flex align-items-center gap-2">
+                <span id="region-count" class="badge bg-soft-primary text-primary fw-normal">
+                    <i class="fas fa-database me-1"></i> {{ regions.paginator.count|default:0 }} région(s)
+                </span>
+                
+                <!-- Bouton d'exportation avec menu déroulant -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-primary dropdown-toggle d-flex align-items-center" 
+                            type="button" 
+                            id="exportDropdown" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false"
+                            title="Exporter les données">
+                        <i class="fas fa-file-export me-1"></i> Exporter
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="exportToCSV()">
+                                <i class="fas fa-file-csv text-primary me-2"></i> Exporter en CSV
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="exportToExcel()">
+                                <i class="fas fa-file-excel text-success me-2"></i> Exporter en Excel
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf text-danger me-2"></i> Exporter en PDF
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div><hr><br>
         </div>
+
+        <!-- Formulaire d'ajout rapide -->
+        <div class="mt-3">
+            <form id="inline-add-form" method="post"
+                  hx-post="{% url 'region-create' %}"
+                  hx-target="#regions-table-body"
+                  hx-swap="afterbegin"
+                  hx-trigger="submit"
+                  hx-indicator="#add-button"
+                  hx-headers='{"X-Requested-With": "XMLHttpRequest"}'
+                  hx-on:htmx:after-request="if(event.detail.successful) { this.reset(); document.getElementById('add-button').innerHTML='<i class=\'fas fa-plus me-2\'></i> Ajouter'; updateRegionCount(1); showToast('Région ajoutée avec succès', 'success'); } else { showToast('Erreur lors de l\'ajout de la région', 'error'); }">
+
+                {% csrf_token %}
+
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-8">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-map-marker-alt text-muted"></i>
+                            </span>
+                            <input type="text"
+                                   name="nom"
+                                   class="form-control form-control-sm border-start-0 ps-1"
+                                   placeholder="Saisir le nom de la nouvelle région..."
+                                   required
+                                   maxlength="100"
+                                   aria-label="Nom de la région">
+                        </div>
+                        <div class="form-text text-muted small mt-1">
+                            <i class="fas fa-info-circle me-1"></i> Appuyez sur Entrée ou cliquez sur Ajouter
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button id="add-button" type="submit" class="btn btn-primary btn-sm w-100 py-2 fw-medium">
+                            <span class="htmx-indicator d-flex align-items-center justify-content-center">
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span>Ajout en cours...</span>
+                            </span>
+                            <span class="htmx-indicator-none d-flex align-items-center justify-content-center">
+                                <i class="fas fa-plus me-2"></i> Ajouter
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <style>
+        /* Style pour le formulaire d'ajout rapide */
+        #inline-add-form {
+            transition: all 0.3s ease;
+        }
+
+        #inline-add-form .form-control {
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            height: 38px;
+        }
+
+        #inline-add-form .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        #inline-add-form .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            padding: 0.375rem 0.75rem;
+        }
+
+        #inline-add-form .btn-primary {
+            background-color: #4e73df;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #inline-add-form .btn-primary:hover {
+            background-color: #3a5bc7;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(78, 115, 223, 0.2);
+        }
+
+        #inline-add-form .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Animation pour le bouton de chargement */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        #inline-add-form .htmx-request .btn-primary {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Ajustements pour mobile */
+        @media (max-width: 767.98px) {
+            #inline-add-form .col-md-8 {
+                margin-bottom: 0.5rem;
+            }
+            
+            #inline-add-form .btn {
+                width: 100%;
+            }
+        }
+
+        /* Style pour les messages d'erreur */
+        #inline-add-form .is-invalid {
+            border-color: #e53e3e;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Amélioration du focus pour l'accessibilité */
+        #inline-add-form .form-control:focus {
+            outline: none;
+        }
+
+        /* Style pour le conteneur du formulaire */
+        .form-control, .input-group-text {
+            border-radius: 0.25rem !important;
+        }
+        </style>
+        
+        <script>
+        // Fonction pour mettre à jour le compteur de régions
+        function updateRegionCount(change) {
+            const countElement = document.getElementById('region-count');
+            const currentCount = parseInt(countElement.textContent.match(/\d+/)[0]) || 0;
+            const newCount = currentCount + change;
+            countElement.innerHTML = `<i class="fas fa-database me-1"></i> ${newCount} région(s)`;
+            return newCount;
+        }
+        </script>
     </div>
-    
+
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th width="60%" class="py-3">
+                        <th width="55%" class="py-3">
                             <div class="d-flex align-items-center">
                                 <span class="text-uppercase text-muted small fw-bold">Nom de la région</span>
-                                <a href="?sort=name&order={% if sort_field == 'name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                                   class="ms-2 text-decoration-none"
-                                   hx-get="?sort=name&order={% if sort_field == 'name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
-                                   hx-target="#regions-table-container"
-                                   hx-push-url="true">
+                                <a href="#" class="ms-2 text-decoration-none sort-link" data-sort="name" data-order="{% if sort_field == 'name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
                                     <i class="fas fa-sort{% if sort_field == 'name' %}-{% if sort_order == 'asc' %}up{% else %}down{% endif %} text-primary{% else %}-down text-muted{% endif %}"></i>
                                 </a>
                             </div>
@@ -41,16 +211,12 @@
                         <th width="25%" class="py-3">
                             <div class="d-flex align-items-center">
                                 <span class="text-uppercase text-muted small fw-bold">Date de création</span>
-                                <a href="?sort=created_at&order={% if sort_field == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" 
-                                   class="ms-2 text-decoration-none"
-                                   hx-get="?sort=created_at&order={% if sort_field == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
-                                   hx-target="#regions-table-container"
-                                   hx-push-url="true">
+                                <a href="#" class="ms-2 text-decoration-none sort-link" data-sort="created_at" data-order="{% if sort_field == 'created_at' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
                                     <i class="fas fa-sort{% if sort_field == 'created_at' %}-{% if sort_order == 'asc' %}up{% else %}down{% endif %} text-primary{% else %}-down text-muted{% endif %}"></i>
                                 </a>
                             </div>
                         </th>
-                        <th width="15%" class="text-end py-3 pe-3">
+                        <th width="20%" class="text-end py-3 pe-3">
                             <span class="text-uppercase text-muted small fw-bold">Actions</span>
                         </th>
                     </tr>
@@ -58,13 +224,15 @@
                 <tbody id="regions-table-body" class="border-top-0">
                     {% for region in regions %}
                     <tr data-region-id="{{ region.id }}" class="fade-in border-top">
-                        <td class="py-3">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-soft-primary rounded-2 p-2 me-3">
+                        <td class="py-3 table-cell-responsive">
+                            <div class="region-name-container">
+                                <div class="region-icon">
                                     <i class="fas fa-map-marker-alt text-primary"></i>
                                 </div>
-                                <div>
-                                    <h6 class="mb-0 fw-semibold">{{ region.nom }}</h6>
+                                <div class="region-name-text">
+                                    <h6 class="mb-0 fw-semibold text-truncate" title="{{ region.nom }}">
+                                        {{ region.nom }}
+                                    </h6>
                                 </div>
                             </div>
                         </td>
@@ -76,24 +244,42 @@
                         </td>
                         <td class="text-end pe-3 py-3">
                             <div class="d-flex justify-content-end gap-2">
-                                <button class="btn btn-sm btn-soft-info btn-icon"
-                                        onclick="RegionManager.showRegionDetails({{ region.id }});"
-                                        title="Détails"
-                                        data-bs-toggle="tooltip">
-                                    <i class="fas fa-info-circle"></i>
-                                </button>
-                                <button class="btn btn-sm btn-soft-primary btn-icon"
-                                        onclick="RegionManager.openEditForm({{ region.id }});"
-                                        title="Modifier"
-                                        data-bs-toggle="tooltip">
+                                <!-- Bouton Voir -->
+                                <a href="{% url 'region-detail' region.id %}" 
+                                   class="btn btn-sm btn-outline-info btn-action"
+                                   title="Voir les détails de {{ region.nom }}"
+                                   data-bs-toggle="tooltip"
+                                   data-bs-placement="top"
+                                   aria-label="Voir les détails de {{ region.nom }}">
+                                    <i class="fas fa-eye"></i>
+                                    <span class="d-none d-md-inline ms-1">Détails</span>
+                                </a>
+                                
+                                <!-- Bouton Modifier avec ouverture en modal -->
+                                <a class="btn btn-sm btn-outline-primary btn-action"
+                                        href="{% url 'region-update' region.id %}"
+                                        title="Modifier la région"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top">
                                     <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-soft-danger btn-icon"
-                                        onclick="RegionManager.promptDelete({{ region.id }}, '{{ region.nom|escapejs|safe }}');"
-                                        title="Supprimer"
-                                        data-bs-toggle="tooltip">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                    <span class="d-none d-md-inline ms-1">Modifier</span>
+                                </a>
+                                
+                                <!-- Bouton Supprimer avec confirmation -->
+                                <form method="post" 
+                                      action="{% url 'region-delete' region.id %}" 
+                                      class="d-inline"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette région ? Cette action est irréversible.');">
+                                    {% csrf_token %}
+                                    <button type="submit" 
+                                            class="btn btn-sm btn-outline-danger btn-action"
+                                            title="Supprimer la région"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top">
+                                        <i class="fas fa-trash-alt"></i>
+                                        <span class="d-none d-md-inline ms-1">Supprimer</span>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -129,323 +315,348 @@
                 </tbody>
             </table>
         </div>
-        
-        <!-- Pagination -->
-        {% if regions.paginator.num_pages > 1 %}
-        <div class="card-footer bg-white border-top py-3">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                <div class="mb-2 mb-md-0">
-                    <p class="mb-0 text-muted small">
-                        Affichage de <span class="fw-semibold">{{ regions.start_index }}</span> à <span class="fw-semibold">{{ regions.end_index }}</span> sur <span class="fw-semibold">{{ regions.paginator.count }}</span> régions
-                    </p>
+
+        <!-- Pagination classique simple -->
+        {% if regions.has_other_pages %}
+        <div class="pagination-wrapper mt-4">
+            <div class="pagination-container">
+                <!-- Informations sur la pagination -->
+                <div class="pagination-info text-muted text-center mb-3">
+                    <small class="pagination-status">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Page {{ regions.number }} sur {{ regions.paginator.num_pages }}
+                        {% if search_query %}• {{ regions.paginator.count }} résultat{% if regions.paginator.count > 1 %}s{% endif %} pour "{{ search_query }}"{% endif %}
+                    </small>
                 </div>
-                <nav aria-label="Pagination" class="mt-2 mt-md-0">
-                    <ul class="pagination pagination-sm mb-0">
-                        {% if regions.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                               hx-get="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                               hx-target="#regions-table-container"
-                               hx-push-url="true"
-                               aria-label="Première">
-                                <i class="fas fa-angle-double-left"></i>
+
+                <!-- Contrôles de pagination -->
+                <nav aria-label="Navigation des pages" class="pagination-nav">
+                    <div class="pagination-controls">
+                        <!-- Bouton précédent -->
+                        <div class="pagination-group">
+                            {% if regions.has_previous %}
+                            <a class="page-link page-link-prev"
+                               href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if sort_field %}sort={{ sort_field }}&order={{ sort_order }}&{% endif %}page={{ regions.previous_page_number }}"
+                               aria-label="Page précédente">
+                                <i class="fas fa-chevron-left me-2"></i>
+                                <span class="d-none d-sm-inline">Précédent</span>
                             </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="?page={{ regions.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                               hx-get="?page={{ regions.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                               hx-target="#regions-table-container"
-                               hx-push-url="true"
-                               aria-label="Précédente">
-                                <i class="fas fa-angle-left"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                        
-                        {% for num in regions.paginator.page_range %}
-                            {% if regions.number == num %}
-                            <li class="page-item active" aria-current="page">
-                                <span class="page-link">{{ num }}</span>
-                        </li>
-                        {% elif num > regions.number|add:'-3' and num < regions.number|add:'3' %}
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                               hx-get="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                               hx-target="#regions-table-container"
-                               hx-push-url="true">
+                            {% else %}
+                            <span class="page-link page-link-prev disabled" aria-label="Page précédente">
+                                <i class="fas fa-chevron-left me-2"></i>
+                                <span class="d-none d-sm-inline">Précédent</span>
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Numéros de page -->
+                        <div class="pagination-group pagination-numbers">
+                            {% for num in regions.paginator.page_range %}
+                            {% if num == regions.number %}
+                            <span class="page-link page-link-number active" aria-current="page">{{ num }}</span>
+                            {% elif num > regions.number|add:'-3' and num < regions.number|add:'3' %}
+                            <a class="page-link page-link-number"
+                               href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if sort_field %}sort={{ sort_field }}&order={{ sort_order }}&{% endif %}page={{ num }}">
                                 {{ num }}
                             </a>
-                        </li>
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if regions.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" 
-                           href="?page={{ regions.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                           hx-get="?page={{ regions.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                           hx-target="#regions-table-container"
-                           hx-push-url="true"
-                           aria-label="Suivante">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" 
-                           href="?page={{ regions.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                           hx-get="?page={{ regions.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_field %}&sort={{ sort_field }}&order={{ sort_order }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
-                           hx-target="#regions-table-container"
-                           hx-push-url="true"
-                           aria-label="Dernière">
-                            <i class="fas fa-angle-double-right"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+                            {% elif num == regions.paginator.page_range|first and regions.number > 4 %}
+                            <span class="page-link pagination-ellipsis">…</span>
+                            {% elif num == regions.paginator.page_range|last and regions.number < regions.paginator.num_pages|add:'-3' %}
+                            <span class="page-link pagination-ellipsis">…</span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Bouton suivant -->
+                        <div class="pagination-group">
+                            {% if regions.has_next %}
+                            <a class="page-link page-link-next"
+                               href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if sort_field %}sort={{ sort_field }}&order={{ sort_order }}&{% endif %}page={{ regions.next_page_number }}"
+                               aria-label="Page suivante">
+                                <span class="d-none d-sm-inline">Suivant</span>
+                                <i class="fas fa-chevron-right ms-2"></i>
+                            </a>
+                            {% else %}
+                            <span class="page-link page-link-next disabled" aria-label="Page suivante">
+                                <span class="d-none d-sm-inline">Suivant</span>
+                                <i class="fas fa-chevron-right ms-2"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </nav>
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Styles pour la pagination -->
+<!-- Styles pour les noms de régions avec troncature élégante -->
 <style>
-/* Style pour les boutons de pagination */
-.page-link {
-    color: #4b38b3;
-    border: 1px solid #e9ecef;
-    padding: 0.5rem 0.75rem;
-    transition: all 0.2s ease-in-out;
+.region-name-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
 }
 
-.page-link:hover {
-    color: #fff;
-    background-color: #4b38b3;
-    border-color: #4b38b3;
-}
-
-.page-item.active .page-link {
-    background-color: #4b38b3;
-    border-color: #4b38b3;
-}
-
-/* Style pour les boutons d'action */
-.btn-soft-primary {
-    color: #4b38b3;
-    background-color: rgba(75, 56, 179, 0.1);
-    border: none;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-soft-primary:hover {
-    background-color: rgba(75, 56, 179, 0.2);
-    color: #4b38b3;
-}
-
-.btn-soft-danger {
-    color: #dc3545;
-    background-color: rgba(220, 53, 69, 0.1);
-    border: none;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-soft-danger:hover {
-    background-color: rgba(220, 53, 69, 0.2);
-    color: #dc3545;
-}
-
-/* Style pour les entêtes de tableau */
-.table th {
+.region-name-text h6 {
+    margin: 0;
+    font-size: 0.875rem;
     font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    border-top: none;
+    line-height: 1.3;
+    color: #2d3748;
+    transition: color 0.2s ease-in-out;
 }
 
-/* Animation de chargement */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Styles améliorés pour la pagination */
+.pagination-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
 }
 
-.fade-in {
-    animation: fadeIn 0.3s ease-in-out;
+.pagination-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+    width: 100%;
 }
 
-/* Style pour les lignes du tableau */
-.table > :not(:first-child) {
-    border-top: 1px solid #f1f1f1;
-}
-
-tr:not(:last-child) {
-    border-bottom: 1px solid #f8f9fa;
-}
-
-tr:hover {
-    background-color: #f8f9fa;
-}
-
-/* Style pour le message vide */
-.bg-soft-primary {
-    background-color: rgba(75, 56, 179, 0.1);
-    color: #4b38b3;
-    width: 80px;
-    height: 80px;
+.pagination-controls {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
-/* Style pour les boutons d'export */
-.export-option {
+.pagination-group {
     display: flex;
     align-items: center;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease-in-out;
 }
 
-.export-option:hover {
-    background-color: #f8f9fa;
+.pagination-numbers {
+    gap: 0.25rem;
+}
+
+.pagination .page-link {
+    color: #4b38b3;
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px !important;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    min-width: 40px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     text-decoration: none;
-}
-
-/* Style pour les indicateurs de tri */
-.fa-sort-up, .fa-sort-down, .fa-sort {
-    font-size: 0.8em;
-}
-
-/* Style pour les boutons d'action */
-.btn-icon {
-    width: 32px;
-    height: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    border-radius: 6px;
 }
 
-/* Style pour les cartes de statistiques */
-.card-stat {
-    border: none;
-    border-radius: 10px;
-    transition: transform 0.2s ease-in-out;
-}
-
-.card-stat:hover {
-    transform: translateY(-5px);
-}
-
-/* Style pour les indicateurs de chargement */
-#searchIndicator {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-}
-
-/* Style pour les menus déroulants */
-.dropdown-menu {
-    border: none;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    padding: 0.5rem;
-}
-
-.dropdown-item {
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    transition: all 0.2s ease-in-out;
-}
-
-.dropdown-item:hover, .dropdown-item:focus {
-    background-color: #f8f9fa;
-    color: #4b38b3;
-}
-
-/* Style pour les champs de formulaire */
-.form-control:focus {
-    border-color: #4b38b3;
-    box-shadow: 0 0 0 0.25rem rgba(75, 56, 179, 0.25);
-}
-
-/* Style pour les boutons */
-.btn-primary {
+.pagination .page-link:hover {
+    color: #fff;
     background-color: #4b38b3;
     border-color: #4b38b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(75, 56, 179, 0.3);
 }
 
-.btn-primary:hover, .btn-primary:focus {
-    background-color: #3a2a8f;
-    border-color: #3a2a8f;
+.pagination .page-link:focus {
+    box-shadow: 0 0 0 0.25rem rgba(75, 56, 179, 0.25);
+    outline: none;
 }
 
-/* Style pour les badges */
-.badge {
-    font-weight: 500;
-    padding: 0.4em 0.8em;
-    border-radius: 6px;
+.pagination .page-link i {
+    font-size: 0.75rem;
 }
 
-/* Style pour les icônes dans les boutons */
-.btn i {
-    margin-right: 0.5rem;
+.pagination .page-item.active .page-link {
+    background-color: #4b38b3;
+    border-color: #4b38b3;
+    box-shadow: 0 4px 8px rgba(75, 56, 179, 0.3);
+    color: #fff;
 }
 
-/* Style pour les boutons d'action dans les tableaux */
-.table-actions {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
-tr:hover .table-actions {
-    opacity: 1;
+/* Animation pour les boutons de pagination au survol */
+@keyframes paginationPulse {
+    0% { box-shadow: 0 0 0 0 rgba(75, 56, 179, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(75, 56, 179, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(75, 56, 179, 0); }
+}
+
+.pagination .page-link.htmx-request {
+    animation: paginationPulse 1.5s infinite;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* Effet de soulignement pour la page active */
+.pagination .page-item.active .page-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 1px;
+}
+
+/* Styles spécifiques pour les différents types de boutons */
+.page-link-prev,
+.page-link-next {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    min-width: 110px;
+    padding: 0.5rem 1rem;
+}
+
+.page-link-number {
+    min-width: 36px;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+}
+
+.pagination-ellipsis {
+    min-width: 36px;
+    font-weight: 600;
+    color: #6c757d;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    cursor: default;
+}
+
+/* Informations de pagination */
+.pagination-info {
+    text-align: center;
+}
+
+.pagination-status {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 20px;
+    border: 1px solid #e9ecef;
+}
+
+/* Responsive pour la pagination */
+@media (max-width: 768px) {
+    .pagination-controls {
+        gap: 0.5rem;
+    }
+
+    .pagination-numbers {
+        gap: 0.125rem;
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .pagination-group:first-child {
+        order: 1;
+    }
+
+    .pagination-group:last-child {
+        order: 2;
+    }
+
+    .page-link-prev,
+    .page-link-next {
+        min-width: 90px;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .page-link-number {
+        min-width: 32px;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .pagination-status {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination-wrapper {
+        margin-top: 1.5rem;
+    }
+
+    .pagination-controls {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .pagination-numbers {
+        order: 2;
+        margin-top: 0;
+    }
+
+    .pagination-group {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .page-link-prev,
+    .page-link-next {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* Styles pour les boutons d'action */
+.btn-action {
+    transition: all 0.2s ease-in-out;
+    border-width: 1px;
+    font-size: 0.75rem;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action i {
+    font-size: 0.8rem;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: #fff;
+}
+
+.btn-outline-primary:hover {
+    background-color: #4b38b3;
+    border-color: #4b38b3;
+    color: #fff;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
 }
 </style>
-
-<!-- Script pour gérer le changement du nombre d'éléments par page -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialisation des tooltips Bootstrap
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Gestion du changement du nombre d'éléments par page
-    const perPageLinks = document.querySelectorAll('.dropdown-item[href*="per_page="]');
-    perPageLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const url = this.getAttribute('href');
-            // Mettre à jour l'URL sans recharger la page
-            history.pushState({}, '', url);
-            // Déclencher le rechargement via HTMX
-            htmx.ajax('GET', url, '#regions-table-container');
-        });
-    });
-    
-    // Gestion des événements HTMX pour les mises à jour partielles
-    document.body.addEventListener('htmx:afterSwap', function(evt) {
-        // Réinitialiser les tooltips après un chargement HTMX
-        tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function(tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Faire défiler vers le haut du tableau après le chargement
-        if (evt.detail.target.id === 'regions-table-container') {
-            const tableTop = document.getElementById('regions-table-container').offsetTop;
-            window.scrollTo({
-                top: tableTop - 20,
-                behavior: 'smooth'
-            });
-        }
-    });
-});
-</script>
