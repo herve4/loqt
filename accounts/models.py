@@ -24,9 +24,12 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     roles = (
-        ('pasteur', 'Pasteur'),
-        ('membre', 'Membre'),
-        ('responsable', 'Responsable'),
+        ('super_admin', 'Super-Administrateur'),
+        ('pasteur_national', 'Pasteur Responsable National'),
+        ('rln', 'Responsable Logistique National (RLN)'),
+        ('pasteur_local', 'Pasteur Responsable Local'),
+        ('rll', 'Responsable Logistique Local (RLL)'),
+        ('technicien', 'Membre Technicien'),
     )
     email = models.EmailField(unique=True, null=True, blank=True,verbose_name='Adresse email')
     phone = models.CharField(max_length=20, unique=True, null=True, blank=True,verbose_name='Numéro de téléphone')
@@ -34,6 +37,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=150, verbose_name='Prénoms')
     role = models.CharField(max_length=20, choices=roles, verbose_name='Rôle')
     eglise = models.ForeignKey('logistque.Eglise', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Eglise')
+    pole = models.ForeignKey('logistque.PoleCompetence', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pôle Technique')
     image = models.ImageField(upload_to='profile_images/', null=True, blank=True,max_length=255, verbose_name='Image de profil')
     accept_terms = models.BooleanField(default=False, verbose_name='Accepter les conditions')
 
@@ -50,7 +54,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     
     def save(self, *args, **kwargs):
         # Automatisation des permissions selon le rôle
-        if self.role in ['pasteur', 'responsable']:
+        admin_roles = ['super_admin', 'pasteur_national', 'rln', 'pasteur_local', 'rll']
+        if self.role in admin_roles:
             self.is_staff = True
         else:
             self.is_staff = False
@@ -79,8 +84,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             ('can_edit_user', 'Peut éditer un utilisateur'),
             ('can_delete_user', 'Peut supprimer un utilisateur'),
         )
-        
     
         
-        
-        
+class EmailVerification(models.Model):
+    email = models.EmailField()
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.email} - {self.code} ({'Vérifié' if self.is_verified else 'En attente'})"
+
+    class Meta:
+        verbose_name = 'Vérification Email'
+        verbose_name_plural = 'Vérifications Emails'

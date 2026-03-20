@@ -6,11 +6,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.db import models
 import requests
-from accounts.models import CustomUser
+# from accounts.models import CustomUser
 from django.utils.safestring import mark_safe
 import qrcode
 import barcode
-from PIL import Image, ImageDraw, ImageEnhance,ImageOps, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance,ImageOps, ImageFont
 from PIL.ImageEnhance import Brightness, Contrast
 from barcode.writer import ImageWriter
 from io import BytesIO
@@ -21,13 +21,14 @@ from django.utils.html import mark_safe
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from datetime import datetime, date, time
+from django.contrib.auth.models import Permission
 
 # Import des modèles pour éviter les références circulaires
 from django.contrib.auth.models import User
 
 #from PIL import ImageEnhance
 # models.py
-User = CustomUser
+User = settings.AUTH_USER_MODEL
 class Region(models.Model):
     nom = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -104,6 +105,8 @@ class Eglise(models.Model):
     pasteur = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, related_name='pasteur_eglise')
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     logo = models.ImageField(upload_to='logos_eglises/', null=True, blank=True, default=f'logo_ebng.png',auto_created=True,error_messages={'error': 'Le chemin vers le logo est requis.'})
+    is_active = models.BooleanField(default=True, verbose_name="Est active")
+    is_national_hq = models.BooleanField(default=False, verbose_name="Siège National")
 
 
     class Meta:
@@ -207,10 +210,18 @@ def remove_accents(text):
     )
 
 class Materiel(models.Model):
+    ETAT_CHOICES = [
+        ('OP', 'Opérationnel'),
+        ('PA', 'En panne'),
+        ('RE', 'En réparation'),
+        ('PE', 'Perdu'),
+    ]
     nom = models.CharField(max_length=100, verbose_name='Nom')
+    identifiant_unique = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name='ID Unique')
     categorie = models.ForeignKey(CategorieMateriel, on_delete=models.SET_NULL, null=True, verbose_name='Catégorie', related_name='materiels_categorie')
     sous_categorie = models.ForeignKey(SousCategorieMateriel, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Sous-Catégorie', related_name='materiels_sous_categorie')
     quantite = models.PositiveIntegerField(verbose_name='Quantité')
+    etat = models.CharField(max_length=2, choices=ETAT_CHOICES, default='OP', verbose_name='État')
     image = models.ImageField(upload_to='materiels/', null=True, blank=True, verbose_name='Image')
     description = models.TextField(blank=True, null=True, verbose_name='Description')
     logistique = models.ForeignKey(Logistique, on_delete=models.CASCADE, verbose_name='Logistique', related_name='materiels_logistique')
@@ -236,33 +247,31 @@ class Materiel(models.Model):
 
     def _generate_qr_data(self):
             """Génère le texte structuré pour le QR code avec toutes les infos"""
-            base_url = settings.SITE_DOMAIN
-            if not base_url.startswith(('http://', 'https://')):
-                base_url = f'https://{base_url}'
+            try:
+                base_url = settings.SITE_DOMAIN
+                if not base_url.startswith(('http://', 'https://')):
+                    base_url = f'https://{base_url}'
+                
+                public_url = f"{base_url}{reverse('materiel-detail', args=[self.pk, self.slug])}"
+                
+                data_lines = [
+                    f"=== {self.eglise.nom if self.eglise else 'Non spécifié'} ===",
+                    f"� Matériel: {self.nom}",
+                    "",
+                    "👤 Responsable:",
+                    f"📞 {self.logistique.responsable.get_full_name() if self.logistique and self.logistique.responsable else 'Non spécifié'}",
+                    "",
+                    f"🔗 Lien: {public_url}",
+                    f"📅 Créé le: {self.created_at.strftime('%d/%m/%Y %H:%M')}",
+                    "=== Scannez pour plus d'infos ==="
+                ]
+                
+                return '\n'.join(data_lines)
+            except Exception:
+                # Fallback si erreur de génération
+                return f"Matériel: {self.nom}\nQuantité: {self.quantite}\nID: {self.pk}"
             
-            public_url = f"{base_url}{reverse('materiel-detail', args=[self.pk, self.slug])}"
-            
-            data_lines = [
-                f"=== {self.eglise.nom if self.eglise else 'Non spécifié'} ===",
-                f"📌 Matériel: {self.nom}",
-                #f"🔖 Catégorie: {self.categorie.nom if self.categorie else 'Non spécifié'}",
-                #f"🏷 Sous-catégorie: {self.sous_categorie.nom if self.sous_categorie else 'Non spécifié'}",
-                #f"🔢 Quantité: {self.quantite}",
-                #f"📝 Description: {self.description or 'Aucune description'}",
-                "",
-                "👤 Responsable:",
-                f"• Nom: {self.logistique.responsable.get_full_name() if self.logistique and self.logistique.responsable else 'Non spécifié'}",
-                f"• Téléphone: {self.logistique.responsable.phone if self.logistique and self.logistique.responsable else 'Non spécifié'}",
-                "",
-                #f"🌍 Localisation:",
-                #f"• Région: {self.logistique.eglise.region.nom if self.logistique and self.logistique.eglise and self.logistique.eglise.region else 'Non spécifié'}",
-                #f"• Ville: {self.logistique.eglise.ville if self.logistique and self.logistique.eglise else 'Non spécifié'}",
-                "",
-                f"🔗 Lien: {public_url}",
-                #f"🖼 Photo: {self.image.url if self.image else 'Non disponible'}"
-            ]
-            
-            return "\n".join(data_lines)
+            return '\n'.join(data_lines)
 
     def _generate_styled_qr_code(self, data, logo_path=None):
         """Génère un QR code stylisé avec logo centré"""
@@ -458,7 +467,58 @@ class MaterielImage(models.Model):
         return mark_safe(f'<img src="{self.image.url}" width="50" height="50" />')
     previews.short_description = 'Image'
     previews.allow_tags = True
+
+class MouvementMateriel(models.Model):
+    TYPE_MOUVEMENT = [
+        ('IN', 'Entrée (Check-in)'),
+        ('OUT', 'Sortie (Check-out)'),
+        ('PRET', 'Prêt / Appui'),
+    ]
+    materiel = models.ForeignKey(Materiel, on_delete=models.CASCADE, related_name='mouvements')
+    type_mouvement = models.CharField(max_length=4, choices=TYPE_MOUVEMENT)
+    eglise_origine = models.ForeignKey(Eglise, on_delete=models.CASCADE, related_name='mouvements_sortants')
+    eglise_destination = models.ForeignKey(Eglise, on_delete=models.CASCADE, related_name='mouvements_entrants', null=True, blank=True)
+    evenement = models.ForeignKey('Evenement', on_delete=models.SET_NULL, null=True, blank=True)
+    quantite = models.PositiveIntegerField()
+    date_mouvement = models.DateTimeField(default=timezone.now)
+    responsable = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    batch_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="ID de Batch")
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Mouvement de Matériel"
+        verbose_name_plural = "Mouvements de Matériel"
+
+class FicheDefectuosite(models.Model):
+    GRAVITE_CHOICES = [
+        ('Low', 'Faible'),
+        ('Medium', 'Moyen'),
+        ('Critical', 'Critique'),
+    ]
+    materiel = models.ForeignKey(Materiel, on_delete=models.CASCADE, related_name='fiches_defectuosite')
+    rapporteur = models.ForeignKey(User, on_delete=models.CASCADE)
+    description = models.TextField(verbose_name="Description de la panne")
+    photo = models.ImageField(upload_to='pannes/', null=True, blank=True)
+    niveau_gravite = models.CharField(max_length=10, choices=GRAVITE_CHOICES, default='Medium')
+    date_signalement = models.DateTimeField(auto_now_add=True)
+    repare = models.BooleanField(default=False)
+    date_reparation = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Fiche de défectuosité"
+        verbose_name_plural = "Fiches de défectuosité"
     
+
+class PoleCompetence(models.Model):
+    nom = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Pôle de Compétence"
+        verbose_name_plural = "Pôles de Compétence"
+
+    def __str__(self):
+        return self.nom
 
 # # Model pour les événements
 class Evenement(models.Model):
@@ -475,6 +535,11 @@ class Evenement(models.Model):
         ('camp', 'Camp Mondial'),
         ('autre', 'Autre')
     ]
+
+    TYPE_PROGRAMME = [
+        ('national', 'National'),
+        ('local', 'Local'),
+    ]
     
     STATUS_EVENTS = [
         ('en_attente', 'En attente'),
@@ -484,6 +549,7 @@ class Evenement(models.Model):
 
     titre = models.CharField(max_length=200, verbose_name="Titre de l'événement")
     type_evenement = models.CharField(max_length=20, choices=TYPE_EVENEMENT, verbose_name="Type d'événement")
+    type_programme = models.CharField(max_length=10, choices=TYPE_PROGRAMME, default='local', verbose_name="Échelle du programme")
     organisateur_type = models.CharField(
         max_length=20, 
         choices=TYPE_ORGANISATEUR, 
@@ -533,7 +599,7 @@ class Evenement(models.Model):
     )
     materiels_utilises = models.ManyToManyField(
         'Materiel',
-        through='EvenementMateriel',
+        through='logistque.EvenementMateriel',
         related_name='evenements',
         blank=True,
         verbose_name='Matériels utilisés',
@@ -545,12 +611,33 @@ class Evenement(models.Model):
         blank=True, 
         verbose_name="Image de l'événement"
     )
+    besoin_chronogramme = models.BooleanField(
+        default=False, 
+        verbose_name="Nécessite un chronogramme ?"
+    )
+    besoin_images = models.BooleanField(
+        default=False, 
+        verbose_name="Nécessite des images d'illustration ?"
+    )
     statut = models.CharField(
         max_length=20, 
         choices=STATUS_EVENTS,
         default='en_attente',
         verbose_name="Statut de l'événement"
     )
+    def get_status(self):
+        """Détermine automatiquement le statut en fonction des dates actuelles"""
+        from django.utils import timezone
+        now = timezone.now()
+        if self.date_debut and self.date_fin:
+            if now < self.date_debut:
+                return 'À venir'
+            elif self.date_debut <= now <= self.date_fin:
+                return 'En cours'
+            else:
+                return 'Terminé'
+        return 'Non défini'
+
     class Meta:
         verbose_name = "Événement"
         verbose_name_plural = "Événements"
@@ -566,18 +653,6 @@ class Evenement(models.Model):
                 violation_error_message="La date de fin doit être postérieure à la date de début"
             )
         ]
-
-    def get_status(self):
-        """Détermine automatiquement le statut en fonction des dates actuelles"""
-        now = timezone.now()
-        if self.date_debut and self.date_fin:
-            if now < self.date_debut:
-                return 'À venir'
-            elif self.date_debut <= now <= self.date_fin:
-                return 'En cours'
-            else:
-                return 'Terminé'
-        return 'Non défini'
 
     @property
     def status_display(self):
@@ -651,6 +726,21 @@ class Evenement(models.Model):
     def get_absolute_url(self):
         return reverse('events:event_detail', kwargs={'pk': self.pk})
 
+class EvenementImage(models.Model):
+    evenement = models.ForeignKey(
+        'Evenement', 
+        on_delete=models.CASCADE, 
+        related_name='images_illustration',
+        verbose_name="Événement"
+    )
+    image = models.ImageField(upload_to='evenements/illustrations/', verbose_name="Image")
+    date_ajoutee = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Illustration d'Événement"
+        verbose_name_plural = "Illustrations d'Événements"
+        ordering = ['-date_ajoutee']
+
 class EvenementMateriel(models.Model):
     """
     Modèle de relation entre un événement et un matériel avec quantité.
@@ -698,69 +788,108 @@ class EvenementMateriel(models.Model):
         verbose_name = "Matériel d'événement"
         verbose_name_plural = "Matériels d'événement"
 
-    def __str__(self):
-        return f"{self.materiel} pour {self.evenement}"
-
+class PermissionRequest(models.Model):
+    """
+    Modèle pour gérer les demandes de permission des utilisateurs
+    """
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('approved', 'Approuvée'),
+        ('rejected', 'Rejetée'),
+    ]
+    
+    ACTION_TYPE_CHOICES = [
+        ('create', 'Création'),
+        ('update', 'Modification'),
+        ('delete', 'Suppression'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Utilisateur",
+        related_name='permission_requests'
+    )
+    reason = models.TextField(
+        verbose_name="Raison de la demande",
+        help_text="Expliquez pourquoi vous avez besoin de cette permission"
+    )
+    action_type = models.CharField(
+        max_length=10,
+        choices=ACTION_TYPE_CHOICES,
+        default='create',
+        verbose_name="Type d'action"
+    )
+    materiel_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="ID du matériel (si applicable)"
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name="Statut"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Date de demande"
+    )
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Date de révision"
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_permissions',
+        verbose_name="Révisé par"
+    )
+    admin_notes = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name="Notes de l'administrateur"
+    )
+    
     class Meta:
-        verbose_name = "Matériel utilisé pour événement"
-        verbose_name_plural = "Matériels utilisés pour événements"
-        unique_together = ('evenement', 'materiel')
-        ordering = ['-date_ajout']
-
+        verbose_name = "Demande de permission"
+        verbose_name_plural = "Demandes de permission"
+        ordering = ['-created_at']
+    
     def __str__(self):
-        return f"{self.materiel.nom} pour {self.evenement.titre} ({self.quantite})"
+        return f"Demande de {self.user.get_full_name()} - {self.get_action_type_display()}"
     
-    def clean(self):
-        """
-        Validation personnalisée pour s'assurer que la quantité est disponible
-        et que le matériel n'est pas déjà utilisé dans un créneau horaire similaire.
-        """
-        super().clean()
+    def approve(self, reviewed_by):
+        """Approuver la demande de permission"""
+        self.status = 'approved'
+        self.reviewed_at = timezone.now()
+        self.reviewed_by = reviewed_by
+        self.save()
         
-        # Vérifier que la quantité est positive
-        if self.quantite <= 0:
-            raise ValidationError({
-                'quantite': 'La quantité doit être supérieure à zéro.'
-            })
-        
-        # Vérifier la disponibilité du matériel
-        if hasattr(self, 'materiel') and self.materiel.quantite_disponible < self.quantite:
-            raise ValidationError({
-                'quantite': f'Quantité non disponible. Seulement {self.materiel.quantite_disponible} unité(s) disponible(s).'
-            })
-            
-        # Vérifier les conflits de dates avec d'autres événements utilisant le même matériel
-        if hasattr(self, 'evenement') and hasattr(self, 'materiel'):
-            conflits = EvenementMateriel.objects.filter(
-                materiel=self.materiel,
-                evenement__date_debut__lt=self.evenement.date_fin,
-                evenement__date_fin__gt=self.evenement.date_debut
-            ).exclude(evenement=self.evenement)
-            
-            if conflits.exists():
-                raise ValidationError({
-                    'materiel': f'Ce matériel est déjà réservé pour un autre événement sur cette période.'
-                })
+        # Donner les permissions à l'utilisateur
+        if self.action_type == 'create':
+            self.user.user_permissions.add(
+                Permission.objects.get(codename='add_materiel')
+            )
+        elif self.action_type == 'update':
+            self.user.user_permissions.add(
+                Permission.objects.get(codename='change_materiel')
+            )
+        elif self.action_type == 'delete':
+            self.user.user_permissions.add(
+                Permission.objects.get(codename='delete_materiel')
+            )
     
-    def save(self, *args, **kwargs):
-        """Surcharge de la méthode save pour inclure la validation"""
-        self.full_clean()
-        
-        # Si c'est une nouvelle instance, on vérifie la disponibilité du stock
-        if not self.pk and hasattr(self, 'materiel'):
-            self.materiel.quantite_disponible -= self.quantite
-            self.materiel.save(update_fields=['quantite_disponible'])
-        
-        super().save(*args, **kwargs)
-    
-    def delete(self, *args, **kwargs):
-        """Surcharge de la méthode delete pour libérer la quantité réservée"""
-        if hasattr(self, 'materiel'):
-            self.materiel.quantite_disponible += self.quantite
-            self.materiel.save(update_fields=['quantite_disponible'])
-        
-        super().delete(*args, **kwargs)
-
+    def reject(self, reviewed_by, notes=''):
+        """Rejeter la demande de permission"""
+        self.status = 'rejected'
+        self.reviewed_at = timezone.now()
+        self.reviewed_by = reviewed_by
+        self.admin_notes = notes
+        self.save()
 
 class ChronogrammeItem(models.Model):
     """
@@ -807,12 +936,20 @@ class ChronogrammeItem(models.Model):
     )
     
     # Responsable et participants
-    responsable = models.CharField(
-        max_length=100, 
-        verbose_name='Responsable', 
-        blank=True, 
-        null=True,
-        help_text="Personne en charge de cette activité"
+    responsable = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name='Responsable',
+        help_text="Membre en charge de cette activité"
+    )
+    pole = models.ForeignKey(
+        PoleCompetence, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name='Pôle de compétence'
     )
     
     # Matériel nécessaire
@@ -892,6 +1029,31 @@ class ChronogrammeItem(models.Model):
         """Surcharge de la méthode save pour inclure la validation"""
         self.full_clean()
         super().save(*args, **kwargs)
+
+class ChronogrammeTemplate(models.Model):
+    """
+    Modèle pour stocker des chronogrammes réutilisables avec structure dynamique.
+    """
+    nom = models.CharField(max_length=200, verbose_name="Nom du modèle")
+    description = models.TextField(blank=True, verbose_name="Description")
+    headers = models.JSONField(default=list, verbose_name="En-têtes de colonnes (JSON)")
+    items = models.JSONField(default=list, verbose_name="Items du chronogramme (JSON)")
+    cree_par = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='chronogramme_templates',
+        verbose_name="Créé par"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Modèle de Chronogramme"
+        verbose_name_plural = "Modèles de Chronogramme"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.nom
     
     @property
     def duree(self):
@@ -1060,6 +1222,138 @@ class FormationLogisticien(models.Model):
     class Meta:
         verbose_name = "Formation Logisticien"
         verbose_name_plural = "Formations Logisticiens"
-    
-    
+
+
+# Phase 4: Formation & Réunions
+class ReunionDimanche(models.Model):
+    date_reunion = models.DateField(default=timezone.now)
+    heure_debut = models.TimeField(default="20:00")
+    heure_fin = models.TimeField(default="21:30")
+    eglise_hote = models.ForeignKey(Eglise, on_delete=models.CASCADE, verbose_name="Église Hôte")
+    ordre_du_jour = models.TextField()
+    pv_reunion = models.TextField(blank=True, verbose_name="Procès-verbal")
+    participants = models.ManyToManyField(User, blank=True)
+
+    class Meta:
+        verbose_name = "Réunion du Dimanche"
+        verbose_name_plural = "Réunions du Dimanche"
+
+class RessourceFormation(models.Model):
+    TYPE_RESSOURCE = [
+        ('video', 'Vidéo'),
+        ('pdf', 'Document PDF'),
+        ('autre', 'Autre'),
+    ]
+    titre = models.CharField(max_length=200)
+    type_ressource = models.CharField(max_length=10, choices=TYPE_RESSOURCE)
+    lien_url = models.URLField(blank=True, null=True)
+    fichier = models.FileField(upload_to='formations/', blank=True, null=True)
+    image = models.ImageField(upload_to='formations/thumbnails/', blank=True, null=True)
+    description = models.TextField(blank=True)
+    pole = models.ForeignKey(PoleCompetence, on_delete=models.SET_NULL, null=True, blank=True)
+    date_ajout = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Ressource de Formation"
+        verbose_name_plural = "Ressources de Formation"
+
+class DemandeFormationSGL(models.Model): # Renommé pour éviter conflit si présent
+    rll = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demandes_formation_envoyees_sgl')
+    rln = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='demandes_formation_recues_sgl')
+    sujet = models.CharField(max_length=200)
+    description = models.TextField()
+    date_souhaitee = models.DateField()
+    valide = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Demande de Formation (SGL)"
+        verbose_name_plural = "Demandes de Formation (SGL)"
+
+# Phase 5: Budget & Besoins
+class ExpressionBesoin(models.Model):
+    evenement = models.ForeignKey(Evenement, on_delete=models.CASCADE, null=True, blank=True)
+    eglise = models.ForeignKey(Eglise, on_delete=models.CASCADE)
+    demandeur = models.ForeignKey(User, on_delete=models.CASCADE)
+    liste_materiel = models.TextField(help_text="Liste du matériel à acheter ou louer")
+    estimation_budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    date_demande = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Expression de Besoin"
+        verbose_name_plural = "Expressions de Besoins"
+
+class ValidationCircuit(models.Model):
+    ETAPES = [
+        ('RLL', 'Responsable Local'),
+        ('RLN', 'Responsable National'),
+        ('PASTEUR', 'Pasteur Responsable'),
+        ('VALIDE', 'Validé'),
+        ('REFUSE', 'Refusé'),
+    ]
+    besoin = models.OneToOneField(ExpressionBesoin, on_delete=models.CASCADE, related_name='circuit')
+    etape_actuelle = models.CharField(max_length=10, choices=ETAPES, default='RLL')
+    date_derniere_action = models.DateTimeField(auto_now=True)
+    notes_decision = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Circuit de Validation"
+        verbose_name_plural = "Circuits de Validation"
+
+# Phase 6: Formation & Capacitation
+class Formation(models.Model):
+    titre = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.titre
+
+    class Meta:
+        verbose_name = "Thème de Formation"
+        verbose_name_plural = "Thèmes de Formation"
+
+class DemandeFormation(models.Model):
+    STATUTS = [
+        ('PENDING', 'En attente'),
+        ('APPROVED', 'Approuvée'),
+        ('REJECTED', 'Rejetée'),
+        ('COMPLETED', 'Réalisée'),
+    ]
+    eglise = models.ForeignKey(Eglise, on_delete=models.CASCADE)
+    demandeur = models.ForeignKey(User, on_delete=models.CASCADE)
+    formation = models.ForeignKey(Formation, on_delete=models.CASCADE)
+    nombre_participants = models.PositiveIntegerField(default=1)
+    date_souhaitee = models.DateField(null=True, blank=True)
+    statut = models.CharField(max_length=20, choices=STATUTS, default='PENDING')
+    date_demande = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.formation.titre} - {self.eglise.nom}"
+
+    class Meta:
+        verbose_name = "Demande de Formation"
+        verbose_name_plural = "Demandes de Formations"
+
+class SessionFormation(models.Model):
+    STATUTS = [
+        ('PLANNING', 'En préparation'),
+        ('CONFIRMED', 'Confirmée'),
+        ('CANCELLED', 'Annulée'),
+        ('COMPLETED', 'Terminée'),
+    ]
+    formation = models.ForeignKey(Formation, on_delete=models.CASCADE)
+    date_debut = models.DateTimeField()
+    date_fin = models.DateTimeField(null=True, blank=True)
+    lieu = models.CharField(max_length=200, blank=True)
+    formateur = models.CharField(max_length=200, blank=True)
+    statut = models.CharField(max_length=20, choices=STATUTS, default='PLANNING')
+    participants_inscrits = models.ManyToManyField(User, related_name='formations_suivies', blank=True)
+
+    def __str__(self):
+        return f"{self.formation.titre} le {self.date_debut.strftime('%d/%m/%Y')}"
+
+    class Meta:
+        verbose_name = "Session de Formation"
+        verbose_name_plural = "Sessions de Formations"
 

@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from logistque.models import Region, Ville
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
@@ -15,7 +15,7 @@ class RegionViewSet(viewsets.ViewSet):
     """
     API endpoint pour les opérations sur les régions
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     @action(detail=False, methods=['get'])
     def export(self, request):
@@ -58,7 +58,7 @@ class RegionViewSet(viewsets.ViewSet):
         try:
             regions = Region.objects.annotate(
                 ville_count=Count('ville', distinct=True),
-                eglise_count=Count('ville__eglise', distinct=True)
+                eglise_count=Count('region_eglise', distinct=True)
             ).order_by('nom')
             
             data = [{
@@ -95,7 +95,7 @@ class RegionViewSet(viewsets.ViewSet):
             
             # Récupérer les villes de cette région avec le nombre d'églises
             villes = Ville.objects.filter(region=region).annotate(
-                eglise_count=Count('eglise')
+                eglise_count=Count('ville_eglise')
             ).values('id', 'nom', 'eglise_count')
             
             # Préparer la réponse

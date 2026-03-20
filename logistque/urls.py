@@ -5,67 +5,61 @@ from logistque.villes.views import *
 from logistque.views import (DashboardView,EgliseListView,EgliseDetailView,EgliseCreateView,EgliseDeleteView,EgliseUpdateView,
 MaterielListView,MaterielDetailView,MaterielCreateView,MaterielUpdateView,MaterielDeleteView,MaterielRestoreView,ajax_delete,
 MaterielStatsAPIView,get_sous_categories,export_eglises,DemandePermissionCreateView,CampListView,CampDetailView,CampCreateView,
-export_materiels_excel)
+export_materiels_excel, PackingListPDFView)
 from django.conf import settings
 from django.conf.urls.static import static
 # Importer les URLs des événements avec leur espace de noms
 
-urlpatterns = [
-    path('', DashboardView.as_view(), name='dashboard-client'),
-    # Église
-    path('eglises/', EgliseListView.as_view(), name='eglise-list'),
-    path('eglises/<int:pk>/', EgliseDetailView.as_view(), name='eglise-detail'),
-    path('eglises/export/<str:format>/', export_eglises, name='export-eglises'),
-    path('eglises/ajouter/', EgliseCreateView.as_view(), name='eglise-create'),
-    path('eglise/<int:pk>/delete/', EgliseDeleteView.as_view(), name='eglise-delete'),
-    path('eglises/<int:pk>/modifier/', EgliseUpdateView.as_view(), name='eglise-update'),
+from rest_framework.routers import DefaultRouter
+from logistque.api_views import (
+    EgliseViewSet, MaterielViewSet, EvenementViewSet,
+    ChronogrammeItemViewSet, PoleCompetenceViewSet,
+    MouvementMaterielViewSet, FicheDefectuositeViewSet,
+    ReunionDimancheViewSet, RessourceFormationViewSet,
+    DemandeFormationSGLViewSet, ExpressionBesoinViewSet,
+    ValidationCircuitViewSet, user_list,
+    FormationViewSet, DemandeFormationViewSet, SessionFormationViewSet,
+    RegionViewSet, CategorieViewSet, SousCategorieViewSet,
+    EvenementImageViewSet, ChronogrammeTemplateViewSet
+)
+from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, SendVerificationCodeView, VerifyCodeView
+from logistque.api_user import CurrentUserAPIView
 
-    # Matériel
-    path('materiels/', MaterielListView.as_view(), name='materiel-list'),
-    path('materiels/demande-permission/', DemandePermissionCreateView.as_view(), name='demande-permission'),
-    path('materiel/ajouter/', MaterielCreateView.as_view(), name='materiel-create'),
-    path('materiels/<int:pk>&<slug:slug>/', MaterielDetailView.as_view(), name='materiel-detail'),
-    path('materiels/<int:pk>/update/', MaterielUpdateView.as_view(), name='materiel-update'),
-    path('materiels/<int:pk>/delete/', MaterielDeleteView.as_view(), name='materiel-delete'),
-    path('materiels/<int:pk>/restore/', MaterielRestoreView.as_view(), name='materiel-restore'),
-    path('materiels/<int:pk>/restore/delete-finally/', ajax_delete, name='materiel-delete-final'),
+router = DefaultRouter()
+router.register(r'regions', RegionViewSet)
+router.register(r'eglises', EgliseViewSet)
+router.register(r'categories', CategorieViewSet)
+router.register(r'sous-categories', SousCategorieViewSet)
+router.register(r'materiels', MaterielViewSet)
+router.register(r'evenements', EvenementViewSet)
+router.register(r'evenement-images', EvenementImageViewSet)
+router.register(r'chronogramme-items', ChronogrammeItemViewSet)
+router.register(r'poles', PoleCompetenceViewSet)
+router.register(r'mouvements', MouvementMaterielViewSet)
+router.register(r'defectuosites', FicheDefectuositeViewSet)
+router.register(r'reunions', ReunionDimancheViewSet)
+router.register(r'ressources', RessourceFormationViewSet)
+router.register(r'demandes-formation', DemandeFormationSGLViewSet)
+router.register(r'besoins', ExpressionBesoinViewSet)
+router.register(r'validations', ValidationCircuitViewSet)
+router.register(r'formations', FormationViewSet)
+router.register(r'demandes-f', DemandeFormationViewSet)
+router.register(r'sessions-f', SessionFormationViewSet)
+router.register(r'chronogramme-templates', ChronogrammeTemplateViewSet)
+
+urlpatterns = [
+    path('api/', include(router.urls)),
+    path('api/users/', user_list, name='user-list'),
+    path('api/auth/login/', LoginAPIView.as_view(), name='api-login'),
+    path('api/auth/logout/', LogoutAPIView.as_view(), name='api-logout'),
+    path('api/auth/register/', RegisterAPIView.as_view(), name='api-register'),
+    path('api/auth/send-code/', SendVerificationCodeView.as_view(), name='api-send-code'),
+    path('api/auth/verify-code/', VerifyCodeView.as_view(), name='api-verify-code'),
+    path('api/auth/me/', CurrentUserAPIView.as_view(), name='api-me'),
     path('api/materiel-stats/', MaterielStatsAPIView.as_view(), name='materiel-stats'),
     path('get_sous_categories/', get_sous_categories, name='get_sous_categories'),
-
-    # Camps
-    path('camps/', CampListView.as_view(), name='camp-list'),
-    path('camps/<int:pk>/', CampDetailView.as_view(), name='camp-detail'),
-    path('camps/ajouter/', CampCreateView.as_view(), name='camp-create'),
-    path('materiels/export/', export_materiels_excel, name='materiel-export'),
-    
-    # Événements
     path('evenements/', include('logistque.events.urls')),
-    
+    path('evenements/colisage/<int:event_id>/pdf/', PackingListPDFView.as_view(), name='packing-list-pdf'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-
-
-urlpatterns_ville = [
-    # Villes
-    path('villes/', VilleListView.as_view(), name='ville-list'),
-    path('api/regions/export/', ExportRegionsAPIView.as_view(), name='export-regions-api'),
-    path('villes/ajouter/', VilleCreateView.as_view(), name='ville-create'),
-    path('villes/<int:pk>/modifier/', VilleUpdateView.as_view(), name='ville-edit'),
-    path('villes/<int:pk>/supprimer/', VilleDeleteView.as_view(), name='ville-delete'),
-    
-    # Régions
-    path('regions/', RegionListView.as_view(), name='region-list'),
-    path('regions/<int:pk>/', RegionDetailView.as_view(), name='region-detail'),
-    path('regions/ajouter/', RegionCreateView.as_view(), name='region-create'),
-    path('regions/<int:pk>/modifier/', RegionUpdateView.as_view(), name='region-update'),
-     path('region/edit/<int:pk>/', region_edit, name='region-edit'),
-    path('regions/<int:pk>/supprimer/', RegionDeleteView.as_view(), name='region-delete'),
-    path('regions/importer/', RegionImportView.as_view(), name='region-import'),
-    path('regions/rechercher/', RegionSearchView.as_view(), name='region-search'),
-    path('regions/exporter/<str:format>/', RegionListView.as_view(), name='export-regions'),
-]
-
-
-
-urlpatterns += urlpatterns_ville
 urlpatterns += staticfiles_urlpatterns()

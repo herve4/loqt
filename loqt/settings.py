@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security settings
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,sglci.sajholding.org').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'anymail',
     'django_htmx',
     'rest_framework',
+    'django_filters',
     'import_export',
 ]
 
@@ -185,10 +186,18 @@ WHITENOISE_IGNORE_MISSING_FILES = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email backend
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email backend
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'webmaster@localhost')
 
 # Login URL
-LOGIN_URL = 'login'
+LOGIN_URL = '/' # Redirige vers la racine (géré par React ou Nginx)
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 # Security settings
 # Configuration pour les requêtes derrière un proxy
@@ -213,23 +222,28 @@ CORS_ALLOW_HEADERS = [
 # Configuration des origines CSRF et CORS
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
+    "http://localhost:5173",
     "http://127.0.0.1",
+    "http://127.0.0.1:5173",
     "https://*.ngrok-free.app",
     "https://*.ngrok.io",
-    "http://*.ngrok.io",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
     "https://sglci.sajholding.org",
+    "https://www.sglci.sajholding.org",
 ]
 
 # Configuration CORS pour les requêtes cross-origin
 CORS_ALLOW_ALL_ORIGINS = False  # Désactiver l'accès depuis toutes les origines pour plus de sécurité
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://sglci.sajholding.org",  # Votre domaine de production
+    "https://sglci.sajholding.org",   # Production
+    "https://www.sglci.sajholding.org",  # Production avec www
+    "http://localhost:3000",         # React développement
+    "http://localhost:5173",         # Vite développement local
+    "http://127.0.0.1:3000",         # React développement local
+    "http://127.0.0.1:5173",         # Vite développement local (127.0.0.1)
+    "http://localhost:8000",         # Développement local Django
+    "http://127.0.0.1:8000",         # Développement local Django
     "https://*.sajholding.org",      # Sous-domaines
-    "http://localhost:8000",         # Développement local
-    "http://127.0.0.1:8000",         # Développement local
     "https://*.ngrok-free.app",       # Pour le tunneling local
     "https://*.ngrok.io",             # Pour le tunneling local
 ]
@@ -266,6 +280,12 @@ if DEBUG:
     # Désactiver la vérification du host header en développement
     ALLOWED_HOSTS = ['*']
     
+    # CORS settings pour le développement
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOW_ALL_HEADERS = True
+    CORS_ALLOW_ALL_METHODS = True
+    
     # Désactiver la vérification CSRF en développement
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
@@ -282,13 +302,14 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # Session settings
-SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = True  # Obligatoire pour SameSite=None
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'None'
 
 # CSRF settings
-CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False  # Permettre au frontend de lire le token si nécessaire
+CSRF_COOKIE_SAMESITE = 'None'
 
 
 
@@ -297,8 +318,13 @@ CSRF_COOKIE_HTTPONLY = True
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
 }
 
 # Configuration pour django-import-export

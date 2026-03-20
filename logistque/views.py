@@ -678,8 +678,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'nb_villes': Ville.objects.count(),
             'nb_membres_forme': FormationLogisticien.objects.select_related('formations').filter(est_forme=True).count(),
             'nb_membres_non_forme': FormationLogisticien.objects.filter(est_forme=False).count(),
-            'nb_responsables_logistique': User.objects.filter(role='responsable').count(),
-            'nb_pasteurs': User.objects.filter(role='pasteur').count()
+            'nb_responsables_logistique': User.objects.filter(role__in=['rln', 'rll']).count(),
+            'nb_pasteurs': User.objects.filter(role__in=['pasteur_national', 'pasteur_local']).count(),
+            'nb_techniciens': User.objects.filter(role='technicien').count()
         }
 
     def add_charts_data(self, context, user):
@@ -687,7 +688,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context.update({
             'eglises_chart': self.get_eglises_chart_data(),
             'materiel_chart': self.get_materiel_chart_data(user),
-            'events_chart': self.get_events_chart_data()
+            'events_chart': self.get_events_chart_data(),
+            'map_data': self.get_map_data()
         })
 
     def get_eglises_chart_data(self):
@@ -736,13 +738,36 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def add_role_specific_context(self, context, user, today):
         """Ajoute les données spécifiques au rôle de l'utilisateur"""
-        if hasattr(user, 'responsable_logistique'):
-            self.add_responsable_local_context(context, user, today)
-        elif user.groups.filter(name='Responsable Logistique National').exists():
+        if user.role in ['rln', 'super_admin', 'pasteur_national']:
             self.add_responsable_national_context(context, user, today)
-            
-        elif user.groups.filter(name__in=['Pasteur Local', 'Pasteur National']).exists():
-            self.add_pasteur_context(context, user, today)
+        elif user.role in ['rll', 'pasteur_local']:
+            self.add_responsable_local_context(context, user, today)
+        elif user.role == 'technicien':
+            self.add_technicien_context(context, user, today)
+
+    def get_map_data(self):
+        """Données pour le rendu de la carte de Côte d'Ivoire"""
+        eglises_avec_loc = Eglise.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+        map_points = []
+        for eglise in eglises_avec_loc:
+            dispo = Materiel.objects.filter(eglise=eglise, etat='OP').aggregate(Sum('quantite'))['quantite__sum'] or 0
+            map_points.append({
+                'nom': eglise.nom,
+                'lat': eglise.latitude,
+                'lon': eglise.longitude,
+                'disponibilite': dispo,
+                'ville': eglise.ville.nom if eglise.ville else ""
+            })
+        return map_points
+
+    def add_technicien_context(self, context, user, today):
+        """Contexte spécifique pour les techniciens"""
+        # Un technicien voit son planning et les pannes qu'il a signalées
+        context.update({
+            'role': 'Membre Technicien',
+            'mes_taches': ChronogrammeItem.objects.filter(responsable=user, evenement__date_fin__gte=today).order_by('heure_debut'),
+            'mes_pannes': FicheDefectuosite.objects.filter(rapporteur=user).order_by('-date_signalement')[:5]
+        })
 
     def add_responsable_local_context(self, context, user, today):
         """Contexte spécifique pour les responsables locaux"""
@@ -763,6 +788,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 'nb_villes': Ville.objects.count(),
                 'materiels_disponibles': materiels.filter(quantite__gt=0).count(),
                 'materiels_manquants': materiels.filter(quantite=0).count(),
+                'materiels_en_panne': materiels.filter(etat='PA').count(),
                 #'camps_count': CampMondial.objects.filter(ville=ville, date_debut__gte=today).all().count(),
                 'renforts_count': CampMondial.objects.filter(renfort_national=True, date_debut__gte=today).all().count(),
                 'camps_count': CampMondial.objects.filter(date_debut__gte=today).count(),
@@ -778,7 +804,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'renforts': CampMondial.objects.filter(renfort_national=True, date_debut__gte=today).all().order_by('-date_debut'),
             'prochains_evenements': Evenement.objects.filter(
                 date_debut__gte=today,
-            ).order_by('-date_debut')[:5]
+            ).order_by('date_debut')[:5]
         })
 
     def get_materiel_details(self, logistique):
@@ -936,3 +962,46 @@ def logout_confirm(request):
         logout(request)
         return redirect('login')  # nom de ta page de connexion
     return render(request, 'registration/confirm_logout.html')
+
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+
+class PackingListPDFView(LoginRequiredMixin, View):
+    def get(self, request, event_id):
+        event = get_object_or_404(Evenement, pk=event_id)
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="liste_colisage_{event_id}.pdf"'
+
+        doc = SimpleDocTemplate(response, pagesize=A4)
+        elements = []
+        styles = getSampleStyleSheet()
+
+        elements.append(Paragraph(f"Liste de Colisage : {event.titre}", styles['Title']))
+        elements.append(Paragraph(f"Date : {event.date_debut.strftime('%d/%m/%Y') if event.date_debut else ''}", styles['Normal']))
+        elements.append(Paragraph(f"Lieu : {event.lieu if event.lieu else 'Non spécifié'}", styles['Normal']))
+        elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+        data = [["Matériel", "Quantité", "Catégorie", "État"]]
+        for em in event.materiels_associes.all():
+            data.append([
+                em.materiel.nom if em.materiel else "Inconnu",
+                str(em.quantite),
+                em.materiel.categorie.nom if em.materiel and em.materiel.categorie else "",
+                em.materiel.get_etat_display() if em.materiel else ""
+            ])
+
+        if len(data) == 1:
+            data.append(["Aucun matériel", "-", "-", "-"])
+
+        t = Table(data)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(t)
+        doc.build(elements)
+        return response

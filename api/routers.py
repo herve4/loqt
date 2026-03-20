@@ -1,6 +1,7 @@
 from rest_framework.routers import DefaultRouter, Route, DynamicRoute
 from django.urls import path, include
 from .viewsets.region import RegionViewSet
+from logistque.api_views import ChronogrammeTemplateViewSet
 
 class CustomRouter(DefaultRouter):
     """
@@ -53,10 +54,22 @@ class CustomRouter(DefaultRouter):
 # Utiliser notre routeur personnalisé
 router = CustomRouter()
 router.register(r'regions', RegionViewSet, basename='region')
+router.register(r'chronogramme-templates', ChronogrammeTemplateViewSet, basename='chronogramme-template')
 
 # Ajouter manuellement la route d'export si nécessaire
 urlpatterns = [
     path('', include(router.urls)),
+    # Ajouter explicitement la route pour les templates de chronogramme si le router Custom échoue
+    path('chronogramme-templates/', ChronogrammeTemplateViewSet.as_view({
+        'get': 'list',
+        'post': 'create'
+    }), name='chronogramme-templates-list'),
+    path('chronogramme-templates/<int:pk>/', ChronogrammeTemplateViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    }), name='chronogramme-templates-detail'),
     # Ajouter explicitement la route d'export
     path('regions/export/', RegionViewSet.as_view({'get': 'export'}), name='region-export'),
 ]
