@@ -149,6 +149,12 @@ jobs:
 
             echo "✅ Service web opérationnel !"
 
+            # ── 7. Import des données initiales (Régions, Villes, Églises) ──
+            echo ""
+            echo "📥 [7/7] Importation des régions et des églises..."
+            docker compose exec -T web python scripts/import_eglises.py
+            echo "✅ Importation terminée"
+
             # ── Nettoyage Docker (images vieilles) ───────────────────────
             docker image prune -f --filter "until=48h" > /dev/null 2>&1 || true
 
