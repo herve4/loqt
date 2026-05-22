@@ -1,6 +1,11 @@
 import csv
 import os
+import sys
 import django
+
+# Ajouter le dossier racine du projet au PYTHONPATH
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'loqt.settings')
 django.setup()
 
