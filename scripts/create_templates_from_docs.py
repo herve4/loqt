@@ -3,7 +3,6 @@ import django
 import sys
 import re
 import docx
-from django.utils import timezone
 
 # Configuration de l'environnement Django
 sys.path.append('/home/herve/loqt')
@@ -31,9 +30,9 @@ def parse_line(line):
     match = re.search(time_pattern, line)
     if match:
         start = match.group(1).replace('h', ':').replace('H', ':')
-        if not ':' in start: start += ":00"
+        if ':' not in start: start += ":00"
         end = match.group(2).replace('h', ':').replace('H', ':') if match.group(2) else ""
-        if end and not ':' in end: end += ":00"
+        if end and ':' not in end: end += ":00"
         
         titre = line.replace(match.group(0), "").strip()
         return {'Heure Début': start, 'Heure Fin': end, 'Activité': titre, 'Détails': '', 'jour': 'Jour 1'}

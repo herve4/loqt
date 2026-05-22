@@ -1,7 +1,7 @@
 """
 API endpoints pour la gestion des événements.
 """
-from rest_framework import viewsets, status, permissions, mixins
+from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -281,7 +281,7 @@ class ReservationMaterielViewSet(viewsets.ModelViewSet):
         # Notifier le demandeur
         notification_service.send_notification(
             recipient=reservation.demandeur,
-            subject=f"Votre réservation a été approuvée",
+            subject="Votre réservation a été approuvée",
             template_name="emails/reservation_approved.html",
             context={
                 "reservation": reservation,
@@ -302,7 +302,7 @@ class ReservationMaterielViewSet(viewsets.ModelViewSet):
         # Notifier le demandeur
         notification_service.send_notification(
             recipient=reservation.demandeur,
-            subject=f"Votre réservation a été rejetée",
+            subject="Votre réservation a été rejetée",
             template_name="emails/reservation_rejected.html",
             context={
                 "reservation": reservation,

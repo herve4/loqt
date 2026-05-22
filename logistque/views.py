@@ -1,8 +1,6 @@
 # views/dashboard.py
 
 import json
-import os
-from django.conf import settings
 from django.views import View
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -10,30 +8,20 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum
 from django.db import transaction
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.views.generic.edit import DeleteView
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import openpyxl
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-import smtplib
-from email.mime.text import MIMEText
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.models import Count, Q
 import requests
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from logistque.eglise_exports.views import export_eglises_to_excel, export_eglises_to_pdf, export_eglises_to_word
 from logistque.forms import *
 from logistque.models import *
-from logistque.utils import get_client_ip
-from django.template.loader import get_template
 
 
 

@@ -2,9 +2,7 @@
 Permissions personnalisées pour l'API des événements.
 """
 from rest_framework import permissions
-from django.shortcuts import get_object_or_404
 
-from logistque.models import Evenement
 
 
 class IsEventOrganizer(permissions.BasePermission):

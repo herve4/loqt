@@ -276,7 +276,7 @@ const MeetingDetail = () => {
                 <textarea
                   value={notes}
                   onChange={handleNotesChange}
-                  className="w-full min-h-[280px] p-6 bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-300 resize-none leading-relaxed"
+                  className="w-full min-h-[280px] p-6 bg-transparent border-0 focus:border-0 border-transparent focus:border-transparent focus:ring-0 focus:ring-transparent outline-none focus:outline-none text-slate-700 dark:text-slate-300 resize-none leading-relaxed"
                   placeholder="Commencez à saisir les notes ici… Utilisez @ pour mentionner une personne ou # pour un sujet."
                 />
                 <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 flex items-center gap-4 text-xs text-slate-500 border-t border-slate-200 dark:border-slate-800">

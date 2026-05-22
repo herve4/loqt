@@ -1,6 +1,4 @@
 from django import template
-from django.http import QueryDict
-from urllib.parse import urlencode
 
 register = template.Library()
 

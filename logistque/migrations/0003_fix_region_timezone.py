@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 from django.utils import timezone
-import datetime
 
 def set_default_created_at(apps, schema_editor):
     """Set default created_at for existing regions without a value"""

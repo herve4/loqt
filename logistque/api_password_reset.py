@@ -7,7 +7,6 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template.loader import render_to_string
 
 User = get_user_model()
 
@@ -37,7 +36,7 @@ class PasswordResetRequestAPIView(APIView):
         try:
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
             return Response({'message': 'Si cet email correspond à un compte, un lien de réinitialisation a été envoyé.'})
-        except Exception as e:
+        except Exception:
             return Response({'message': 'Erreur lors de l\'envoi de l\'email.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PasswordResetConfirmAPIView(APIView):

@@ -2,15 +2,13 @@ import logging
 from django.views.generic import ListView, View, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_http_methods
 from django.db import transaction
 from django.template.loader import render_to_string
 import pandas as pd
@@ -18,7 +16,6 @@ import tempfile
 import os
 from logistque.models import Ville, Region, Eglise
 from logistque.villes.exports.export_utils import *
-import logging
 logger = logging.getLogger(__name__)
 
 class VilleListView(LoginRequiredMixin, ListView):
@@ -105,7 +102,7 @@ class RegionListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from django.db.models import Count, Avg, Q, F
+        from django.db.models import Count, Avg
         from datetime import datetime, timedelta
 
         # Récupération des paramètres de l'URL
@@ -235,7 +232,7 @@ class RegionListView(LoginRequiredMixin, ListView):
                 except Exception as e:
                     logger.error(f"Erreur lors de l'export Excel: {str(e)}", exc_info=True)
                     return HttpResponse(
-                        f"Une erreur est survenue lors de l'exportation Excel. Veuillez réessayer ou contacter le support.",
+                        "Une erreur est survenue lors de l'exportation Excel. Veuillez réessayer ou contacter le support.",
                         status=500
                     )
                 

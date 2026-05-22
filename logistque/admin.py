@@ -3,58 +3,21 @@
 from functools import wraps
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse
 from django.utils.html import format_html
-from django.contrib.admin.templatetags.admin_urls import add_preserved_filters
-from django.contrib.admin.utils import unquote
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
-from django.views.decorators.http import require_POST
-from django.shortcuts import get_object_or_404, render
-from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.debug import sensitive_post_parameters
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_http_methods
-from django.contrib.admin.options import IS_POPUP_VAR, TO_FIELD_VAR
 from django.contrib.admin.views.main import ChangeList
-from django.core.exceptions import ValidationError
-from django.db import models
-from django import forms
-from django.http import Http404
 from django.utils.safestring import mark_safe
 from django.template.response import TemplateResponse
-from django.utils import timezone
-from django.conf import settings
-from django.contrib.admin.helpers import AdminErrorList
-from django.contrib import admin
 from django.contrib.admin.models import LogEntry
-from django.contrib.admin import ModelAdmin, TabularInline, StackedInline
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
-from django.db import models
-from django import forms
-from django.template.response import TemplateResponse
-from django.urls import path, reverse, reverse_lazy
-from django.utils.html import format_html, format_html_join
-from django.utils.text import capfirst
-from django.views.generic import View
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, DeleteView, FormView, UpdateView
-from django.views.generic.list import ListView
-from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.contrib.admin import ModelAdmin
+from django.urls import path
 
 from import_export import resources
-from import_export.admin import ImportExportActionModelAdmin, ImportExportModelAdmin
+from import_export.admin import ImportExportActionModelAdmin
 from import_export.formats import base_formats
 
 from logistque.models import *
@@ -316,7 +279,7 @@ class CustomAdminSite(AdminSite):
         return app_list
 
     def dashboard_view(self, request):
-        from django.db import connection, OperationalError, ProgrammingError
+        from django.db import OperationalError, ProgrammingError
         from django.contrib import messages
         from django.urls import reverse
         from django.contrib.admin.models import LogEntry
@@ -403,7 +366,7 @@ class CustomAdminSite(AdminSite):
         try:
             nb_formes = FormationLogisticien.objects.filter(est_forme=True).count()
             nb_non_formes = FormationLogisticien.objects.filter(est_forme=False).count()
-        except (OperationalError, ProgrammingError) as e:
+        except (OperationalError, ProgrammingError):
             messages.warning(request, "Impossible de charger les données de formation. Vérifiez que la table existe.")
         except Exception as e:
             messages.error(request, f"Erreur lors du chargement des données de formation: {str(e)}")
@@ -644,7 +607,6 @@ class DemandeLogistiqueAdmin(admin.ModelAdmin):
         return super().render_change_form(request, context, *args, **kwargs)
 
     def get_changelist(self, request, **kwargs):
-        from django.contrib.admin.views.main import ChangeList
 
         class CustomChangeList(ChangeList):
             def get_results(self, request):
@@ -920,7 +882,6 @@ class MaterielImageInline(admin.TabularInline):
     model = MaterielImage
     extra = 1
 
-from django.utils.safestring import mark_safe
 # Matériel
 @admin.register(Materiel, site=admin_site)
 class MaterielAdmin(ImportExportActionModelAdmin, admin.ModelAdmin):

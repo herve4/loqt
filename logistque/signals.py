@@ -1,10 +1,5 @@
 # Dans votre configuration ou signals.py
-from django.contrib.auth.models import Group, Permission
-from django.db.models.signals import post_migrate
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
-from logistque.models import MaterielReserve
 
 # def create_groups(sender, **kwargs):
 #     # Groupe Pasteur

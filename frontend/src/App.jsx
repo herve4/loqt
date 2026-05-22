@@ -8,8 +8,10 @@ import Inventory from './pages/Inventory';
 import EventChronogram from './pages/EventChronogram';
 import DefectReport from './pages/DefectReport';
 import EquipmentMovements from './pages/EquipmentMovements';
+import MovementsHistory from './pages/MovementsHistory';
 import EquipmentDetail from './pages/EquipmentDetail';
 import MeetingDashboard from './pages/MeetingDashboard';
+import QRTransit from './pages/QRTransit';
 import MeetingDetail from './pages/MeetingDetail';
 import BudgetRequests from './pages/BudgetRequests';
 import BudgetRequestDetail from './pages/BudgetRequestDetail';
@@ -43,7 +45,9 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><NationalDashboard /></ProtectedRoute>} />
           <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
           <Route path="/inventory/:id" element={<ProtectedRoute><EquipmentDetail /></ProtectedRoute>} />
+          <Route path="/qr-transit/:id" element={<ProtectedRoute><QRTransit /></ProtectedRoute>} />
           <Route path="/movements" element={<ProtectedRoute><EquipmentMovements /></ProtectedRoute>} />
+          <Route path="/movements/history" element={<ProtectedRoute><MovementsHistory /></ProtectedRoute>} />
           <Route path="/meetings" element={<ProtectedRoute><MeetingDashboard /></ProtectedRoute>} />
           <Route path="/meetings/:id" element={<ProtectedRoute><MeetingDetail /></ProtectedRoute>} />
           <Route path="/budget" element={<ProtectedRoute><BudgetRequests /></ProtectedRoute>} />

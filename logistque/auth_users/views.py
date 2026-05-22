@@ -1,7 +1,6 @@
 from django.http import JsonResponse
-from django.shortcuts import redirect
 from django.views.generic import CreateView
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.core.signing import Signer
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -183,7 +182,7 @@ class SignUpView(CreateView):
         except ValidationError as e:
             form.add_error(None, e)
             return self.form_invalid(form)
-        except Exception as e:
+        except Exception:
             logger.exception("Erreur inattendue lors de la création de l'utilisateur")
             form.add_error(None, "Une erreur inattendue s'est produite. Veuillez réessayer.")
             return self.form_invalid(form)
@@ -243,6 +242,6 @@ class SignUpView(CreateView):
                 logger.error(error_msg)
                 raise ValidationError("L'adresse email est requise.")
                 
-        except Exception as e:
+        except Exception:
             logger.exception("Erreur lors de la validation des données utilisateur")
             raise  # Relance l'exception pour qu'elle soit gérée par l'appelant

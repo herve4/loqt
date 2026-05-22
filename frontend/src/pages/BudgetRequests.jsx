@@ -201,7 +201,7 @@ const BudgetRequests = () => {
                 value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1); }}
                 placeholder="Rechercher…"
-                className="bg-transparent border-none focus:ring-0 text-sm w-44 placeholder:text-slate-400"
+                className="bg-transparent border-0 focus:border-0 border-transparent focus:border-transparent focus:ring-0 focus:ring-transparent outline-none focus:outline-none text-sm w-44 placeholder:text-slate-400"
               />
             </div>
           </div>

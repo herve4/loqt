@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import permissions
 from django.db.models import Count, Sum
 from datetime import datetime, timedelta
 from .models import Materiel, Eglise, Evenement, CampMondial, MembreLogistique, Region, Ville
@@ -21,7 +21,7 @@ class DashboardStatsAPIView(APIView):
             'nb_regions': Region.objects.count(),
             'nb_villes': Ville.objects.count(),
             'nb_responsables_logistique': User.objects.filter(role__in=['rln', 'rll']).count(),
-            'nb_pasteurs': User.objects.filter(role__as_list=['pasteur_national', 'pasteur_local', 'pasteur']).count() if hasattr(User.objects, 'filter') else 0, # Note: using list for filter
+            'nb_pasteurs': User.objects.filter(role__in=['pasteur_national', 'pasteur_local', 'pasteur']).count() if hasattr(User.objects, 'filter') else 0,
         }
         
         # Statistiques de santé du matériel
@@ -55,7 +55,7 @@ class DashboardStatsAPIView(APIView):
                     'id': c.id,
                     'titre': c.titre,
                     'date_debut': c.date_debut,
-                    'lieu': c.lieu
+                    'lieu': c.ville.nom
                 } for c in upcoming_camps
             ]
         })

@@ -3,9 +3,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.db.models import Q
-from .models import Materiel, CategorieMateriel, SousCategorieMateriel
+from .models import Materiel, CategorieMateriel
 from django.core.paginator import Paginator
-import json
 
 @method_decorator(csrf_exempt, name='dispatch')
 class MaterielListAPIView(View):

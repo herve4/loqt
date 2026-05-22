@@ -63,19 +63,26 @@ const Sidebar = () => {
             <span className="material-symbols-outlined">inventory_2</span>
             <span className="text-sm">Inventaire</span>
           </Link>
+          <Link
+            to="/movements"
+            className={`flex items-center gap-3 px-6 py-2 rounded ${isActive('/movements') ? activeClass : inactiveClass}`}
+          >
+            <span className="material-symbols-outlined text-xs size-4">swap_horiz</span>
+            <span className="text-xs">Saisie de Flux</span>
+          </Link>
+          <Link
+            to="/movements/history"
+            className={`flex items-center gap-3 px-6 py-2 rounded ${isActive('/movements/history') ? activeClass : inactiveClass}`}
+          >
+            <span className="material-symbols-outlined text-xs size-4">history</span>
+            <span className="text-xs">Historique des Flux</span>
+          </Link>
           <Link 
             to="/churches" 
             className={`flex items-center gap-3 px-3 py-2.5 rounded ${isActive('/churches') ? activeClass : inactiveClass}`}
           >
             <span className="material-symbols-outlined">church</span>
             <span className="text-sm">Églises</span>
-          </Link>
-          <Link
-            to="/movements"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded ${isActive('/movements') ? activeClass : inactiveClass}`}
-          >
-            <span className="material-symbols-outlined">swap_horiz</span>
-            <span className="text-sm">Mouvements</span>
           </Link>
           <Link
             to="/meetings"

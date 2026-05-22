@@ -2,10 +2,7 @@ from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from logistque.villes.views import *
-from logistque.views import (DashboardView,EgliseListView,EgliseDetailView,EgliseCreateView,EgliseDeleteView,EgliseUpdateView,
-MaterielListView,MaterielDetailView,MaterielCreateView,MaterielUpdateView,MaterielDeleteView,MaterielRestoreView,ajax_delete,
-MaterielStatsAPIView,get_sous_categories,export_eglises,DemandePermissionCreateView,CampListView,CampDetailView,CampCreateView,
-export_materiels_excel, PackingListPDFView)
+from logistque.views import (MaterielStatsAPIView,get_sous_categories,PackingListPDFView)
 from django.conf import settings
 from django.conf.urls.static import static
 # Importer les URLs des événements avec leur espace de noms
@@ -20,7 +17,7 @@ from logistque.api_views import (
     ValidationCircuitViewSet, user_list,
     FormationViewSet, DemandeFormationViewSet, SessionFormationViewSet,
     RegionViewSet, CategorieViewSet, SousCategorieViewSet,
-    EvenementImageViewSet, ChronogrammeTemplateViewSet
+    EvenementImageViewSet, ChronogrammeTemplateViewSet, MaterielImageViewSet
 )
 from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, SendVerificationCodeView, VerifyCodeView
 from logistque.api_user import CurrentUserAPIView
@@ -31,6 +28,7 @@ router.register(r'eglises', EgliseViewSet)
 router.register(r'categories', CategorieViewSet)
 router.register(r'sous-categories', SousCategorieViewSet)
 router.register(r'materiels', MaterielViewSet)
+router.register(r'materiel-images', MaterielImageViewSet)
 router.register(r'evenements', EvenementViewSet)
 router.register(r'evenement-images', EvenementImageViewSet)
 router.register(r'chronogramme-items', ChronogrammeItemViewSet)

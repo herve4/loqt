@@ -35,12 +35,12 @@ const ModalNouvelleDemande = ({ onClose, onSubmit, isLoading }) => {
   
   const { data: eglisesData } = useQuery({
     queryKey: ['eglises'],
-    queryFn: () => logisticsService.getEglises().then(r => r.data),
+    queryFn: () => logisticsService.getEglises({ page_size: 100 }).then(r => r.data),
   });
 
   const { data: formationsData } = useQuery({
     queryKey: ['formations'],
-    queryFn: () => logisticsService.getFormations().then(r => r.data),
+    queryFn: () => logisticsService.getFormations({ page_size: 100 }).then(r => r.data),
   });
 
   const eglises = eglisesData?.results || [];
@@ -108,15 +108,16 @@ const ModalNouvelleDemande = ({ onClose, onSubmit, isLoading }) => {
 const TrainingDashboard = () => {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
+  const [page, setPage] = useState(1);
 
   const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
     queryKey: ['sessions-formation'],
-    queryFn: () => logisticsService.getSessionsFormation().then(r => r.data),
+    queryFn: () => logisticsService.getSessionsFormation({ page_size: 100 }).then(r => r.data),
   });
 
   const { data: demandesData, isLoading: demandesLoading } = useQuery({
-    queryKey: ['demandes-formation'],
-    queryFn: () => logisticsService.getDemandesFormation().then(r => r.data),
+    queryKey: ['demandes-formation', page],
+    queryFn: () => logisticsService.getDemandesFormation({ page }).then(r => r.data),
   });
 
   const createMutation = useMutation({
@@ -129,6 +130,8 @@ const TrainingDashboard = () => {
 
   const sessions = sessionsData?.results || [];
   const demandes = demandesData?.results || [];
+  const totalCount = demandesData?.count || 0;
+  const totalPages = Math.ceil(totalCount / 10);
 
   const pendingCount = demandes.filter(d => d.statut === 'PENDING').length;
   const upcomingSessions = sessions.filter(s => s.statut === 'CONFIRMED' || s.statut === 'PLANNING').length;
@@ -302,6 +305,30 @@ const TrainingDashboard = () => {
                     </tbody>
                   </table>
                 </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Page {page} sur {totalPages} ({totalCount} demandes)
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="h-10 px-4 text-xs font-black uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-none transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-0 active:scale-[0.98]"
+                      >
+                        Précédent
+                      </button>
+                      <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="h-10 px-4 text-xs font-black uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-none transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-0 active:scale-[0.98]"
+                      >
+                        Suivant
+                      </button>
+                    </div>
+                  </div>
+                )}
               </section>
 
               {/* Call to action */}

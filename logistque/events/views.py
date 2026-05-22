@@ -3,13 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
 from django.views.generic import (
-    ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, View
+    ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 )
 from logistque.models import Logistique
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
-from django.utils import timezone
 from datetime import timedelta, datetime
 from django.db.models import Q, Count
 from django.db.models.functions import TruncMonth
@@ -25,7 +24,6 @@ from logistque.models import (
     Materiel,
     ChronogrammeItem
 )
-from accounts.models import CustomUser
 from logistque.events.forms import EventForm, ChronogrammeItemForm
 
 @login_required
@@ -215,7 +213,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         if start_date:
             try:
                 # Essayer de parser la date au format ISO 8601 (format standard des dates JS)
-                from datetime import datetime, timezone
+                from datetime import datetime
                 
                 # Supprimer les millisecondes si elles existent
                 if '.' in start_date:
@@ -258,7 +256,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
                 
         if end_date:
             try:
-                from datetime import datetime, timezone
+                from datetime import datetime
                 
                 # Supprimer les millisecondes si elles existent
                 if '.' in end_date:
@@ -849,7 +847,7 @@ class EventCalendarView(LoginRequiredMixin, TemplateView):
             if end_date_str:
                 end_date = timezone.make_aware(datetime.strptime(end_date_str, '%Y-%m-%d'))
                 events = events.filter(date_fin__lte=end_date)
-        except ValueError as e:
+        except ValueError:
             return JsonResponse({'error': 'Format de date invalide'}, status=400)
         
         # Sérialiser les événements filtrés
@@ -954,7 +952,7 @@ class EventMaterialCreateView(LoginRequiredMixin, CreateView):
         
         # Vérifier si le matériel est disponible
         if not materiel.est_disponible(quantite, date_debut, date_fin):
-            form.add_error(None, f"Désolé, la quantité demandée n'est pas disponible pour la période sélectionnée.")
+            form.add_error(None, "Désolé, la quantité demandée n'est pas disponible pour la période sélectionnée.")
             return self.form_invalid(form)
         
         response = super().form_valid(form)

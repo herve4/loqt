@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ user: '', password: '', remember_me: false });
   const [error, setError] = useState('');
+  const [showToast, setShowToast] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: (credentials) => login(credentials),
@@ -17,8 +18,18 @@ const Login = () => {
     },
     onError: (err) => {
       setError(err.response?.data?.message || 'Identifiants incorrects ou erreur serveur');
+      setShowToast(true);
     }
   });
+
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -31,8 +42,10 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
+    setShowToast(false);
     loginMutation.mutate(formData);
   };
+
 
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
@@ -88,12 +101,7 @@ const Login = () => {
                   <p className="text-slate-500 dark:text-slate-400">Veuillez entrer vos identifiants pour accéder au tableau de bord logistique.</p>
                 </div>
 
-                {error && (
-                  <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
-                    <span className="material-symbols-outlined">error</span>
-                    {error}
-                  </div>
-                )}
+
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   <div className="flex flex-col gap-2">
@@ -169,6 +177,44 @@ const Login = () => {
           <footer className="p-6 text-center text-slate-400 text-xs">
             © 2024 SGL-CI Logistics Management. Tous droits réservés. Usage professionnel uniquement.
           </footer>
+        </div>
+      </div>
+
+      {/* Floating Toast */}
+      <div className={`fixed top-6 right-6 z-[100] transition-all duration-500 transform ${showToast ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95 pointer-events-none'}`}>
+        <div className="max-w-md bg-white/95 border border-slate-100 rounded-2xl shadow-[0_15px_50px_rgba(0,0,0,0.08)] overflow-hidden relative group hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-all duration-300 backdrop-blur-md">
+          {/* Dynamic colored accent bar at the left */}
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-red-500 to-rose-600"></div>
+          
+          <div className="p-5 flex items-start gap-4">
+            {/* Icon with glowing background pulse */}
+            <div className="relative flex items-center justify-center size-10 rounded-xl bg-red-50 text-red-500 shrink-0">
+              <span className="material-symbols-outlined text-2xl animate-pulse">warning</span>
+              <div className="absolute inset-0 bg-red-500/10 rounded-xl animate-ping opacity-75"></div>
+            </div>
+            
+            {/* Text Content */}
+            <div className="flex-1 pr-6">
+              <h4 className="text-sm font-extrabold text-slate-900 tracking-tight uppercase mb-1">Erreur de connexion</h4>
+              <p className="text-sm text-slate-500 font-medium leading-relaxed">{error}</p>
+            </div>
+            
+            {/* Close button with interactive scale/rotate */}
+            <button 
+              type="button"
+              onClick={() => setShowToast(false)} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 hover:scale-110 active:scale-95 transition-all size-6 flex items-center justify-center rounded-lg hover:bg-slate-50"
+            >
+              <span className="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+          
+          {/* Progress bar at the bottom */}
+          {showToast && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100">
+              <div className="h-full bg-gradient-to-r from-red-500 to-rose-600 animate-toast-progress"></div>
+            </div>
+          )}
         </div>
       </div>
     </div>

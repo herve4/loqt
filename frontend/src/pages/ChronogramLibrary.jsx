@@ -28,7 +28,7 @@ const ChronogramLibrary = () => {
   // Fetch templates
   const { data: templates, isLoading } = useQuery({
     queryKey: ['chronogram-templates'],
-    queryFn: () => logisticsService.getChronogramTemplates().then(res => res.data.results || res.data),
+    queryFn: () => logisticsService.getChronogramTemplates({ page_size: 100 }).then(res => res.data.results || res.data),
   });
 
   // Mutations

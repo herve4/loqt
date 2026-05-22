@@ -65,7 +65,7 @@ const EventsList = () => {
     // Récupération des modèles de chronogramme
     const { data: userTemplates } = useQuery({
         queryKey: ['chronogram-templates'],
-        queryFn: () => logisticsService.getChronogramTemplates().then(res => res.data.results || res.data),
+        queryFn: () => logisticsService.getChronogramTemplates({ page_size: 100 }).then(res => res.data.results || res.data),
     });
 
     const events = eventsData?.results || [];

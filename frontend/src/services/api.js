@@ -33,6 +33,14 @@ export const logisticsService = {
   getEglises: (params) => api.get('eglises/', { params }),
   getMateriels: (params) => api.get('materiels/', { params }),
   getMaterielById: (id) => api.get(`materiels/${id}/`),
+  postMateriel: (data) => api.post('materiels/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  patchMateriel: (id, data) => api.patch(`materiels/${id}/`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  deleteMateriel: (id) => api.delete(`materiels/${id}/`),
+  deleteMaterielImage: (id) => api.delete(`materiel-images/${id}/`),
   getEvenements: (params) => api.get('evenements/', { params }),
   getEvenementById: (id) => api.get(`evenements/${id}/`),
   postEvenement: (data) => api.post('evenements/', data),
@@ -51,9 +59,9 @@ export const logisticsService = {
   postDefectReport: (data) => api.post('defectuosites/', data, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
-  getMovements: () => api.get('mouvements/'),
+  getMovements: (params) => api.get('mouvements/', { params }),
   getMaterielMovements: (materielId) => api.get(`mouvements/?materiel=${materielId}`),
-  getMaterielDefects: (materielId) => api.get(`defectuosites/?materiel=${materielId}`),
+  getMaterielDefects: (materielId, params) => api.get(`defectuosites/?materiel=${materielId}`, { params }),
   postMovement: (data) => api.post('mouvements/', data),
   getMembers: () => api.get('users/'),
   getReunions: (params) => api.get('reunions/', { params }),
@@ -65,16 +73,16 @@ export const logisticsService = {
   postExpression: (data) => api.post('expressions-besoin/', data),
   patchValidation: (id, data) => api.patch(`validations/${id}/`, data),
   deciderExpression: (id, data) => api.post(`expressions-besoin/${id}/decider/`, data),
-  getFormations: () => api.get('formations/'),
-  getSessionsFormation: () => api.get('sessions-f/'), // Changé session-f pour matcher avec logistque/urls.py
-  getDemandesFormation: () => api.get('demandes-f/'), // Changé demandes-f pour matcher avec logistque/urls.py
+  getFormations: (params) => api.get('formations/', { params }),
+  getSessionsFormation: (params) => api.get('sessions-f/', { params }), // Changé session-f pour matcher avec logistque/urls.py
+  getDemandesFormation: (params) => api.get('demandes-f/', { params }), // Changé demandes-f pour matcher avec logistque/urls.py
   postDemandeFormation: (data) => api.post('demandes-f/', data),
   getRessources: () => api.get('ressources/'),
   getPoles: () => api.get('poles/'),
   getRegions: () => api.get('regions/'),
   getCategories: () => api.get('categories/'),
   getSousCategories: () => api.get('sous-categories/'),
-  getChronogramTemplates: () => api.get('chronogramme-templates/'),
+  getChronogramTemplates: (params) => api.get('chronogramme-templates/', { params }),
   createChronogramTemplate: (data) => api.post('chronogramme-templates/', data),
   updateChronogramTemplate: (id, data) => api.patch(`chronogramme-templates/${id}/`, data),
   deleteChronogramTemplate: (id) => api.delete(`chronogramme-templates/${id}/`),

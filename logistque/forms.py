@@ -11,7 +11,7 @@ class DemandePermissionForm(forms.ModelForm):
         
 
 from django import forms
-from django.forms import inlineformset_factory, modelformset_factory
+from django.forms import modelformset_factory
 from .models import Materiel, MaterielImage
 
 # class MaterielForm(forms.ModelForm):

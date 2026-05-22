@@ -1,0 +1,34 @@
+# Ruff configuration file for LOQT project
+
+# Exclude a variety of commonly ignored directories and legacy scripts
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    "venv",
+    ".venv",
+    "__pypackages__",
+    "dist",
+    "scripts",
+    "test_auth_endpoints.py",
+]
+
+# Set line-length and indent
+line-length = 200
+indent-width = 4
+
+[lint]
+# Focus ONLY on Pyflakes (structural and potential bugs) and ignore style guidelines
+select = ["F"]
+ignore = [
+    "F401",  # Unused imports
+    "F403",  # Star imports used; unable to detect undefined names
+    "F405",  # Defined from star imports
+    "F811",  # Redefinition of unused names
+    "F821",  # Undefined name
+    "F841",  # Local variable assigned to but never used
+]
+
+# Allow auto-fixes
+fixable = ["ALL"]
+unfixable = []

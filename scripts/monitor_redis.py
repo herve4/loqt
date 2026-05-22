@@ -13,7 +13,6 @@ import redis
 import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime
-from pathlib import Path
 
 # Configuration par défaut
 DEFAULT_CONFIG = {

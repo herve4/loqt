@@ -1,8 +1,6 @@
 from django import forms
-from django.forms import inlineformset_factory
 from logistque.models import Evenement, EvenementMateriel, ChronogrammeItem, Materiel, Eglise
 from accounts.models import CustomUser
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from datetime import timedelta
 
@@ -266,7 +264,7 @@ class EventForm(forms.ModelForm):
                 self.fields['organisateur_type'].disabled = True
                 self.fields['organisateur_nom'].initial = self.user.eglise.nom
                 self.fields['organisateur_nom'].disabled = True
-            except (AttributeError, Eglise.DoesNotExist) as e:
+            except (AttributeError, Eglise.DoesNotExist):
                 # En cas d'erreur, on laisse la sélection d'église ouverte
                 self.fields['eglise'].queryset = Eglise.objects.all()
                 self.fields['eglise'].help_text = "Sélectionnez une église"

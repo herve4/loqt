@@ -283,7 +283,6 @@ def validate_reservation(request, pk, status):
     })
     
 
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 @login_required

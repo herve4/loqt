@@ -1,0 +1,7 @@
+{
+  "name": "LOGISTIQUE Pro",
+  "description": "A high-performance logistics and event management platform with AI-powered insights, interactive mapping, and real-time inventory tracking.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

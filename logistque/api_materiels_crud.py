@@ -3,12 +3,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.db.models import Q
-from .models import Materiel, CategorieMateriel, SousCategorieMateriel
+from .models import Materiel
 import json
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import os
-from django.conf import settings
 
 User = get_user_model()
 

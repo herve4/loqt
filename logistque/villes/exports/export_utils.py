@@ -5,7 +5,6 @@ from reportlab.lib import colors
 from reportlab.lib.units import cm
 import openpyxl
 from docx import Document
-from datetime import datetime
 
 def export_villes_to_pdf(villes):
     buffer = io.BytesIO()

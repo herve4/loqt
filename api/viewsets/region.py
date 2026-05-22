@@ -1,12 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from logistque.models import Region, Ville
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
-from django.http import JsonResponse
-from django.db import models
 import logging
 
 logger = logging.getLogger(__name__)

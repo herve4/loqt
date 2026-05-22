@@ -1,11 +1,7 @@
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from datetime import timedelta
 from logistque.models import (
-    Region, Ville, Eglise, Logistique, CategorieMateriel, 
-    SousCategorieMateriel, Materiel, Evenement, EvenementMateriel, ChronogrammeItem
+    Region, Ville, Eglise
 )
 
 User = get_user_model()
