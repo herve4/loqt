@@ -1,74 +1,49 @@
-# Image de base pour l'environnement de build
+# ── Étape 1 : Builder — installe les dépendances ─────────────────────────────
 FROM python:3.13-slim AS builder
 
-# Répertoire de travail pour l'environnement de build
 WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Variables d'environnement pour l'environnement de build
-ENV PYTHONDONTWRITEBYTECODE=1 
-#Ne pas écrire de fichiers bytecode
-ENV PYTHONUNBUFFERED=1 
-#Ne pas mettre en tampon les sorties
-
-# Mettre à jour pip
 RUN pip install --upgrade pip
-
-# Copier les dépendances du projet
 COPY requirements.txt .
-
-# Installer les dépendances du projet
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Image de base pour l'environnement d'exécution
+# ── Étape 2 : Image d'exécution ───────────────────────────────────────────────
 FROM python:3.13-slim
 
-# Créer un utilisateur loqt et un répertoire /app
-RUN useradd -m loqt && \
-    mkdir /app && \
-    chown -R loqt:loqt /app
-
-# Copier les bibliothèques installées dans l'environnement de build
-COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
-# Copier les exécutables installés dans l'environnement de build
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
-
-# Répertoire de travail pour l'environnement d'exécution
-WORKDIR /app
-
-# Créer les répertoires nécessaires
-RUN mkdir -p /static /media && \
-    chown -R loqt:loqt /static /media /app
-
-# Installer les dépendances système nécessaires
+# Installer les dépendances système
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier le fichier requirements.txt pour le cache Docker
-COPY requirements.txt .
+# Copier les packages Python depuis le builder
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# Installer les dépendances du projet
-RUN pip install --no-cache-dir -r requirements.txt
+# Créer l'utilisateur loqt AVANT toute opération sur /app
+RUN useradd -m loqt
 
-# Copier tout le contenu du projet
+# Répertoire de travail
+WORKDIR /app
+
+# Copier le code source (en tant que root — nécessaire pour COPY)
 COPY . .
 
-# S'assurer que les scripts sont exécutables
-RUN chmod +x manage.py wait-for-db.sh
+# Créer les dossiers de données et corriger TOUTES les permissions en une seule commande
+# Fait APRÈS le COPY pour écraser les permissions Windows/root
+RUN mkdir -p /app/staticfiles /app/media /app/static_dev /app/staticfiles && \
+    chmod +x manage.py wait-for-db.sh && \
+    chown -R loqt:loqt /app
 
-# Variables d'environnement pour l'environnement d'exécution
-ENV PYTHONDONTWRITEBYTECODE=1 
-# Ne pas écrire de fichiers bytecode
-ENV PYTHONUNBUFFERED=1 
-# Ne pas mettre en tampon les sorties
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Changer l'utilisateur courant en loqt
+# Basculer vers l'utilisateur non-root
 USER loqt
 
-# Exposer le port 8000
 EXPOSE 8000
 
-# Commande par défaut pour lancer l'application
-CMD ["bash", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 --access-logfile - --error-logfile - --log-level debug loqt.wsgi:application"]
-
+# CMD de fallback (remplacé par docker-compose command)
+CMD ["bash", "-c", "./wait-for-db.sh && python manage.py migrate --noinput && python manage.py collectstatic --noinput && exec gunicorn loqt.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --keep-alive 5 --worker-class sync --log-level info --access-logfile - --error-logfile -"]
