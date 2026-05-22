@@ -1,0 +1,141 @@
+name: 🚀 Deploy to Production
+
+on:
+  push:
+    branches:
+      - master   # La branche de production (ajustez si différent)
+
+  # Permet de déclencher manuellement depuis l'onglet Actions de GitHub
+  workflow_dispatch:
+
+env:
+  DEPLOY_DIR: ~/loqt
+  COMPOSE_SERVICE: web   # Nom du service Django dans docker-compose.yml
+
+jobs:
+  # ── Job 1 : Build & Vérification ──────────────────────────────────────────
+  verify:
+    name: ✅ Verify & Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend (production)
+        working-directory: frontend
+        run: npm run build
+        env:
+          # Pointe vers l'API de production
+          VITE_API_URL: https://sglci.sajholding.org/api/
+
+  # ── Job 2 : Déploiement SSH ────────────────────────────────────────────────
+  deploy:
+    name: 🚢 Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: verify   # Déployer uniquement si la vérification passe
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          # Timeout SSH étendu pour les builds Docker longs
+          command_timeout: 30m
+          script: |
+            set -e   # Arrêter immédiatement si une commande échoue
+
+            echo "═══════════════════════════════════════"
+            echo "  🚀 LOQT — Déploiement Production"
+            echo "  📅 $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "═══════════════════════════════════════"
+
+            cd ${{ env.DEPLOY_DIR }}
+
+            # ── 1. Récupérer le dernier code ───────────────────────────────
+            echo ""
+            echo "📥 [1/5] Pull du code source..."
+            git fetch --all
+            git reset --hard origin/master
+            echo "✅ Code mis à jour : $(git log -1 --format='%h %s')"
+
+            # ── 2. Arrêter les conteneurs (sans perdre la DB) ──────────────
+            echo ""
+            echo "⏹  [2/5] Arrêt des conteneurs applicatifs..."
+            docker-compose stop web nginx ngrok 2>/dev/null || true
+            echo "✅ Conteneurs applicatifs arrêtés"
+
+            # ── 3. Reconstruire l'image ───────────────────────────────────
+            echo ""
+            echo "🔨 [3/5] Build de l'image Docker..."
+            docker-compose build --no-cache web
+            echo "✅ Image construite"
+
+            # ── 4. Relancer les services ──────────────────────────────────
+            echo ""
+            echo "▶️  [4/5] Démarrage des conteneurs..."
+            docker-compose up -d --remove-orphans
+            echo "✅ Conteneurs démarrés"
+
+            # ── 5. Attendre que le service web soit prêt ──────────────────
+            echo ""
+            echo "⏳ [5/5] Attente du démarrage du service..."
+            sleep 10
+
+            # Vérification de santé basique
+            MAX_RETRIES=12
+            COUNT=0
+            until docker-compose exec -T web curl -sf http://localhost:8000/health/ > /dev/null 2>&1; do
+              COUNT=$((COUNT + 1))
+              if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
+                echo "❌ Le service web n'a pas démarré après $((MAX_RETRIES * 5)) secondes."
+                echo "── Logs du service ──"
+                docker-compose logs --tail=50 web
+                exit 1
+              fi
+              echo "   ... tentative $COUNT/$MAX_RETRIES (attente 5s)"
+              sleep 5
+            done
+
+            echo "✅ Service web opérationnel !"
+
+            # ── Nettoyage Docker (images orphelines) ─────────────────────
+            docker image prune -f --filter "until=48h" > /dev/null 2>&1 || true
+
+            echo ""
+            echo "═══════════════════════════════════════"
+            echo "  ✅ Déploiement réussi !"
+            echo "  🌐 https://sglci.sajholding.org/"
+            echo "  📦 Commit : $(git log -1 --format='%h — %s')"
+            echo "═══════════════════════════════════════"
+
+  # ── Job 3 : Notification de résultat ──────────────────────────────────────
+  notify:
+    name: 📢 Notify Result
+    runs-on: ubuntu-latest
+    needs: [verify, deploy]
+    if: always()   # Toujours exécuter, même en cas d'échec
+
+    steps:
+      - name: Report deployment status
+        run: |
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "🎉 Déploiement RÉUSSI sur https://sglci.sajholding.org/"
+            echo "Branch: master | Commit: ${{ github.sha }}"
+          else
+            echo "❌ Déploiement ÉCHOUÉ"
+            echo "Vérifiez l'onglet Actions pour les détails."
+          fi

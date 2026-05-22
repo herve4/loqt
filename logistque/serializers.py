@@ -6,7 +6,7 @@ from logistque.models import (
     ValidationCircuit,
     Formation, DemandeFormation, SessionFormation,
     CategorieMateriel, SousCategorieMateriel, EvenementImage,
-    ChronogrammeTemplate
+    ChronogrammeTemplate, MaterielImage
 )
 
 class CategorieMaterielSerializer(serializers.ModelSerializer):
@@ -39,11 +39,17 @@ class EgliseSerializer(serializers.ModelSerializer):
         model = Eglise
         fields = '__all__'
 
+class MaterielImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MaterielImage
+        fields = '__all__'
+
 class MaterielSerializer(serializers.ModelSerializer):
     categorie_nom = serializers.CharField(source='categorie.nom', read_only=True)
     eglise_nom = serializers.CharField(source='eglise.nom', read_only=True)
     mouvements_count = serializers.IntegerField(source='mouvements.count', read_only=True)
     defauts_count = serializers.IntegerField(source='fiches_defectuosite.count', read_only=True)
+    images_materiel = MaterielImageSerializer(many=True, read_only=True)
     class Meta:
         model = Materiel
         fields = '__all__'
@@ -83,6 +89,15 @@ class MouvementMaterielSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class FicheDefectuositeSerializer(serializers.ModelSerializer):
+    materiel_nom = serializers.CharField(source='materiel.nom', read_only=True)
+
+    def validate(self, data):
+        if not data.get('materiel') and not data.get('nom_materiel_libre'):
+            raise serializers.ValidationError(
+                "Vous devez renseigner soit un matériel, soit le nom d'un matériel non référencé."
+            )
+        return data
+
     class Meta:
         model = FicheDefectuosite
         fields = '__all__'

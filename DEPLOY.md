@@ -119,3 +119,48 @@ docker-compose up -d
 ## Support
 
 Pour toute question ou problème, ouvrez une issue sur le dépôt ou contactez l'équipe de développement.
+
+---
+
+## 🤖 GitHub Actions — Déploiement Automatique
+
+Le déploiement est automatisé via `.github/workflows/deploy.yml`. Chaque `push` sur `master` déclenche un déploiement.
+
+### ⚠️ Étape critique — Autoriser la clé SSH sur le serveur
+
+La clé SSH a été générée sur le serveur. Il faut autoriser la clé publique :
+
+```bash
+# Sur le VPS
+cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+```
+
+### 🔑 Secrets requis sur GitHub
+
+Allez sur : `https://github.com/herve4/loqt/settings/secrets/actions`
+
+| Secret | Valeur |
+|--------|--------|
+| `SSH_HOST` | IP ou domaine du VPS |
+| `SSH_USER` | `herve` |
+| `SSH_KEY` | Contenu de `~/.ssh/id_ed25519` (clé **privée** entière) |
+| `SSH_PORT` | `22` |
+
+**Copier la clé privée :**
+```bash
+cat ~/.ssh/id_ed25519
+```
+
+### 🔄 Flux de déploiement
+
+```
+Push sur master → Build frontend → SSH → git pull → docker build → docker up → health-check
+```
+
+### 🧪 Déclencher manuellement
+
+1. Aller sur `https://github.com/herve4/loqt/actions`
+2. Cliquer sur **"Deploy to Production"**
+3. Bouton **"Run workflow"** → `master`

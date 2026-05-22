@@ -10,17 +10,15 @@ import requests
 from django.utils.safestring import mark_safe
 import qrcode
 import barcode
-from PIL import Image, ImageDraw, ImageEnhance,ImageOps, ImageFont
-from PIL.ImageEnhance import Brightness, Contrast
+from PIL import Image, ImageDraw, ImageEnhance,ImageFont
 from barcode.writer import ImageWriter
 from io import BytesIO
 from django.core.files import File
 from django.utils.text import slugify
-from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.validators import MinValueValidator
 from django.utils.html import mark_safe
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
-from datetime import datetime, date, time
+from datetime import datetime
 from django.contrib.auth.models import Permission
 
 # Import des modèles pour éviter les références circulaires
@@ -104,7 +102,7 @@ class Eglise(models.Model):
     ville = models.ForeignKey(Ville, on_delete=models.CASCADE,related_name='ville_eglise')
     pasteur = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, related_name='pasteur_eglise')
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-    logo = models.ImageField(upload_to='logos_eglises/', null=True, blank=True, default=f'logo_ebng.png',auto_created=True,error_messages={'error': 'Le chemin vers le logo est requis.'})
+    logo = models.ImageField(upload_to='logos_eglises/', null=True, blank=True, default='logo_ebng.png',auto_created=True,error_messages={'error': 'Le chemin vers le logo est requis.'})
     is_active = models.BooleanField(default=True, verbose_name="Est active")
     is_national_hq = models.BooleanField(default=False, verbose_name="Siège National")
 
@@ -392,6 +390,10 @@ class Materiel(models.Model):
         
         super().save(*args, **kwargs)
         
+        # Auto-migrate legacy single-image to multi-image gallery if it exists but no gallery records exist yet
+        if self.image and not self.images_materiel.exists():
+            MaterielImage.objects.create(materiel=self, image=self.image)
+        
         # Données utilisateur
         user_info = {
             'nom': self.logistique.responsable.last_name if self.logistique and self.logistique.responsable else '',
@@ -495,7 +497,9 @@ class FicheDefectuosite(models.Model):
         ('Medium', 'Moyen'),
         ('Critical', 'Critique'),
     ]
-    materiel = models.ForeignKey(Materiel, on_delete=models.CASCADE, related_name='fiches_defectuosite')
+    materiel = models.ForeignKey(Materiel, on_delete=models.CASCADE, related_name='fiches_defectuosite', null=True, blank=True)
+    nom_materiel_libre = models.CharField(max_length=200, blank=True, null=True, verbose_name="Nom (matériel non référencé)")
+    lieu_constat = models.CharField(max_length=200, blank=True, null=True, verbose_name="Lieu de constat")
     rapporteur = models.ForeignKey(User, on_delete=models.CASCADE)
     description = models.TextField(verbose_name="Description de la panne")
     photo = models.ImageField(upload_to='pannes/', null=True, blank=True)
@@ -503,6 +507,11 @@ class FicheDefectuosite(models.Model):
     date_signalement = models.DateTimeField(auto_now_add=True)
     repare = models.BooleanField(default=False)
     date_reparation = models.DateTimeField(null=True, blank=True)
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.materiel and not self.nom_materiel_libre:
+            raise ValidationError("Vous devez renseigner soit le matériel, soit le nom du matériel non référencé.")
 
     class Meta:
         verbose_name = "Fiche de défectuosité"

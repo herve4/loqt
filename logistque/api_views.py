@@ -1,15 +1,26 @@
 from rest_framework import viewsets, permissions, filters, pagination
-import pytesseract
-from PIL import Image
+try:
+    import pytesseract
+    from PIL import Image
+    # Configuration du chemin Tesseract pour le serveur de production
+    pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
+    PYTESSERACT_AVAILABLE = True
+except ImportError:
+    PYTESSERACT_AVAILABLE = False
 import re
 import datetime
-import PyPDF2
-import docx
-import pandas as pd
-import io
-
-# Configuration du chemin Tesseract pour le serveur de production
-pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
+try:
+    import PyPDF2
+except ImportError:
+    PyPDF2 = None
+try:
+    import docx
+except ImportError:
+    docx = None
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 from rest_framework.decorators import api_view, action
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
@@ -19,7 +30,6 @@ from django.utils import timezone
 import logging
 
 logger = logging.getLogger('logistque')
-import random
 from django_filters.rest_framework import DjangoFilterBackend
 from logistque.models import (
     Region, Eglise, Materiel, Evenement, ChronogrammeItem, PoleCompetence,
@@ -28,7 +38,7 @@ from logistque.models import (
     ValidationCircuit,
     Formation, DemandeFormation, SessionFormation,
     CategorieMateriel, SousCategorieMateriel, EvenementImage,
-    ChronogrammeTemplate
+    ChronogrammeTemplate, MaterielImage
 )
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
@@ -43,7 +53,7 @@ from logistque.serializers import (
     ValidationCircuitSerializer,
     FormationSerializer, DemandeFormationSerializer, SessionFormationSerializer,
     CategorieMaterielSerializer, SousCategorieMaterielSerializer,
-    EvenementImageSerializer, ChronogrammeTemplateSerializer
+    EvenementImageSerializer, ChronogrammeTemplateSerializer, MaterielImageSerializer
 )
 
 class StandardPagination(pagination.PageNumberPagination):
@@ -82,6 +92,32 @@ class MaterielViewSet(viewsets.ModelViewSet):
     filterset_fields = ['categorie', 'sous_categorie', 'eglise', 'etat']
     search_fields = ['nom', 'description', 'identifiant_unique']
     ordering_fields = ['created_at', 'quantite']
+
+    def perform_create(self, serializer):
+        materiel = serializer.save()
+        images = self.request.FILES.getlist('uploaded_images')
+        for img in images:
+            MaterielImage.objects.create(materiel=materiel, image=img)
+        
+        remaining = materiel.images_materiel.all().order_by('id')
+        if remaining.exists():
+            materiel.image = remaining[0].image
+        else:
+            materiel.image = None
+        materiel.save()
+
+    def perform_update(self, serializer):
+        materiel = serializer.save()
+        images = self.request.FILES.getlist('uploaded_images')
+        for img in images:
+            MaterielImage.objects.create(materiel=materiel, image=img)
+        
+        remaining = materiel.images_materiel.all().order_by('id')
+        if remaining.exists():
+            materiel.image = remaining[0].image
+        else:
+            materiel.image = None
+        materiel.save()
 
     def perform_destroy(self, instance):
         # Soft delete
@@ -403,6 +439,7 @@ class ChronogrammeTemplateViewSet(viewsets.ModelViewSet):
     serializer_class = ChronogrammeTemplateSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, SessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['nom', 'description']
 
@@ -446,9 +483,16 @@ class MouvementMaterielViewSet(viewsets.ModelViewSet):
     serializer_class = MouvementMaterielSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [CsrfExemptSessionAuthentication, SessionAuthentication]
-    pagination_class = pagination.PageNumberPagination
+    pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type_mouvement', 'evenement', 'batch_id', 'eglise_origine', 'materiel']
+    filterset_fields = {
+        'type_mouvement': ['exact'],
+        'evenement': ['exact'],
+        'batch_id': ['exact'],
+        'eglise_origine': ['exact'],
+        'materiel': ['exact'],
+        'date_mouvement': ['exact', 'gte', 'lte'],
+    }
     search_fields = ['notes', 'batch_id', 'materiel__nom', 'eglise_origine__nom']
 
 class FicheDefectuositeViewSet(viewsets.ModelViewSet):
@@ -456,6 +500,7 @@ class FicheDefectuositeViewSet(viewsets.ModelViewSet):
     serializer_class = FicheDefectuositeSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [CsrfExemptSessionAuthentication, SessionAuthentication]
+    pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['materiel', 'repare', 'niveau_gravite']
 
@@ -524,12 +569,14 @@ class FormationViewSet(viewsets.ModelViewSet):
     queryset = Formation.objects.all()
     serializer_class = FormationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagination
 
 class DemandeFormationViewSet(viewsets.ModelViewSet):
     queryset = DemandeFormation.objects.select_related('eglise', 'demandeur', 'formation').all().order_by('-date_demande')
     serializer_class = DemandeFormationSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [CsrfExemptSessionAuthentication, SessionAuthentication]
+    pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['eglise', 'statut']
     search_fields = ['formation__titre', 'notes']
@@ -538,6 +585,7 @@ class SessionFormationViewSet(viewsets.ModelViewSet):
     queryset = SessionFormation.objects.select_related('formation').all().order_by('date_debut')
     serializer_class = SessionFormationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['statut']
 
@@ -556,3 +604,21 @@ class EvenementImageViewSet(viewsets.ModelViewSet):
     serializer_class = EvenementImageSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [CsrfExemptSessionAuthentication, SessionAuthentication]
+
+class MaterielImageViewSet(viewsets.ModelViewSet):
+    queryset = MaterielImage.objects.all()
+    serializer_class = MaterielImageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, SessionAuthentication]
+
+    def perform_destroy(self, instance):
+        materiel = instance.materiel
+        instance.delete()
+        
+        # Sync primary image with the first remaining gallery image
+        remaining = materiel.images_materiel.all().order_by('id')
+        if remaining.exists():
+            materiel.image = remaining[0].image
+        else:
+            materiel.image = None
+        materiel.save()
