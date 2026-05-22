@@ -116,11 +116,11 @@ jobs:
             docker compose rm -f web nginx ngrok 2>/dev/null || true
             echo "✅ Services applicatifs arrêtés"
 
-            # ── 4. Reconstruire l'image web ───────────────────────────────
+            # ── 4. Reconstruire les images ────────────────────────────────
             echo ""
-            echo "🔨 [4/6] Build de l'image Docker (web)..."
-            docker compose build --no-cache web
-            echo "✅ Image construite"
+            echo "🔨 [4/6] Build des images Docker (web, nginx)..."
+            docker compose build --no-cache web nginx
+            echo "✅ Images construites"
 
             # ── 5. Relancer uniquement les services applicatifs ───────────
             echo ""
