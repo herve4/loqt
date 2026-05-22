@@ -1,5 +1,5 @@
 # ── Étape 1 : Builder Frontend ─────────────────────────────────────────────
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app
 COPY frontend/package*.json ./
