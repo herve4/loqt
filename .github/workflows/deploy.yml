@@ -75,19 +75,19 @@ jobs:
             # ── 2. Arrêter les conteneurs (sans perdre la DB) ──────────────
             echo ""
             echo "⏹  [2/5] Arrêt des conteneurs applicatifs..."
-            docker-compose stop web nginx ngrok 2>/dev/null || true
+            docker compose stop web nginx ngrok 2>/dev/null || true
             echo "✅ Conteneurs applicatifs arrêtés"
 
             # ── 3. Reconstruire l'image ───────────────────────────────────
             echo ""
             echo "🔨 [3/5] Build de l'image Docker..."
-            docker-compose build --no-cache web
+            docker compose build --no-cache web
             echo "✅ Image construite"
 
             # ── 4. Relancer les services ──────────────────────────────────
             echo ""
             echo "▶️  [4/5] Démarrage des conteneurs..."
-            docker-compose up -d --remove-orphans
+            docker compose up -d --remove-orphans
             echo "✅ Conteneurs démarrés"
 
             # ── 5. Attendre que le service web soit prêt ──────────────────
@@ -98,12 +98,12 @@ jobs:
             # Vérification de santé basique
             MAX_RETRIES=12
             COUNT=0
-            until docker-compose exec -T web curl -sf http://localhost:8000/health/ > /dev/null 2>&1; do
+            until docker compose exec -T web curl -sf http://localhost:8000/health/ > /dev/null 2>&1; do
               COUNT=$((COUNT + 1))
               if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
                 echo "❌ Le service web n'a pas démarré après $((MAX_RETRIES * 5)) secondes."
                 echo "── Logs du service ──"
-                docker-compose logs --tail=50 web
+                docker compose logs --tail=50 web
                 exit 1
               fi
               echo "   ... tentative $COUNT/$MAX_RETRIES (attente 5s)"
