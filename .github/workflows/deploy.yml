@@ -72,6 +72,14 @@ jobs:
             git reset --hard origin/master
             echo "✅ Code mis à jour : $(git log -1 --format='%h %s')"
 
+            # Nettoyage unique : supprime l'ancien dossier staticfiles (bind mount → volume nommé)
+            # Les fichiers statiques sont maintenant dans un volume Docker géré (static_volume)
+            if [ -d "./staticfiles" ]; then
+              sudo rm -rf ./staticfiles 2>/dev/null || rm -rf ./staticfiles 2>/dev/null || true
+              echo "🧹 Ancien dossier staticfiles (bind mount) supprimé"
+            fi
+
+
             # ── 2. S'assurer que la DB tourne (sans la recréer) ────────────
             echo ""
             echo "🗄️  [2/6] Vérification de la base de données..."

@@ -1,10 +1,11 @@
 services:
   web:
     build: .
-    command: ["bash", "-c", "./wait-for-db.sh && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear && exec gunicorn loqt.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --keep-alive 5 --worker-class sync --log-level info --access-logfile - --error-logfile -"]
+    # collectstatic sans --clear pour éviter les problèmes de permissions sur les fichiers existants
+    command: ["bash", "-c", "./wait-for-db.sh && python manage.py migrate --noinput && python manage.py collectstatic --noinput && exec gunicorn loqt.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --keep-alive 5 --worker-class sync --log-level info --access-logfile - --error-logfile -"]
     volumes:
-      - ./media:/app/media
-      - ./staticfiles:/app/staticfiles
+      - media_volume:/app/media
+      - static_volume:/app/staticfiles
     env_file:
       - .env
     environment:
@@ -32,7 +33,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     depends_on:
       db:
         condition: service_healthy
