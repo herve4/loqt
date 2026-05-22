@@ -1,24 +1,7 @@
 services:
   web:
     build: .
-    command: >
-      bash -c "
-      echo 'Waiting for database to be ready...' &&
-      ./wait-for-db.sh &&
-      echo 'Running migrations...' &&
-      python manage.py migrate --noinput &&
-      echo 'Collecting static files...' &&
-      python manage.py collectstatic --noinput --clear &&
-      echo 'Starting Gunicorn...' &&
-      exec gunicorn loqt.wsgi:application \
-        --bind 0.0.0.0:8000 \
-        --workers 3 \
-        --timeout 120 \
-        --keep-alive 5 \
-        --worker-class sync \
-        --log-level=info \
-        --access-logfile - \
-        --error-logfile -"
+    command: ["bash", "-c", "./wait-for-db.sh && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear && exec gunicorn loqt.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --keep-alive 5 --worker-class sync --log-level info --access-logfile - --error-logfile -"]
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
@@ -26,6 +9,7 @@ services:
       - .env
     environment:
       # Support both DB_* and POSTGRES_* naming conventions in .env
+      - DOCKER=true
       - DB_ENGINE=${DB_ENGINE:-django.db.backends.postgresql}
       - DB_HOST=db
       - DB_NAME=${DB_NAME:-${POSTGRES_DB:-loqt}}
@@ -35,7 +19,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=${DEBUG:-False}
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - DJANGO_LOGLEVEL=${DJANGO_LOGLEVEL:-info}
+      - DJANGO_LOGLEVEL=${DJANGO_LOGLEVEL:-INFO}
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}

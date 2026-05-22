@@ -81,8 +81,8 @@ WSGI_APPLICATION = 'loqt.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'loqt'),
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.environ.get('DB_NAME', BASE_DIR / 'db.sqlite3' if os.environ.get('DB_ENGINE') == 'django.db.backends.sqlite3' else 'loqt'),
         'USER': os.environ.get('DB_USER', 'loqt'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'loqt264'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
@@ -90,14 +90,16 @@ DATABASES = {
     }
 }
 
-# Password validation
 # Configuration des logs
+_LOG_LEVEL = os.environ.get('DJANGO_LOGLEVEL', 'INFO').upper() or 'INFO'
+_USE_FILE_HANDLER = not os.environ.get('DOCKER', False) and not os.environ.get('KUBERNETES_SERVICE_HOST')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
         'simple': {
@@ -106,32 +108,34 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),
+        'console': {
+            'level': _LOG_LEVEL,
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
+        **({
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': os.path.join(BASE_DIR, 'debug.log'),
+                'formatter': 'verbose',
+            },
+        } if _USE_FILE_HANDLER else {}),
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
+            'handlers': ['file', 'console'] if _USE_FILE_HANDLER else ['console'],
+            'level': _LOG_LEVEL,
             'propagate': True,
         },
         'logistque': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'handlers': ['file', 'console'] if _USE_FILE_HANDLER else ['console'],
+            'level': _LOG_LEVEL,
             'propagate': True,
         },
         'accounts': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'handlers': ['file', 'console'] if _USE_FILE_HANDLER else ['console'],
+            'level': _LOG_LEVEL,
             'propagate': True,
         },
     },
