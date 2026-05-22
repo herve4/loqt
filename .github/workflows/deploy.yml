@@ -67,52 +67,81 @@ jobs:
 
             # ── 1. Récupérer le dernier code ───────────────────────────────
             echo ""
-            echo "📥 [1/5] Pull du code source..."
+            echo "📥 [1/6] Pull du code source..."
             git fetch --all
             git reset --hard origin/master
             echo "✅ Code mis à jour : $(git log -1 --format='%h %s')"
 
-            # ── 2. Arrêter les conteneurs (sans perdre la DB) ──────────────
+            # ── 2. S'assurer que la DB tourne (sans la recréer) ────────────
             echo ""
-            echo "⏹  [2/5] Arrêt des conteneurs applicatifs..."
-            docker compose stop web nginx ngrok 2>/dev/null || true
-            echo "✅ Conteneurs applicatifs arrêtés"
+            echo "🗄️  [2/6] Vérification de la base de données..."
+            DB_STATUS=$(docker compose ps -q db 2>/dev/null)
+            if [ -z "$DB_STATUS" ]; then
+              echo "   DB non démarrée, lancement..."
+              docker compose up -d db
+            else
+              DB_STATE=$(docker inspect --format='{{.State.Status}}' loqt-db-1 2>/dev/null || echo "unknown")
+              echo "   DB état : $DB_STATE"
+            fi
 
-            # ── 3. Reconstruire l'image ───────────────────────────────────
+            # Attendre que la DB soit healthy avant de continuer
+            echo "   Attente que PostgreSQL soit prêt..."
+            DB_RETRIES=20
+            DB_COUNT=0
+            until docker compose exec -T db pg_isready -q 2>/dev/null; do
+              DB_COUNT=$((DB_COUNT + 1))
+              if [ "$DB_COUNT" -ge "$DB_RETRIES" ]; then
+                echo "❌ PostgreSQL n'est pas prêt après $((DB_RETRIES * 5))s."
+                echo "── Logs DB ──"
+                docker compose logs --tail=30 db
+                exit 1
+              fi
+              echo "   ... DB tentative $DB_COUNT/$DB_RETRIES (5s)"
+              sleep 5
+            done
+            echo "✅ PostgreSQL opérationnel"
+
+            # ── 3. Arrêter uniquement les services applicatifs ─────────────
             echo ""
-            echo "🔨 [3/5] Build de l'image Docker..."
+            echo "⏹  [3/6] Arrêt des services applicatifs (DB intacte)..."
+            docker compose stop web nginx ngrok 2>/dev/null || true
+            docker compose rm -f web nginx ngrok 2>/dev/null || true
+            echo "✅ Services applicatifs arrêtés"
+
+            # ── 4. Reconstruire l'image web ───────────────────────────────
+            echo ""
+            echo "🔨 [4/6] Build de l'image Docker (web)..."
             docker compose build --no-cache web
             echo "✅ Image construite"
 
-            # ── 4. Relancer les services ──────────────────────────────────
+            # ── 5. Relancer uniquement les services applicatifs ───────────
             echo ""
-            echo "▶️  [4/5] Démarrage des conteneurs..."
-            docker compose up -d --remove-orphans
-            echo "✅ Conteneurs démarrés"
+            echo "▶️  [5/6] Démarrage des services applicatifs..."
+            docker compose up -d web nginx ngrok
+            echo "✅ Services démarrés"
 
-            # ── 5. Attendre que le service web soit prêt ──────────────────
+            # ── 6. Attendre que le service web soit prêt ──────────────────
             echo ""
-            echo "⏳ [5/5] Attente du démarrage du service..."
-            sleep 10
+            echo "⏳ [6/6] Attente du démarrage du service web..."
+            sleep 15
 
-            # Vérification de santé basique
             MAX_RETRIES=12
             COUNT=0
             until docker compose exec -T web curl -sf http://localhost:8000/health/ > /dev/null 2>&1; do
               COUNT=$((COUNT + 1))
               if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
-                echo "❌ Le service web n'a pas démarré après $((MAX_RETRIES * 5)) secondes."
-                echo "── Logs du service ──"
-                docker compose logs --tail=50 web
+                echo "❌ Le service web n'a pas démarré après $((MAX_RETRIES * 5))s."
+                echo "── Logs web ──"
+                docker compose logs --tail=60 web
                 exit 1
               fi
-              echo "   ... tentative $COUNT/$MAX_RETRIES (attente 5s)"
+              echo "   ... tentative $COUNT/$MAX_RETRIES (5s)"
               sleep 5
             done
 
             echo "✅ Service web opérationnel !"
 
-            # ── Nettoyage Docker (images orphelines) ─────────────────────
+            # ── Nettoyage Docker (images vieilles) ───────────────────────
             docker image prune -f --filter "until=48h" > /dev/null 2>&1 || true
 
             echo ""
