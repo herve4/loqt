@@ -153,6 +153,7 @@ jobs:
             echo ""
             echo "📥 [7/7] Importation des régions et des églises..."
             docker compose exec -T web python scripts/import_eglises.py
+            docker compose exec -T web python scripts/populate_production.py
             echo "✅ Importation terminée"
 
             # ── Nettoyage Docker (images vieilles) ───────────────────────
