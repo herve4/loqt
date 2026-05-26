@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -40,6 +40,20 @@ const EquipmentDetail = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const dropdownButtonRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const handleClick = (e) => {
+      if (dropdownButtonRef.current && !dropdownButtonRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isDropdownOpen]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImageIndex, setLightboxImageIndex] = useState(0);
@@ -220,16 +234,28 @@ const EquipmentDetail = () => {
             Mettre à jour
           </button>
           
-          <div className="relative">
+          <div ref={dropdownButtonRef} className="relative">
             <button 
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              onClick={() => {
+                if (!isDropdownOpen && dropdownButtonRef.current) {
+                  const rect = dropdownButtonRef.current.getBoundingClientRect();
+                  setDropdownPos({
+                    top: rect.bottom + 8,
+                    right: window.innerWidth - rect.right,
+                  });
+                }
+                setIsDropdownOpen(!isDropdownOpen);
+              }}
               className="flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-350 w-10 h-10 rounded-none hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-base">more_vert</span>
             </button>
             
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 rounded-none overflow-hidden">
+              <div 
+                style={{ top: dropdownPos.top, right: dropdownPos.right }}
+                className="fixed w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-[1500] rounded-none overflow-hidden"
+              >
                 <button 
                   onClick={() => {
                     setIsFormModalOpen(true);
@@ -245,7 +271,7 @@ const EquipmentDetail = () => {
                     setIsDeleteConfirmOpen(true);
                     setIsDropdownOpen(false);
                   }}
-                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-550/10 transition-colors flex items-center gap-2 cursor-pointer"
+                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                   Supprimer
