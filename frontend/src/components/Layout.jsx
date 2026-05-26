@@ -35,7 +35,7 @@ const Layout = ({ children, title, showBackButton, onBack, headerActions }) => {
           headerActions={headerActions}
           onSearch={() => setIsSearchOpen(true)}
         />
-        <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <div className="flex-1 overflow-y-auto pb-16 md:pb-0" data-scroll-container>
           {children}
         </div>
       </main>

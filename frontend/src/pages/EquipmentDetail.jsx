@@ -54,6 +54,20 @@ const EquipmentDetail = () => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isDropdownOpen]);
+
+  // Lock scroll on the Layout's scrollable container when bottom sheet is open
+  useEffect(() => {
+    const scrollEl = document.querySelector('[data-scroll-container]');
+    if (!scrollEl) return;
+    if (isDropdownOpen) {
+      scrollEl.style.overflow = 'hidden';
+    } else {
+      scrollEl.style.overflow = '';
+    }
+    return () => {
+      scrollEl.style.overflow = '';
+    };
+  }, [isDropdownOpen]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImageIndex, setLightboxImageIndex] = useState(0);
