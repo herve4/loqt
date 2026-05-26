@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -266,16 +267,16 @@ const EquipmentDetail = () => {
             </button>
           </div>
 
-          {/* Actions menu: bottom sheet on mobile, dropdown on desktop */}
+          {/* Actions menu: bottom sheet on mobile (portal), dropdown on desktop */}
           {isDropdownOpen && (
             <>
-              {/* Transparent overlay to close on outside click */}
+              {/* Transparent overlay to close on desktop outside click */}
               <div
-                className="fixed inset-0 z-[1400]"
+                className="fixed inset-0 z-[1400] hidden md:block"
                 onClick={() => setIsDropdownOpen(false)}
               />
 
-              {/* Desktop dropdown (md+) */}
+              {/* Desktop dropdown (md+) — stays in-tree, no overflow issue on desktop */}
               <div 
                 style={{ top: dropdownPos.top, right: dropdownPos.right }}
                 className="fixed w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl z-[1500] rounded-none hidden md:block"
@@ -295,16 +296,21 @@ const EquipmentDetail = () => {
                   Supprimer
                 </button>
               </div>
+            </>
+          )}
 
-              {/* Mobile bottom sheet — fixed elements directly in fragment, no wrapper div to avoid stacking context isolation */}
+          {/* Mobile bottom sheet — PORTAL to document.body to escape overflow:hidden ancestors */}
+          {isDropdownOpen && typeof document !== 'undefined' && createPortal(
+            <div className="md:hidden">
+              {/* Dark overlay */}
               <div
-                className="fixed inset-0 bg-slate-950/60 md:hidden"
-                style={{ zIndex: 9998 }}
+                style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(2,6,23,0.65)' }}
                 onClick={() => setIsDropdownOpen(false)}
               />
+              {/* Bottom sheet panel */}
               <div
-                className="fixed inset-x-0 bottom-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-2xl animate-in slide-in-from-bottom duration-200 md:hidden"
-                style={{ zIndex: 9999 }}
+                style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99999 }}
+                className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-2xl animate-in slide-in-from-bottom duration-200"
               >
                 <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
                   <p className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400">Actions</p>
@@ -324,10 +330,11 @@ const EquipmentDetail = () => {
                   <span className="material-symbols-outlined">delete</span>
                   Supprimer définitivement
                 </button>
-                {/* Padding compensates bottom nav bar (h-16 = 64px) */}
-                <div className="h-20" />
+                {/* Space for bottom nav bar (h-16 = 64px) */}
+                <div style={{ height: 80 }} />
               </div>
-            </>
+            </div>,
+            document.body
           )}
         </div>
       }
