@@ -282,30 +282,36 @@ const EquipmentDetail = () => {
                 </button>
               </div>
 
-              {/* Mobile bottom sheet */}
-              <div className="md:hidden">
-                <div className="fixed inset-0 bg-slate-950/50 z-[1490] backdrop-blur-xs" onClick={() => setIsDropdownOpen(false)} />
-                <div className="fixed inset-x-0 bottom-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-[1500] shadow-2xl animate-in slide-in-from-bottom duration-200">
-                  <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400">Actions</p>
-                    <p className="text-xs font-bold text-slate-900 dark:text-white mt-0.5 truncate">{materiel?.nom}</p>
-                  </div>
-                  <button 
-                    onClick={() => { setIsFormModalOpen(true); setIsDropdownOpen(false); }}
-                    className="w-full px-5 py-4 text-left text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 cursor-pointer border-b border-slate-100 dark:border-slate-800"
-                  >
-                    <span className="material-symbols-outlined">edit</span>
-                    Modifier cet équipement
-                  </button>
-                  <button 
-                    onClick={() => { setIsDeleteConfirmOpen(true); setIsDropdownOpen(false); }}
-                    className="w-full px-5 py-4 text-left text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors flex items-center gap-3 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined">delete</span>
-                    Supprimer définitivement
-                  </button>
-                  <div className="pb-6" />
+              {/* Mobile bottom sheet — fixed elements directly in fragment, no wrapper div to avoid stacking context isolation */}
+              <div
+                className="fixed inset-0 bg-slate-950/60 md:hidden"
+                style={{ zIndex: 9998 }}
+                onClick={() => setIsDropdownOpen(false)}
+              />
+              <div
+                className="fixed inset-x-0 bottom-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-2xl animate-in slide-in-from-bottom duration-200 md:hidden"
+                style={{ zIndex: 9999 }}
+              >
+                <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                  <p className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400">Actions</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white mt-0.5 truncate">{materiel?.nom}</p>
                 </div>
+                <button
+                  onClick={() => { setIsFormModalOpen(true); setIsDropdownOpen(false); }}
+                  className="w-full px-5 py-4 text-left text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 cursor-pointer border-b border-slate-100 dark:border-slate-800 active:bg-slate-100"
+                >
+                  <span className="material-symbols-outlined">edit</span>
+                  Modifier cet équipement
+                </button>
+                <button
+                  onClick={() => { setIsDeleteConfirmOpen(true); setIsDropdownOpen(false); }}
+                  className="w-full px-5 py-4 text-left text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors flex items-center gap-3 cursor-pointer active:bg-red-50"
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                  Supprimer définitivement
+                </button>
+                {/* Padding compensates bottom nav bar (h-16 = 64px) */}
+                <div className="h-20" />
               </div>
             </>
           )}
