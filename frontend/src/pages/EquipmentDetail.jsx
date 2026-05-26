@@ -250,35 +250,65 @@ const EquipmentDetail = () => {
             >
               <span className="material-symbols-outlined text-base">more_vert</span>
             </button>
-            
-            {isDropdownOpen && (
+          </div>
+
+          {/* Actions menu: bottom sheet on mobile, dropdown on desktop */}
+          {isDropdownOpen && (
+            <>
+              {/* Transparent overlay to close on outside click */}
+              <div
+                className="fixed inset-0 z-[1400]"
+                onClick={() => setIsDropdownOpen(false)}
+              />
+
+              {/* Desktop dropdown (md+) */}
               <div 
                 style={{ top: dropdownPos.top, right: dropdownPos.right }}
-                className="fixed w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-[1500] rounded-none overflow-hidden"
+                className="fixed w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl z-[1500] rounded-none hidden md:block"
               >
                 <button 
-                  onClick={() => {
-                    setIsFormModalOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 cursor-pointer"
+                  onClick={() => { setIsFormModalOpen(true); setIsDropdownOpen(false); }}
+                  className="w-full px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 cursor-pointer border-b border-slate-100 dark:border-slate-800"
                 >
                   <span className="material-symbols-outlined text-sm">edit</span>
                   Modifier
                 </button>
                 <button 
-                  onClick={() => {
-                    setIsDeleteConfirmOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors flex items-center gap-2 cursor-pointer"
+                  onClick={() => { setIsDeleteConfirmOpen(true); setIsDropdownOpen(false); }}
+                  className="w-full px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors flex items-center gap-3 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                   Supprimer
                 </button>
               </div>
-            )}
-          </div>
+
+              {/* Mobile bottom sheet */}
+              <div className="md:hidden">
+                <div className="fixed inset-0 bg-slate-950/50 z-[1490] backdrop-blur-xs" onClick={() => setIsDropdownOpen(false)} />
+                <div className="fixed inset-x-0 bottom-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-[1500] shadow-2xl animate-in slide-in-from-bottom duration-200">
+                  <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] font-mono font-black uppercase tracking-widest text-slate-400">Actions</p>
+                    <p className="text-xs font-bold text-slate-900 dark:text-white mt-0.5 truncate">{materiel?.nom}</p>
+                  </div>
+                  <button 
+                    onClick={() => { setIsFormModalOpen(true); setIsDropdownOpen(false); }}
+                    className="w-full px-5 py-4 text-left text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 cursor-pointer border-b border-slate-100 dark:border-slate-800"
+                  >
+                    <span className="material-symbols-outlined">edit</span>
+                    Modifier cet équipement
+                  </button>
+                  <button 
+                    onClick={() => { setIsDeleteConfirmOpen(true); setIsDropdownOpen(false); }}
+                    className="w-full px-5 py-4 text-left text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors flex items-center gap-3 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined">delete</span>
+                    Supprimer définitivement
+                  </button>
+                  <div className="pb-6" />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       }
     >
