@@ -69,7 +69,7 @@ class EgliseViewSet(viewsets.ModelViewSet):
     pagination_class = StandardPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['region', 'pays']
-    search_fields = ['nom', 'phone', 'ville__nom', 'pasteur__username', 'pasteur__first_name', 'pasteur__last_name']
+    search_fields = ['nom', 'phone', 'ville__nom', 'pasteur__email', 'pasteur__first_name', 'pasteur__last_name']
     ordering_fields = ['nom', 'created_at']
 
 class CategorieViewSet(viewsets.ModelViewSet):
