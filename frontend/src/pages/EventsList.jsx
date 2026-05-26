@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import { toast } from 'react-hot-toast';
@@ -300,12 +299,8 @@ const EventsList = () => {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-background-dark">
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-y-auto">
-                <Header title="Logistique SGL-CI" />
-                
-                <main className="p-8 max-w-[1600px] mx-auto w-full">
+        <Layout title="Événements">
+            <main className="p-8 max-w-[1600px] mx-auto w-full">
                     {/* En-tête de page */}
                     <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
@@ -779,8 +774,7 @@ const EventsList = () => {
                         </div>
                     </div>
                 </main>
-            </div>
-        </div>
+        </Layout>
     );
 };
 

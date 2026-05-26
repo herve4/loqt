@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Sidebar from '../components/Sidebar';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -103,25 +103,11 @@ const BudgetRequestDetail = () => {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 sticky top-0 z-50">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="text-primary hover:bg-primary/10 rounded-full p-1 transition-colors">
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">Détails de la Demande</h2>
-          </div>
-          <div className="flex gap-2">
-            <button className="flex items-center justify-center rounded-lg h-9 w-9 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-              <span className="material-symbols-outlined text-[20px]">notifications</span>
-            </button>
-            <button className="flex items-center justify-center rounded-lg h-9 w-9 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-              <span className="material-symbols-outlined text-[20px]">account_circle</span>
-            </button>
-          </div>
-        </header>
+    <Layout
+      title="Détails de la Demande"
+      showBackButton={true}
+      onBack={() => navigate(-1)}
+    >
 
         <main className="max-w-[1200px] mx-auto w-full p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -262,8 +248,7 @@ const BudgetRequestDetail = () => {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+    </Layout>
   );
 };
 

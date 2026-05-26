@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Sidebar from '../components/Sidebar';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -137,17 +137,7 @@ const TrainingDashboard = () => {
   const upcomingSessions = sessions.filter(s => s.statut === 'CONFIRMED' || s.statut === 'PLANNING').length;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 lg:px-40 sticky top-0 z-40">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-4 text-primary">
-              <span className="material-symbols-outlined text-3xl">local_shipping</span>
-              <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">SGL-CI</h2>
-            </div>
-          </div>
-        </header>
+    <Layout title="Gestion des Formations">
 
         <main className="flex-1 px-6 lg:px-40 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
@@ -371,7 +361,6 @@ const TrainingDashboard = () => {
             </div>
           </div>
         </footer>
-      </div>
 
       {showModal && (
         <ModalNouvelleDemande
@@ -380,7 +369,7 @@ const TrainingDashboard = () => {
           isLoading={createMutation.isPending}
         />
       )}
-    </div>
+    </Layout>
   );
 };
 

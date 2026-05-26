@@ -2,14 +2,13 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Trash2, Edit2, Save, ArrowLeft, Loader2, 
-  Search, Calendar, Clock, Layout, Sparkles, BookOpen,
+  Search, Calendar, Clock, Layout as LayoutIcon, Sparkles, BookOpen,
   Copy, Check, FileSearch, Upload, Printer, Monitor,
   FileText, FileSpreadsheet, Image as ImageIcon
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -194,12 +193,8 @@ const ChronogramLibrary = () => {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <Header title="Bibliothèque de Chronogrammes" />
-        
-        <div className="p-6 lg:p-10 space-y-8 max-w-[1400px] mx-auto w-full pb-24">
+    <Layout title="Bibliothèque de Chronogrammes">
+      <div className="p-6 lg:p-10 space-y-8 max-w-[1400px] mx-auto w-full pb-24 text-slate-900 dark:text-slate-100">
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-1">
@@ -264,14 +259,14 @@ const ChronogramLibrary = () => {
                           <p className="text-sm text-slate-500 line-clamp-2 mb-6 flex-1">{template.description || 'Aucune description'}</p>
                           
                           <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
-                            <div className="flex items-center gap-1"><Layout size={14} /> {template.items?.length || 0} items</div>
+                            <div className="flex items-center gap-1"><LayoutIcon size={14} /> {template.items?.length || 0} items</div>
                             <div className="flex items-center gap-1"><Calendar size={14} /> {new Date(template.created_at).toLocaleDateString()}</div>
                           </div>
                         </div>
                         
                         {/* Decoration */}
                         <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
-                          <Layout size={120} />
+                          <LayoutIcon size={120} />
                         </div>
                       </div>
                     ))}
@@ -361,14 +356,14 @@ const ChronogramLibrary = () => {
                   
                   <div className="flex flex-wrap gap-2 flex-1">
                      {templates?.slice(0, 6).map(t => (
-                       <button 
-                         key={t.id}
-                         onClick={() => applyStructure(t)}
-                         className="px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-black text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-all flex items-center gap-2 group"
-                       >
-                         <Layout size={14} className="group-hover:scale-110 transition-transform" />
-                         {t.nom}
-                       </button>
+                        <button 
+                          key={t.id}
+                          onClick={() => applyStructure(t)}
+                          className="px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-black text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-all flex items-center gap-2 group"
+                        >
+                          <LayoutIcon size={14} className="group-hover:scale-110 transition-transform" />
+                          {t.nom}
+                        </button>
                      ))}
                   </div>
                 </div>
@@ -638,8 +633,7 @@ const ChronogramLibrary = () => {
           `}</style>
 
         </div>
-      </main>
-    </div>
+    </Layout>
   );
 };
 

@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import StatusBadge from '../components/StatusBadge';
 import { logisticsService } from '../services/api';
 import MaterielFormModal from '../components/MaterielFormModal';
@@ -96,11 +95,8 @@ const Inventory = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <Header title="Inventaire du Matériel" />
-        <main className="p-8 w-full max-w-[1600px] mx-auto pb-32">
+    <Layout title="Inventaire du Matériel">
+      <main className="p-8 w-full max-w-[1600px] mx-auto pb-32">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 mt-4">
           <div>
@@ -363,7 +359,6 @@ const Inventory = () => {
           </>
         )}
         </main>
-      </div>
       {isFormModalOpen && (
         <MaterielFormModal 
           item={editingItem} 
@@ -423,7 +418,7 @@ const Inventory = () => {
       {reportingDefectItem && (
         <DefectReportModal item={reportingDefectItem} onClose={() => setReportingDefectItem(null)} />
       )}
-    </div>
+    </Layout>
   );
 };
 

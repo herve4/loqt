@@ -3,8 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import StatusBadge from '../components/StatusBadge';
 import { logisticsService } from '../services/api';
 import MaterielFormModal from '../components/MaterielFormModal';
@@ -200,112 +199,97 @@ const EquipmentDetail = () => {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <style>{`
-        @keyframes laser-scan {
-          0%, 100% { top: 0%; opacity: 0.15; }
-          50% { top: 100%; opacity: 0.85; }
-        }
-        @keyframes radar-pulse {
-          0% { transform: scale(0.5); opacity: 0.8; }
-          100% { transform: scale(2.2); opacity: 0; }
-        }
-        @keyframes sweep-spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .laser-glow {
-          box-shadow: 0 0 10px 1px #10b981;
-        }
-        .laser-glow-danger {
-          box-shadow: 0 0 10px 1px #ef4444;
-        }
-        .laser-glow-warning {
-          box-shadow: 0 0 10px 1px #f59e0b;
-        }
-        .grid-tech {
-          background-size: 20px 20px;
-          background-image: 
-            linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-        }
-        .dark .grid-tech {
-          background-image: 
-            linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-        }
-      `}</style>
-      
-      <Sidebar />
-      
-      <main className="flex-1 flex flex-col overflow-y-auto grid-tech">
-        {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-900 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md px-6 py-4 sticky top-0 z-40">
-          <div className="flex items-center gap-4">
+    <Layout
+      title={
+        <div className="flex items-center gap-2">
+          <span className="truncate">{materiel?.nom || 'Fiche Équipement'}</span>
+          <span className="text-[10px] font-mono bg-slate-900 text-white dark:bg-slate-800 px-1.5 py-0.5 font-bold shrink-0">
+            {materiel?.identifiant_unique || `EQ-${id}`}
+          </span>
+        </div>
+      }
+      showBackButton={true}
+      onBack={() => navigate(-1)}
+      headerActions={
+        <div className="flex items-center gap-3 relative">
+          <button 
+            onClick={() => setIsFormModalOpen(true)}
+            className="hidden md:flex items-center justify-center bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-4 h-10 text-xs font-mono font-bold uppercase tracking-widest shadow-xs active:scale-95 transition-all gap-2 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-xs font-black">edit</span>
+            Mettre à jour
+          </button>
+          
+          <div className="relative">
             <button 
-              onClick={() => navigate(-1)} 
-              className="text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white rounded-none p-1.5 transition-all duration-150 active:scale-95 flex items-center justify-center"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-350 w-10 h-10 rounded-none hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-sm font-black">arrow_back</span>
-            </button>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-black uppercase tracking-wider text-slate-900 dark:text-white leading-tight">
-                  {materiel?.nom || 'Fiche Équipement'}
-                </h2>
-                <span className="text-[10px] font-mono bg-slate-900 text-white dark:bg-slate-800 px-1.5 py-0.5 font-bold">
-                  {materiel?.identifiant_unique || `EQ-${id}`}
-                </span>
-              </div>
-              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-0.5">
-                SYSTÈME QR-TRANSIT COMPATIBLE
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 relative">
-            <button 
-              onClick={() => setIsFormModalOpen(true)}
-              className="hidden md:flex items-center justify-center bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-4 h-10 text-xs font-mono font-bold uppercase tracking-widest shadow-xs active:scale-95 transition-all gap-2 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-xs font-black">edit</span>
-              Mettre à jour
+              <span className="material-symbols-outlined text-base">more_vert</span>
             </button>
             
-            <div className="relative">
-              <button 
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-350 w-10 h-10 rounded-none hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-base">more_vert</span>
-              </button>
-              
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 rounded-none overflow-hidden">
-                  <button 
-                    onClick={() => {
-                      setIsFormModalOpen(true);
-                      setIsDropdownOpen(false);
-                    }}
-                    className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-sm">edit</span>
-                    Modifier
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setIsDeleteConfirmOpen(true);
-                      setIsDropdownOpen(false);
-                    }}
-                    className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-550/10 transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-sm">delete</span>
-                    Supprimer
-                  </button>
-                </div>
-              )}
-            </div>
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 rounded-none overflow-hidden">
+                <button 
+                  onClick={() => {
+                    setIsFormModalOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                  Modifier
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsDeleteConfirmOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 dark:hover:bg-red-550/10 transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                  Supprimer
+                </button>
+              </div>
+            )}
           </div>
         </div>
+      }
+    >
+      <div className="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8 grid-tech">
+        <style>{`
+          @keyframes laser-scan {
+            0%, 100% { top: 0%; opacity: 0.15; }
+            50% { top: 100%; opacity: 0.85; }
+          }
+          @keyframes radar-pulse {
+            0% { transform: scale(0.5); opacity: 0.8; }
+            100% { transform: scale(2.2); opacity: 0; }
+          }
+          @keyframes sweep-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .laser-glow {
+            box-shadow: 0 0 10px 1px #10b981;
+          }
+          .laser-glow-danger {
+            box-shadow: 0 0 10px 1px #ef4444;
+          }
+          .laser-glow-warning {
+            box-shadow: 0 0 10px 1px #f59e0b;
+          }
+          .grid-tech {
+            background-size: 20px 20px;
+            background-image: 
+              linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+          }
+          .dark .grid-tech {
+            background-image: 
+              linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        `}</style>
 
         <div className="flex-1 max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8">
           
@@ -789,8 +773,8 @@ const EquipmentDetail = () => {
             </div>
           </div>
         </div>
-      </main>
-
+      </div>
+      
       {/* Formulaire de modification */}
       {isFormModalOpen && (
         <MaterielFormModal item={materiel} onClose={() => setIsFormModalOpen(false)} />
@@ -928,7 +912,7 @@ const EquipmentDetail = () => {
       {isDefectModalOpen && (
         <DefectReportModal item={materiel} onClose={() => setIsDefectModalOpen(false)} />
       )}
-    </div>
+    </Layout>
   );
 };
 

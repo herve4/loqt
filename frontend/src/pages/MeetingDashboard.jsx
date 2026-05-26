@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
@@ -153,9 +153,8 @@ const MeetingDashboard = () => {
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+    <Layout title="Tableau de Bord — Réunions">
+      <div className="p-4 md:p-8">
 
         {/* En-tête */}
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
@@ -360,7 +359,7 @@ const MeetingDashboard = () => {
             </div>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Modal */}
       {showModal && (
@@ -369,7 +368,7 @@ const MeetingDashboard = () => {
           onSubmit={(data) => createMutation.mutate(data)}
         />
       )}
-    </div>
+    </Layout>
   );
 };
 

@@ -1,8 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import MetricCard from '../components/MetricCard';
 import { dashboardService, logisticsService } from '../services/api';
 
@@ -25,11 +24,8 @@ const NationalDashboard = () => {
   const upcomingEvents = eventsData?.results || [];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-y-auto bg-background-light dark:bg-background-dark">
-        <Header title="Tableau de Bord National" />
-        <div className="p-8 space-y-8">
+    <Layout title="Tableau de Bord National">
+      <div className="p-8 space-y-8">
           {/* Metrics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Link to="/inventory" className="block transform transition-all hover:scale-[1.02]">
@@ -171,9 +167,8 @@ const NationalDashboard = () => {
               </table>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 

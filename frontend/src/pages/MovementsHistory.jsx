@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 import { toast } from 'react-hot-toast';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -162,7 +161,7 @@ const MovementsHistory = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <Layout title="Historique des Flux">
       {/* Native Print Stylesheet Injection */}
       <style>{`
         @media print {
@@ -255,18 +254,7 @@ const MovementsHistory = () => {
         }
       `}</style>
 
-      {/* Main Sidebar (Hidden on print) */}
-      <div className="no-print">
-        <Sidebar />
-      </div>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Main Header (Hidden on print) */}
-        <div className="no-print">
-          <Header title="Historique des Flux" />
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="p-6 space-y-6">
           {/* Top Info Banner / Title section */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 no-print">
             <div>
@@ -533,7 +521,6 @@ const MovementsHistory = () => {
             )}
           </div>
         </div>
-      </div>
 
       {/* Slide-out Drawer Panel (Side-Drawer) - Hidden on standard page, active on click */}
       {selectedMovement && (
@@ -767,7 +754,7 @@ const MovementsHistory = () => {
           </div>
         </>
       )}
-    </div>
+    </Layout>
   );
 };
 

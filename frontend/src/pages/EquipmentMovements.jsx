@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 import QrScannerModal from '../components/QrScannerModal';
 
@@ -232,11 +231,7 @@ const EquipmentMovements = () => {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <Header title="Mouvements de Matériel" />
-
+    <Layout title="Mouvements de Matériel">
         <div className="flex-1 max-w-[1280px] w-full mx-auto p-6 md:p-10 pb-24">
           
           <div className="mb-8">
@@ -610,7 +605,6 @@ const EquipmentMovements = () => {
             </div>
           </div>
         </div>
-      </main>
 
       {isScannerOpen && (
         <QrScannerModal 
@@ -618,7 +612,7 @@ const EquipmentMovements = () => {
           onScanSuccess={handleQrScanSuccess} 
         />
       )}
-    </div>
+    </Layout>
   );
 };
 

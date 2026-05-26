@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logisticsService } from '../services/api';
 import { CHRONOGRAM_TEMPLATES } from '../constants/eventTemplates';
@@ -277,12 +276,8 @@ const EventCalendar = () => {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header title="Calendrier Logistique" />
-                
-                <main className="flex-1 flex overflow-hidden p-8 gap-8">
+        <Layout title="Calendrier Logistique">
+            <main className="flex-1 flex overflow-hidden p-8 gap-8">
                     {/* Section Calendrier */}
                     <section className="flex-1 flex flex-col min-w-0">
                         <div className="mb-6 flex items-center justify-between">
@@ -441,7 +436,6 @@ const EventCalendar = () => {
                         </div>
                     </aside>
                 </main>
-            </div>
 
             {/* Modal de Création */}
             {showModal && (
@@ -714,7 +708,7 @@ const EventCalendar = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </Layout>
     );
 };
 

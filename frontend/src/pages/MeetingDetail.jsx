@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Sidebar from '../components/Sidebar';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -121,38 +121,27 @@ const MeetingDetail = () => {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-y-auto">
-
-        {/* Top bar */}
-        <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-6 py-3 sticky top-0 z-50">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="text-primary hover:bg-primary/10 rounded-full p-1 transition-colors">
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="size-8 flex items-center justify-center bg-primary/10 rounded-lg">
-                <span className="material-symbols-outlined text-primary text-sm">groups</span>
-              </div>
-              <h2 className="text-lg font-bold">Détail de la Réunion</h2>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="hidden md:flex items-center justify-center rounded h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 hover:bg-slate-200 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">calendar_month</span>
-            </button>
-            <button className="hidden md:flex items-center justify-center rounded h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 hover:bg-slate-200 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">share</span>
-            </button>
-            {statut === 'en_cours' && (
-              <Link to="/meetings" className="bg-primary text-white font-bold px-4 py-2 rounded hover:bg-primary/90 flex items-center gap-1 text-sm">
-                <span className="material-symbols-outlined text-sm">radio_button_checked</span>
-                Rejoindre
-              </Link>
-            )}
-          </div>
-        </header>
+    <Layout
+      title="Détail de la Réunion"
+      showBackButton={true}
+      onBack={() => navigate(-1)}
+      headerActions={
+        <div className="flex items-center gap-2">
+          <button className="hidden md:flex items-center justify-center rounded h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 hover:bg-slate-200 transition-colors">
+            <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+          </button>
+          <button className="hidden md:flex items-center justify-center rounded h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 hover:bg-slate-200 transition-colors">
+            <span className="material-symbols-outlined text-[20px]">share</span>
+          </button>
+          {statut === 'en_cours' && (
+            <Link to="/meetings" className="bg-primary text-white font-bold px-4 py-2 rounded hover:bg-primary/90 flex items-center gap-1 text-sm">
+              <span className="material-symbols-outlined text-sm">radio_button_checked</span>
+              Rejoindre
+            </Link>
+          )}
+        </div>
+      }
+    >
 
         <div className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 flex flex-col gap-6">
 
@@ -385,8 +374,7 @@ const MeetingDetail = () => {
             </button>
           </div>
         )}
-      </main>
-    </div>
+    </Layout>
   );
 };
 

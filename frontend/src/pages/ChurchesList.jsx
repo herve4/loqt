@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 
 const ChurchesList = () => {
@@ -37,11 +36,8 @@ const ChurchesList = () => {
     const totalPages = isPaginated ? Math.ceil(totalCount / 10) : 1; 
 
     return (
-        <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-            <Sidebar />
-            <main className="flex-1 flex flex-col overflow-y-auto">
-                <Header title="Réseau des Églises" />
-                <div className="p-8 space-y-8">
+        <Layout title="Réseau des Églises">
+            <div className="p-8 space-y-8">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Réseau des Églises</h2>
@@ -164,8 +160,7 @@ const ChurchesList = () => {
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+        </Layout>
     );
 };
 

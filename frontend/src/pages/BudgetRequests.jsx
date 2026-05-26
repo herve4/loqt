@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Sidebar from '../components/Sidebar';
+import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -132,27 +132,22 @@ const BudgetRequests = () => {
   const pageBudget = filtered.reduce((s, e) => s + Number(e.estimation_budget || 0), 0);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <main className="flex-1 px-6 md:px-10 py-8 max-w-[1440px] mx-auto w-full">
-
-          {/* En-tête */}
-          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Demandes Budgétaires</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Examinez et approuvez les demandes d'achat dans toutes les unités RLL / échanges d'expression de besoins.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
-            >
-              <span className="material-symbols-outlined text-sm">add</span>
-              Nouvelle Demande
-            </button>
-          </div>
+    <Layout 
+      title="Demandes Budgétaires"
+      headerActions={
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 text-sm cursor-pointer active:scale-95"
+        >
+          <span className="material-symbols-outlined text-sm">add</span>
+          Nouvelle Demande
+        </button>
+      }
+    >
+      <main className="flex-1 px-6 md:px-10 py-8 max-w-[1440px] mx-auto w-full">
+        <p className="text-slate-500 dark:text-slate-400 mb-6 text-sm">
+          Examinez et approuvez les demandes d'achat dans toutes les unités RLL / échanges d'expression de besoins.
+        </p>
 
           {/* Barre de filtres */}
           <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -332,7 +327,6 @@ const BudgetRequests = () => {
             <p className="text-sm text-slate-400">© 2024 SGL-CI. Tous droits réservés.</p>
           </div>
         </footer>
-      </div>
 
       {showModal && (
         <ModalNouvelleDemande
@@ -341,7 +335,7 @@ const BudgetRequests = () => {
           isLoading={createMutation.isPending}
         />
       )}
-    </div>
+    </Layout>
   );
 };
 
