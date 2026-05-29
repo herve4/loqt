@@ -121,6 +121,8 @@ class Eglise(models.Model):
         self._request = request
 
     def save(self, *args, **kwargs):
+        if self.ville:
+            self.region = self.ville.region
             
         if self._request and not self.ville:  # ne géolocalise que si pas encore renseigné
             ip = self._get_client_ip()
