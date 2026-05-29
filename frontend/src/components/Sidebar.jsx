@@ -105,6 +105,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <span className="material-symbols-outlined">church</span>
             <span className="text-sm">Églises</span>
           </Link>
+          {/* Modules à moyen terme mis en veille temporaire */}
+          {/*
           <Link
             to="/meetings"
             onClick={closeSidebarMobile}
@@ -145,6 +147,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <span className="material-symbols-outlined size-4 text-xs">auto_stories</span>
             <span className="text-xs">Hub E-Learning</span>
           </Link>
+          */}
           <a className="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mt-4" href="#">
             <span className="material-symbols-outlined">settings</span>
             <span className="text-sm">Paramètres</span>
