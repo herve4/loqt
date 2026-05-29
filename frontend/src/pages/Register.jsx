@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { authService, logisticsService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
   const { updateAuthUser } = useAuth();
@@ -330,6 +331,38 @@ const Register = () => {
                       Suivant
                       <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                     </button>
+
+                    <div className="flex items-center my-4">
+                      <div className="flex-1 border-t border-slate-200 dark:border-slate-800"></div>
+                      <span className="px-4 text-xs text-slate-400 font-bold uppercase tracking-widest text-[9px]">OU S'INSCRIRE AVEC</span>
+                      <div className="flex-1 border-t border-slate-200 dark:border-slate-800"></div>
+                    </div>
+
+                    <div className="w-full flex justify-center google-login-container select-none">
+                      <GoogleLogin
+                        onSuccess={async (credentialResponse) => {
+                          try {
+                            const res = await authService.googleLogin(credentialResponse.credential);
+                            updateAuthUser(res.data.user);
+                            if (res.data.user.onboarding_completed) {
+                              navigate('/dashboard');
+                            } else {
+                              navigate('/onboarding');
+                            }
+                          } catch (err) {
+                            setError(err.response?.data?.message || "Erreur lors de l'authentification Google");
+                          }
+                        }}
+                        onError={() => {
+                          setError("Échec de l'authentification Google");
+                        }}
+                        theme="outline"
+                        shape="square"
+                        size="large"
+                        locale="fr"
+                        width="350px"
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-300">

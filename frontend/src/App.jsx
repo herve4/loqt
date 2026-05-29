@@ -22,6 +22,7 @@ import TrainingDashboard from './pages/TrainingDashboard';
 import TrainingHub from './pages/TrainingHub';
 import ChronogramMaster from './pages/ChronogramMaster';
 import ChronogramLibrary from './pages/ChronogramLibrary';
+import Onboarding from './pages/Onboarding';
 
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -40,6 +41,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          
+          <Route path="/onboarding" element={<ProtectedRoute checkOnboarding={false}><Onboarding /></ProtectedRoute>} />
           
           {/* Routes Protégées */}
           <Route path="/dashboard" element={<ProtectedRoute><NationalDashboard /></ProtectedRoute>} />

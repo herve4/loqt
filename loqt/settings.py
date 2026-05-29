@@ -346,3 +346,7 @@ IMPORT_FORMATS = [
     'tsv',
     'ods'
 ]
+
+# Google OAuth Client ID
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+

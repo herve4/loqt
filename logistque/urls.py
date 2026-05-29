@@ -19,7 +19,7 @@ from logistque.api_views import (
     RegionViewSet, CategorieViewSet, SousCategorieViewSet,
     EvenementImageViewSet, ChronogrammeTemplateViewSet, MaterielImageViewSet
 )
-from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, SendVerificationCodeView, VerifyCodeView
+from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, SendVerificationCodeView, VerifyCodeView, GoogleLoginAPIView
 from logistque.api_user import CurrentUserAPIView
 
 router = DefaultRouter()
@@ -51,6 +51,7 @@ urlpatterns = [
     path('api/auth/login/', LoginAPIView.as_view(), name='api-login'),
     path('api/auth/logout/', LogoutAPIView.as_view(), name='api-logout'),
     path('api/auth/register/', RegisterAPIView.as_view(), name='api-register'),
+    path('api/auth/google/', GoogleLoginAPIView.as_view(), name='api-google-login'),
     path('api/auth/send-code/', SendVerificationCodeView.as_view(), name='api-send-code'),
     path('api/auth/verify-code/', VerifyCodeView.as_view(), name='api-verify-code'),
     path('api/auth/me/', CurrentUserAPIView.as_view(), name='api-me'),

@@ -8,6 +8,8 @@ import random
 from django.core.mail import send_mail
 from django.conf import settings
 from accounts.models import EmailVerification
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
@@ -134,3 +136,58 @@ class RegisterAPIView(APIView):
                 'user': UserSerializer(user).data
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GoogleLoginAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = [CsrfExemptSessionAuthentication, SessionAuthentication]
+    
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({'message': 'Jeton Google requis'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            client_id = getattr(settings, 'GOOGLE_CLIENT_ID', None)
+            # Verify Google ID Token
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
+            
+            # Check issuer
+            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                return Response({'message': 'Émetteur du jeton invalide'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+            
+            if not email:
+                return Response({'message': 'Adresse e-mail Google introuvable'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            # Get or create CustomUser
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'role': 'technicien',
+                    'onboarding_completed': False,
+                    'accept_terms': True,
+                }
+            )
+            
+            # Set random password for new user
+            if created:
+                user.set_password(User.objects.make_random_password())
+                user.save()
+                
+            # Perform session login
+            login(request, user)
+            
+            return Response({
+                'message': 'Connexion Google réussie',
+                'user': UserSerializer(user).data
+            }, status=status.HTTP_200_OK)
+            
+        except ValueError as e:
+            return Response({'message': f'Jeton Google invalide : {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'message': f"Erreur lors de l'authentification Google : {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -20,7 +20,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from logistque.views import geocode_city
-from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView
+from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, GoogleLoginAPIView
 from logistque.api_dashboard import DashboardStatsAPIView, DashboardRealtimeAPIView
 from logistque.api_materiels import MaterielListAPIView, CategoriesListAPIView
 from logistque.api_permissions import PermissionRequestAPIView, PermissionStatusAPIView
@@ -53,6 +53,7 @@ urlpatterns = [
     path('api/auth/login/', LoginAPIView.as_view(), name='api-login'),
     path('api/auth/logout/', LogoutAPIView.as_view(), name='api-logout'),
     path('api/auth/register/', RegisterAPIView.as_view(), name='api-register'),
+    path('api/auth/google/', GoogleLoginAPIView.as_view(), name='api-google-login'),
     path('api/auth/password-reset/', PasswordResetRequestAPIView.as_view(), name='api-password-reset'),
     path('api/auth/password-reset-confirm/', PasswordResetConfirmAPIView.as_view(), name='api-password-reset-confirm'),
     

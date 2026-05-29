@@ -40,6 +40,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     pole = models.ForeignKey('logistque.PoleCompetence', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pôle Technique')
     image = models.ImageField(upload_to='profile_images/', null=True, blank=True,max_length=255, verbose_name='Image de profil')
     accept_terms = models.BooleanField(default=False, verbose_name='Accepter les conditions')
+    onboarding_completed = models.BooleanField(default=True, verbose_name="Onboarding terminé")
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

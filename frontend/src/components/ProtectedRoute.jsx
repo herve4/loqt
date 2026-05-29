@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children, checkOnboarding = true }) => {
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -19,7 +19,13 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  if (checkOnboarding && user && user.onboarding_completed === false) {
+    // Bloquer l'accès et rediriger vers la console d'onboarding
+    return <Navigate to="/onboarding" replace />;
+  }
+
   return children;
 };
 
 export default ProtectedRoute;
+

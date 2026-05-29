@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/api';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, updateAuthUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ user: '', password: '', remember_me: false });
   const [error, setError] = useState('');
@@ -162,6 +164,40 @@ const Login = () => {
                     <span>{loginMutation.isPending ? 'Connexion en cours...' : 'Se connecter'}</span>
                     <span className="material-symbols-outlined">login</span>
                   </button>
+
+                  <div className="flex items-center my-6">
+                    <div className="flex-1 border-t border-slate-200 dark:border-slate-800"></div>
+                    <span className="px-4 text-xs text-slate-400 font-bold uppercase tracking-widest">OU</span>
+                    <div className="flex-1 border-t border-slate-200 dark:border-slate-800"></div>
+                  </div>
+
+                  <div className="w-full flex justify-center google-login-container select-none">
+                    <GoogleLogin
+                      onSuccess={async (credentialResponse) => {
+                        try {
+                          const res = await authService.googleLogin(credentialResponse.credential);
+                          updateAuthUser(res.data.user);
+                          if (res.data.user.onboarding_completed) {
+                            navigate('/dashboard');
+                          } else {
+                            navigate('/onboarding');
+                          }
+                        } catch (err) {
+                          setError(err.response?.data?.message || 'Erreur lors de la connexion Google');
+                          setShowToast(true);
+                        }
+                      }}
+                      onError={() => {
+                        setError('Échec de la connexion Google');
+                        setShowToast(true);
+                      }}
+                      theme="outline"
+                      shape="square"
+                      size="large"
+                      locale="fr"
+                      width="350px"
+                    />
+                  </div>
                 </form>
                 <div className="mt-10 pt-8 border-t border-slate-100 dark:border-slate-800 text-center">
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
