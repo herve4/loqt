@@ -74,6 +74,35 @@ const EquipmentDetail = () => {
   const [lightboxImageIndex, setLightboxImageIndex] = useState(0);
   const [isDefectModalOpen, setIsDefectModalOpen] = useState(false);
 
+  // Mobile Touch Swipe Handling
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > 50; // swipe left -> next image
+    const isRightSwipe = distance < -50; // swipe right -> prev image
+
+    if (isLeftSwipe && allImages.length > 1) {
+      handleNextImage();
+    } else if (isRightSwipe && allImages.length > 1) {
+      handlePrevImage();
+    }
+
+    // Reset
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
   const deleteMutation = useMutation({
     mutationFn: () => logisticsService.deleteMateriel(id),
     onSuccess: () => {
@@ -936,7 +965,12 @@ const EquipmentDetail = () => {
             </div>
 
             {/* Main Centered Image Container */}
-            <div className="relative flex items-center justify-center max-w-[85vw] max-h-[70vh]">
+            <div 
+              className="relative flex items-center justify-center max-w-[85vw] max-h-[70vh] touch-pan-y"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               {/* Left Navigation Arrow */}
               {allImages.length > 1 && (
                 <button
@@ -956,6 +990,7 @@ const EquipmentDetail = () => {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
                 src={allImages[lightboxImageIndex]?.image}
                 alt="Matériel grand format"
+                draggable="false"
                 className="max-w-[75vw] max-h-[65vh] md:max-w-[80vw] md:max-h-[70vh] object-contain border border-slate-800 bg-slate-900/40 p-1.5 shadow-2xl select-none"
               />
 
