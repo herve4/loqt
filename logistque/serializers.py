@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from logistque.models import (
-    Region, Eglise, Materiel, Evenement, ChronogrammeItem, PoleCompetence,
+    Region, Ville, Eglise, Materiel, Evenement, ChronogrammeItem, PoleCompetence,
     MouvementMateriel, FicheDefectuosite, ReunionDimanche,
     RessourceFormation, DemandeFormationSGL, ExpressionBesoin,
     ValidationCircuit,
@@ -23,6 +23,12 @@ class RegionSerializer(serializers.ModelSerializer):
     eglise_count = serializers.IntegerField(read_only=True)
     class Meta:
         model = Region
+        fields = '__all__'
+
+class VilleSerializer(serializers.ModelSerializer):
+    region_nom = serializers.CharField(source='region.nom', read_only=True)
+    class Meta:
+        model = Ville
         fields = '__all__'
 
 class EgliseSerializer(serializers.ModelSerializer):

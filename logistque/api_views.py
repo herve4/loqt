@@ -32,7 +32,7 @@ import logging
 logger = logging.getLogger('logistque')
 from django_filters.rest_framework import DjangoFilterBackend
 from logistque.models import (
-    Region, Eglise, Materiel, Evenement, ChronogrammeItem, PoleCompetence,
+    Region, Ville, Eglise, Materiel, Evenement, ChronogrammeItem, PoleCompetence,
     MouvementMateriel, FicheDefectuosite, ReunionDimanche,
     RessourceFormation, DemandeFormationSGL, ExpressionBesoin,
     ValidationCircuit,
@@ -45,7 +45,7 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return  # Ne pas forcer CSRF pour les besoins de l'API
 from logistque.serializers import (
-    RegionSerializer, EgliseSerializer, MaterielSerializer, EvenementSerializer,
+    RegionSerializer, VilleSerializer, EgliseSerializer, MaterielSerializer, EvenementSerializer,
     ChronogrammeItemSerializer, PoleCompetenceSerializer,
     MouvementMaterielSerializer, FicheDefectuositeSerializer,
     ReunionDimancheSerializer, RessourceFormationSerializer,
@@ -476,6 +476,15 @@ class RegionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['nom']
+
+class VilleViewSet(viewsets.ModelViewSet):
+    queryset = Ville.objects.all().order_by('nom')
+    serializer_class = VilleSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['region']
     search_fields = ['nom']
 
 class MouvementMaterielViewSet(viewsets.ModelViewSet):

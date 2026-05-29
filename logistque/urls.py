@@ -16,7 +16,7 @@ from logistque.api_views import (
     DemandeFormationSGLViewSet, ExpressionBesoinViewSet,
     ValidationCircuitViewSet, user_list,
     FormationViewSet, DemandeFormationViewSet, SessionFormationViewSet,
-    RegionViewSet, CategorieViewSet, SousCategorieViewSet,
+    RegionViewSet, VilleViewSet, CategorieViewSet, SousCategorieViewSet,
     EvenementImageViewSet, ChronogrammeTemplateViewSet, MaterielImageViewSet
 )
 from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, SendVerificationCodeView, VerifyCodeView, GoogleLoginAPIView
@@ -24,6 +24,7 @@ from logistque.api_user import CurrentUserAPIView
 
 router = DefaultRouter()
 router.register(r'regions', RegionViewSet)
+router.register(r'villes', VilleViewSet)
 router.register(r'eglises', EgliseViewSet)
 router.register(r'categories', CategorieViewSet)
 router.register(r'sous-categories', SousCategorieViewSet)
