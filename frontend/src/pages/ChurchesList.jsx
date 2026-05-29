@@ -66,10 +66,33 @@ const ChurchesList = () => {
         <Layout title="Réseau des Églises">
             <div className="p-8 space-y-8 select-none font-mono text-slate-800 dark:text-slate-200">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 dark:border-slate-800/60 pb-6">
                     <div>
                         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Réseau des Églises</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Gérer les implantations locales et les coordinations régionales.</p>
+                        
+                        {/* Rapid Diagnostic HUD */}
+                        <div className="flex gap-3 mt-3.5 font-mono">
+                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 px-3 py-1.5 rounded-none">
+                                <span className="relative size-1.5 flex items-center justify-center">
+                                    <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-75" />
+                                    <span className="relative size-1.5 rounded-full bg-blue-500" />
+                                </span>
+                                <span className="text-[10px] font-black tracking-widest text-slate-500 dark:text-slate-400 uppercase">
+                                    {regions.length} RÉGIONS
+                                </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 px-3 py-1.5 rounded-none">
+                                <span className="relative size-1.5 flex items-center justify-center">
+                                    <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-75" />
+                                    <span className="relative size-1.5 rounded-full bg-blue-500" />
+                                </span>
+                                <span className="text-[10px] font-black tracking-widest text-slate-500 dark:text-slate-400 uppercase">
+                                    {totalCount} ÉGLISES
+                                </span>
+                            </div>
+                        </div>
                     </div>
                     <div className="flex flex-wrap gap-3">
                         <button 
