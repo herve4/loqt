@@ -176,6 +176,7 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
               value={formData.nom}
               onChange={handleChange}
               placeholder="Ex: ABOBO MARAHOUÉ"
+              style={{ backgroundColor: '#020617', color: '#ffffff' }}
               className="w-full px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none transition-all"
             />
           </div>
@@ -191,6 +192,7 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+225 07 00 00 00 00"
+                style={{ backgroundColor: '#020617', color: '#ffffff' }}
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none transition-all"
               />
             </div>
@@ -204,6 +206,7 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
                 value={formData.pays}
                 onChange={handleChange}
                 placeholder="Côte d'Ivoire"
+                style={{ backgroundColor: '#020617', color: '#ffffff' }}
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none transition-all font-mono"
               />
             </div>
@@ -219,6 +222,7 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
                   name="region"
                   value={formData.region}
                   onChange={handleChange}
+                  style={{ backgroundColor: '#020617', color: '#ffffff' }}
                   className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none appearance-none cursor-pointer"
                 >
                   <option value="">SÉLECTIONNER</option>
@@ -240,6 +244,7 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
                   disabled={!formData.region}
                   value={formData.ville}
                   onChange={handleChange}
+                  style={{ backgroundColor: '#020617', color: '#ffffff' }}
                   className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <option value="">{!formData.region ? "RÉGION LOGISTIQUE REQUISE" : "SÉLECTIONNER"}</option>
@@ -260,6 +265,7 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
                 name="pasteur"
                 value={formData.pasteur}
                 onChange={handleChange}
+                style={{ backgroundColor: '#020617', color: '#ffffff' }}
                 className="w-full pl-3 pr-8 py-2 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none appearance-none cursor-pointer"
               >
                 <option value="">NON ASSIGNÉ</option>

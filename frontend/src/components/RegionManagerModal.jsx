@@ -124,6 +124,7 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
                       type="text"
                       value={editingName}
                       onChange={(e) => setEditingName(e.target.value)}
+                      style={{ backgroundColor: '#020617', color: '#ffffff' }}
                       className="w-full px-2 py-1 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none font-mono"
                     />
                   ) : (
@@ -191,6 +192,7 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
                 value={newRegionName}
                 onChange={(e) => setNewRegionName(e.target.value)}
                 placeholder="Ex: REGION EST"
+                style={{ backgroundColor: '#020617', color: '#ffffff' }}
                 className="flex-1 px-3 py-2 bg-slate-950 border border-slate-800 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none transition-all font-mono"
               />
               <button
