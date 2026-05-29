@@ -116,15 +116,35 @@ const ChurchesList = () => {
                     </div>
                 </div>
 
-                {/* Regions Summary Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {regions.slice(0, 6).map(region => (
-                        <div key={region.id} className="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 rounded-none text-center">
-                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block truncate">{region.nom}</span>
-                            <div className="text-2xl font-black text-blue-600 dark:text-blue-500 mt-1">{region.eglise_count || 0}</div>
-                            <div className="text-[8px] text-slate-400 uppercase tracking-wider font-bold">ÉGLISES</div>
-                        </div>
-                    ))}
+                {/* Regions Summary Cards (Horizontal Slider) */}
+                <div className="relative">
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent snap-x snap-mandatory">
+                        {regions.map(region => (
+                            <div 
+                                key={region.id} 
+                                onClick={() => setSelectedRegion(selectedRegion === String(region.id) ? '' : String(region.id))}
+                                className={`p-4 border rounded-none text-center min-w-[160px] flex-shrink-0 snap-start hover:border-slate-400 dark:hover:border-slate-600 transition-all cursor-pointer select-none ${
+                                    selectedRegion === String(region.id) 
+                                        ? 'border-blue-600 dark:border-blue-500 bg-blue-50/10 dark:bg-blue-950/20' 
+                                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                                }`}
+                            >
+                                <span className={`text-[9px] font-black uppercase tracking-widest block truncate ${
+                                    selectedRegion === String(region.id) 
+                                        ? 'text-blue-600 dark:text-blue-400' 
+                                        : 'text-slate-400 dark:text-slate-500'
+                                }`}>
+                                    {region.nom}
+                                </span>
+                                <div className="text-2xl font-black text-blue-600 dark:text-blue-500 mt-1">
+                                    {region.eglise_count || 0}
+                                </div>
+                                <div className="text-[8px] text-slate-400 uppercase tracking-wider font-bold">
+                                    ÉGLISES
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Churches Grid */}
