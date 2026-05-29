@@ -23,7 +23,9 @@ export const authService = {
   logout: () => api.post('auth/logout/'),
   register: (data) => api.post('auth/register/', data),
   googleLogin: (token) => api.post('auth/google/', { token }),
-  updateProfile: (data) => api.patch('auth/me/', data),
+  updateProfile: (data) => api.patch('auth/me/', data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {}
+  }),
   getCurrentUser: () => api.get('auth/me/'),
   requestPasswordReset: (email) => api.post('auth/password-reset/', { email }),
   confirmPasswordReset: (data) => api.post('auth/password-reset-confirm/', data),

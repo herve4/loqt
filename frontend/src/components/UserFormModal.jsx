@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { logisticsService } from '../services/api';
+import { logisticsService, authService } from '../services/api';
 import toast from 'react-hot-toast';
 
 const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = false }) => {
@@ -112,12 +112,11 @@ const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = fals
     }
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => logisticsService.updateMember(id, data),
+  // Own profile update → PATCH /api/auth/me/ (no special permission needed)
+  const updateSelfMutation = useMutation({
+    mutationFn: (data) => authService.updateProfile(data),
     onSuccess: () => {
       toast.success('Profil mis à jour avec succès !');
-      queryClient.invalidateQueries({ queryKey: ['members-list'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       onClose();
     },
@@ -127,7 +126,27 @@ const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = fals
         const firstErr = Object.keys(details)[0];
         toast.error(`${firstErr.toUpperCase()}: ${details[firstErr][0] || details[firstErr]}`);
       } else {
-        toast.error("Erreur lors de la mise à jour.");
+        toast.error("Erreur lors de la mise à jour du profil.");
+      }
+    }
+  });
+
+  // Admin update of another member → PATCH /api/members/{id}/
+  const updateMemberMutation = useMutation({
+    mutationFn: ({ id, data }) => logisticsService.updateMember(id, data),
+    onSuccess: () => {
+      toast.success('Membre mis à jour avec succès !');
+      queryClient.invalidateQueries({ queryKey: ['members-list'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      onClose();
+    },
+    onError: (err) => {
+      const details = err.response?.data;
+      if (details) {
+        const firstErr = Object.keys(details)[0];
+        toast.error(`${firstErr.toUpperCase()}: ${details[firstErr][0] || details[firstErr]}`);
+      } else {
+        toast.error("Erreur lors de la mise à jour du membre.");
       }
     }
   });
@@ -171,7 +190,12 @@ const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = fals
     }
 
     if (userToEdit) {
-      updateMutation.mutate({ id: userToEdit.id, data: payload });
+      if (isOwnProfile) {
+        // Route self-edits to /api/auth/me/ to avoid permission issues
+        updateSelfMutation.mutate(payload);
+      } else {
+        updateMemberMutation.mutate({ id: userToEdit.id, data: payload });
+      }
     } else {
       createMutation.mutate(payload);
     }
@@ -194,7 +218,7 @@ const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = fals
     borderColor: '#1e293b'
   };
 
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+  const isSubmitting = createMutation.isPending || updateSelfMutation.isPending || updateMemberMutation.isPending;
 
   return (
     <div className="fixed inset-0 z-[1500] flex items-center justify-center bg-slate-950/80 backdrop-blur-md font-mono select-none overflow-y-auto py-8">
