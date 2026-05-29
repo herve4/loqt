@@ -24,6 +24,7 @@ import ChronogramMaster from './pages/ChronogramMaster';
 import ChronogramLibrary from './pages/ChronogramLibrary';
 import Onboarding from './pages/Onboarding';
 import UsersList from './pages/UsersList';
+import Settings from './pages/Settings';
 
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -68,6 +69,7 @@ function App() {
           <Route path="/chronograms/library" element={<ProtectedRoute><ChronogramLibrary /></ProtectedRoute>} />
           <Route path="/churches" element={<ProtectedRoute><ChurchesList /></ProtectedRoute>} />
           <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>

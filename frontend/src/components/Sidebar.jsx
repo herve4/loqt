@@ -109,16 +109,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <span className="material-symbols-outlined">church</span>
             <span className="text-sm">Églises</span>
           </Link>
-          {user?.role === 'super_admin' && (
-            <Link 
-              to="/users" 
-              onClick={closeSidebarMobile}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded ${isActive('/users') ? activeClass : inactiveClass}`}
-            >
-              <span className="material-symbols-outlined">group</span>
-              <span className="text-sm">Utilisateurs</span>
-            </Link>
-          )}
+
           {/* Modules à moyen terme mis en veille temporaire */}
           {/*
           <Link
@@ -162,10 +153,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <span className="text-xs">Hub E-Learning</span>
           </Link>
           */}
-          <a className="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mt-4" href="#">
-            <span className="material-symbols-outlined">settings</span>
-            <span className="text-sm">Paramètres</span>
-          </a>
+          {user?.role === 'super_admin' && (
+            <Link 
+              to="/settings" 
+              onClick={closeSidebarMobile}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded transition-all mt-4 ${isActive('/settings') ? activeClass : inactiveClass}`}
+            >
+              <span className="material-symbols-outlined">settings</span>
+              <span className="text-sm">Paramètres</span>
+            </Link>
+          )}
         </nav>
       </div>
       <div className="mt-auto p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">

@@ -109,4 +109,13 @@ export const logisticsService = {
   deleteChronogramTemplate: (id) => api.delete(`chronogramme-templates/${id}/`),
 };
 
+export const notificationService = {
+  getAll: ()        => api.get('notifications/'),
+  markRead: (id)    => api.patch(`notifications/${id}/read/`),
+  markAllRead: ()   => api.patch('notifications/read-all/'),
+  dismiss: (id)     => api.delete(`notifications/${id}/`),
+  clearAll: ()      => api.delete('notifications/clear/'),
+};
+
 export default api;
+

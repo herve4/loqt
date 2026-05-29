@@ -1,4 +1,5 @@
 import React from 'react';
+import NotificationPanel from './NotificationPanel';
 
 const Header = ({ title, toggleSidebar, showBackButton, onBack, headerActions, onSearch }) => {
   return (
@@ -26,38 +27,25 @@ const Header = ({ title, toggleSidebar, showBackButton, onBack, headerActions, o
           {title}
         </div>
       </div>
-      <div className="flex items-center gap-3 sm:gap-6 shrink-0">
-        {headerActions ? (
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        {headerActions && (
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 mr-2">
             {headerActions}
           </div>
-        ) : (
-          <>
-            <div className="hidden sm:flex items-center gap-3 md:gap-4 shrink-0">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-danger/10 text-danger border border-danger/20">
-                <span className="material-symbols-outlined text-[18px]">error</span>
-                <span className="text-xs font-semibold">14 Retards</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                <span className="material-symbols-outlined text-[18px]">event_repeat</span>
-                <span className="text-xs font-semibold">Réunion à 14:00</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <button className="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 relative">
-                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">notifications</span>
-                <span className="absolute top-2 right-2 size-2 bg-danger rounded-full border-2 border-white dark:border-slate-900"></span>
-              </button>
-              <button 
-                onClick={onSearch}
-                className="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer active:scale-95 transition-all"
-                aria-label="Rechercher"
-              >
-                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">search</span>
-              </button>
-            </div>
-          </>
         )}
+
+        {/* Notification Bell */}
+        <NotificationPanel />
+
+        {/* Search */}
+        <button 
+          onClick={onSearch}
+          className="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer active:scale-95 transition-all"
+          aria-label="Rechercher"
+        >
+          <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">search</span>
+        </button>
       </div>
     </header>
   );
