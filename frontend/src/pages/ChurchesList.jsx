@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
 import EgliseFormModal from '../components/EgliseFormModal';
 import RegionManagerModal from '../components/RegionManagerModal';
+import VilleManagerModal from '../components/VilleManagerModal';
 import toast from 'react-hot-toast';
 
 const ChurchesList = () => {
@@ -15,6 +16,7 @@ const ChurchesList = () => {
     // Modals states
     const [isEgliseModalOpen, setIsEgliseModalOpen] = useState(false);
     const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
+    const [isVilleModalOpen, setIsVilleModalOpen] = useState(false);
     const [churchToEdit, setChurchToEdit] = useState(null);
 
     useEffect(() => {
@@ -101,6 +103,13 @@ const ChurchesList = () => {
                         >
                             <span className="material-symbols-outlined text-sm">map</span>
                             <span>Gérer les Régions</span>
+                        </button>
+                        <button 
+                            onClick={() => setIsVilleModalOpen(true)}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-all rounded-none text-xs uppercase tracking-wider cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-sm">location_city</span>
+                            <span>Gérer les Villes</span>
                         </button>
                         <button 
                             onClick={() => { setChurchToEdit(null); setIsEgliseModalOpen(true); }}
@@ -277,6 +286,11 @@ const ChurchesList = () => {
             <RegionManagerModal 
                 isOpen={isRegionModalOpen} 
                 onClose={() => setIsRegionModalOpen(false)}
+            />
+
+            <VilleManagerModal 
+                isOpen={isVilleModalOpen} 
+                onClose={() => setIsVilleModalOpen(false)}
             />
         </Layout>
     );
