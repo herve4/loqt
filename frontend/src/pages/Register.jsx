@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { authService, logisticsService } from '../services/api';
@@ -8,6 +8,16 @@ import { GoogleLogin } from '@react-oauth/google';
 const Register = () => {
   const { updateAuthUser } = useAuth();
   const navigate = useNavigate();
+  const [googleWidth, setGoogleWidth] = useState(window.innerWidth < 420 ? '290' : '350');
+
+  useEffect(() => {
+    const handleResize = () => {
+      setGoogleWidth(window.innerWidth < 420 ? '290' : '350');
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -360,7 +370,7 @@ const Register = () => {
                         shape="square"
                         size="large"
                         locale="fr"
-                        width="350px"
+                        width={googleWidth}
                       />
                     </div>
                   </div>

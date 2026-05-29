@@ -12,6 +12,15 @@ const Login = () => {
   const [formData, setFormData] = useState({ user: '', password: '', remember_me: false });
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [googleWidth, setGoogleWidth] = useState(window.innerWidth < 420 ? '290' : '350');
+
+  useEffect(() => {
+    const handleResize = () => {
+      setGoogleWidth(window.innerWidth < 420 ? '290' : '350');
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: (credentials) => login(credentials),
@@ -195,7 +204,7 @@ const Login = () => {
                       shape="square"
                       size="large"
                       locale="fr"
-                      width="350px"
+                      width={googleWidth}
                     />
                   </div>
                 </form>
