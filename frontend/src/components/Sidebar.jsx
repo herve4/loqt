@@ -23,7 +23,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   };
 
   return (
-    <aside className={`fixed md:static inset-y-0 left-0 w-64 flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 h-screen shadow-lg md:shadow-sm z-30 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+    <>
+      <aside className={`fixed md:static inset-y-0 left-0 w-64 flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 h-screen shadow-lg md:shadow-sm z-30 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="p-6 flex flex-col gap-6 overflow-y-auto">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -200,13 +201,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <span>Déconnexion</span>
         </button>
       </div>
-      <UserFormModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
-        userToEdit={user} 
-        isOwnProfile={true} 
-      />
     </aside>
+    <UserFormModal 
+      isOpen={isProfileModalOpen} 
+      onClose={() => setIsProfileModalOpen(false)} 
+      userToEdit={user} 
+      isOwnProfile={true} 
+    />
+  </>
   );
 };
 
