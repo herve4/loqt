@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { logisticsService } from '../services/api';
 import toast from 'react-hot-toast';
+import ConfirmModal from './ConfirmModal';
 
 const RegionManagerModal = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
   const [newRegionName, setNewRegionName] = useState('');
   const [editingRegionId, setEditingRegionId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   // Load Regions
   const { data: regionsData, isLoading } = useQuery({
@@ -72,9 +75,8 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
   };
 
   const handleDelete = (id, name) => {
-    if (window.confirm(`Voulez-vous vraiment supprimer définitivement la région "${name}" ?`)) {
-      deleteMutation.mutate(id);
-    }
+    setItemToDelete({ id, name });
+    setDeleteConfirmOpen(true);
   };
 
   if (!isOpen) return null;
@@ -206,6 +208,17 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        title="SUPPRESSION DE RÉGION"
+        message={`Voulez-vous vraiment supprimer définitivement la région "${itemToDelete?.name}" ?`}
+        onConfirm={() => {
+          deleteMutation.mutate(itemToDelete.id);
+          setDeleteConfirmOpen(false);
+        }}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </div>
   );
 };

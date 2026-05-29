@@ -5,6 +5,7 @@ import { logisticsService } from '../services/api';
 import EgliseFormModal from '../components/EgliseFormModal';
 import RegionManagerModal from '../components/RegionManagerModal';
 import VilleManagerModal from '../components/VilleManagerModal';
+import ConfirmModal from '../components/ConfirmModal';
 import toast from 'react-hot-toast';
 
 const ChurchesList = () => {
@@ -17,6 +18,8 @@ const ChurchesList = () => {
     const [isEgliseModalOpen, setIsEgliseModalOpen] = useState(false);
     const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
     const [isVilleModalOpen, setIsVilleModalOpen] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
     const [churchToEdit, setChurchToEdit] = useState(null);
 
     useEffect(() => {
@@ -59,9 +62,8 @@ const ChurchesList = () => {
     });
 
     const handleDeleteChurch = (id, name) => {
-        if (window.confirm(`Voulez-vous vraiment supprimer définitivement l'église "${name}" ?`)) {
-            deleteMutation.mutate(id);
-        }
+        setItemToDelete({ id, name });
+        setDeleteConfirmOpen(true);
     };
 
     return (
@@ -291,6 +293,17 @@ const ChurchesList = () => {
             <VilleManagerModal 
                 isOpen={isVilleModalOpen} 
                 onClose={() => setIsVilleModalOpen(false)}
+            />
+
+            <ConfirmModal
+                isOpen={deleteConfirmOpen}
+                title="SUPPRESSION D'ÉGLISE"
+                message={`Voulez-vous vraiment supprimer définitivement l'église "${itemToDelete?.name}" ?`}
+                onConfirm={() => {
+                    deleteMutation.mutate(itemToDelete.id);
+                    setDeleteConfirmOpen(false);
+                }}
+                onCancel={() => setDeleteConfirmOpen(false)}
             />
         </Layout>
     );

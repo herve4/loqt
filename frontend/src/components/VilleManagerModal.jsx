@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { logisticsService } from '../services/api';
 import toast from 'react-hot-toast';
+import ConfirmModal from './ConfirmModal';
 
 const VilleManagerModal = ({ isOpen, onClose }) => {
   const queryClient = useQueryClient();
@@ -10,6 +11,8 @@ const VilleManagerModal = ({ isOpen, onClose }) => {
   const [editingVilleId, setEditingVilleId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [editingRegionId, setEditingRegionId] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   // Load Regions
   const { data: regionsData } = useQuery({
@@ -97,9 +100,8 @@ const VilleManagerModal = ({ isOpen, onClose }) => {
   };
 
   const handleDelete = (id, name) => {
-    if (window.confirm(`Voulez-vous vraiment supprimer définitivement la ville "${name}" ?`)) {
-      deleteMutation.mutate(id);
-    }
+    setItemToDelete({ id, name });
+    setDeleteConfirmOpen(true);
   };
 
   if (!isOpen) return null;
@@ -269,6 +271,17 @@ const VilleManagerModal = ({ isOpen, onClose }) => {
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        title="SUPPRESSION DE VILLE"
+        message={`Voulez-vous vraiment supprimer définitivement la ville "${itemToDelete?.name}" ?`}
+        onConfirm={() => {
+          deleteMutation.mutate(itemToDelete.id);
+          setDeleteConfirmOpen(false);
+        }}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </div>
   );
 };
