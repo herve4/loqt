@@ -85,3 +85,8 @@ yarn-error.log*
 loqt.zip
 loqt_new.tar.gz
 archive/sglci.tar
+
+# Google Auth secrets
+client_auth.json
+client_secret_*.json
+
