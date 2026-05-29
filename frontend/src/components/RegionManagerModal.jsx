@@ -105,9 +105,9 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
 
         {/* Regions list (scrollable) */}
         <div className="flex-1 overflow-y-auto pr-1 my-4 space-y-2 border-b border-slate-800 pb-4">
-          <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest pb-1 border-b border-slate-800 grid grid-cols-12">
-            <span className="col-span-8">NOM DE LA RÉGION</span>
-            <span className="col-span-4 text-right">ACTIONS DE PRÉCISION</span>
+          <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest pb-1 border-b border-slate-800 grid grid-cols-12 gap-2">
+            <span className="col-span-7 sm:col-span-8">NOM DE LA RÉGION</span>
+            <span className="col-span-5 sm:col-span-4 text-right">ACTIONS DE PRÉCISION</span>
           </div>
 
           {isLoading ? (
@@ -118,7 +118,7 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
             regions.map(r => (
               <div key={r.id} className="grid grid-cols-12 gap-2 items-center py-1.5 border-b border-slate-950/40">
                 {/* Name field (input or label) */}
-                <div className="col-span-8">
+                <div className="col-span-7 sm:col-span-8">
                   {editingRegionId === r.id ? (
                     <input
                       type="text"
@@ -133,21 +133,21 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Actions */}
-                <div className="col-span-4 flex justify-end gap-1.5">
+                <div className="col-span-5 sm:col-span-4 flex justify-end gap-1.5">
                   {editingRegionId === r.id ? (
                     <>
                       <button
                         type="button"
                         onClick={() => handleSaveEdit(r.id)}
                         disabled={updateMutation.isPending}
-                        className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none transition-all"
+                        className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none transition-all whitespace-nowrap"
                       >
                         [ ENREG ]
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditingRegionId(null)}
-                        className="px-2 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-white font-bold text-[9px] uppercase tracking-wider rounded-none transition-all"
+                        className="px-2 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-white font-bold text-[9px] uppercase tracking-wider rounded-none transition-all whitespace-nowrap"
                       >
                         [ ANNUL ]
                       </button>
@@ -157,7 +157,7 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
                       <button
                         type="button"
                         onClick={() => handleStartEdit(r)}
-                        className="px-2 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-white font-bold text-[9px] uppercase tracking-wider rounded-none transition-all"
+                        className="px-2 py-0.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-white font-bold text-[9px] uppercase tracking-wider rounded-none transition-all whitespace-nowrap"
                       >
                         [ ÉDITER ]
                       </button>
@@ -165,7 +165,7 @@ const RegionManagerModal = ({ isOpen, onClose }) => {
                         type="button"
                         onClick={() => handleDelete(r.id, r.nom)}
                         disabled={deleteMutation.isPending}
-                        className="px-2 py-0.5 bg-slate-950 border border-slate-800 text-rose-500 hover:bg-rose-950/20 hover:border-rose-900 font-bold text-[9px] uppercase tracking-wider rounded-none transition-all"
+                        className="px-2 py-0.5 bg-slate-950 border border-slate-800 text-rose-500 hover:bg-rose-950/20 hover:border-rose-900 font-bold text-[9px] uppercase tracking-wider rounded-none transition-all whitespace-nowrap"
                       >
                         [ X ]
                       </button>
