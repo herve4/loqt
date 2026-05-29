@@ -66,6 +66,15 @@ export const logisticsService = {
   getMaterielDefects: (materielId, params) => api.get(`defectuosites/?materiel=${materielId}`, { params }),
   postMovement: (data) => api.post('mouvements/', data),
   getMembers: () => api.get('users/'),
+  getMembersList: (params) => api.get('members/', { params }),
+  getMemberDetail: (id) => api.get(`members/${id}/`),
+  createMember: (data) => api.post('members/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  updateMember: (id, data) => api.patch(`members/${id}/`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  deleteMember: (id) => api.delete(`members/${id}/`),
   getReunions: (params) => api.get('reunions/', { params }),
   getReunionById: (id) => api.get(`reunions/${id}/`),
   postReunion: (data) => api.post('reunions/', data),

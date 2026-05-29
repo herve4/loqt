@@ -1,9 +1,12 @@
+import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import UserFormModal from './UserFormModal';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   
   const isActive = (path) => location.pathname === path;
   const activeClass = "bg-primary/10 text-primary font-medium";
@@ -105,6 +108,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <span className="material-symbols-outlined">church</span>
             <span className="text-sm">Églises</span>
           </Link>
+          {user?.role === 'super_admin' && (
+            <Link 
+              to="/users" 
+              onClick={closeSidebarMobile}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded ${isActive('/users') ? activeClass : inactiveClass}`}
+            >
+              <span className="material-symbols-outlined">group</span>
+              <span className="text-sm">Utilisateurs</span>
+            </Link>
+          )}
           {/* Modules à moyen terme mis en veille temporaire */}
           {/*
           <Link
@@ -155,17 +168,27 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </nav>
       </div>
       <div className="mt-auto p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary">person</span>
+        <div 
+          onClick={() => setIsProfileModalOpen(true)}
+          className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-slate-150 dark:hover:bg-slate-800/60 p-2 -mx-2 transition-all group select-none"
+          title="Modifier mon profil personnel"
+        >
+          <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/10 flex-shrink-0">
+            {user?.image ? (
+              <img src={user.image} alt={user.first_name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="material-symbols-outlined text-primary">person</span>
+            )}
           </div>
           <div className="flex flex-col overflow-hidden">
-            <p className="text-sm font-semibold truncate">{user?.first_name} {user?.last_name}</p>
+            <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{user?.first_name} {user?.last_name}</p>
             <p className="text-xs text-slate-500 truncate uppercase">
-              {user?.role === 'admin' ? 'Administrateur' : 
+              {user?.role === 'super_admin' ? 'Super-Administrateur' : 
+               user?.role === 'pasteur_national' ? 'Pasteur Responsable National' :
                user?.role === 'rln' ? 'Resp. Logistique National' :
+               user?.role === 'pasteur_local' ? 'Pasteur Responsable Local' :
                user?.role === 'rll' ? 'Resp. Logistique Local' :
-               user?.role === 'pasteur' ? 'Pasteur' : 'Utilisateur'}
+               user?.role === 'technicien' ? 'Membre Technicien' : 'Utilisateur'}
             </p>
           </div>
         </div>
@@ -177,6 +200,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <span>Déconnexion</span>
         </button>
       </div>
+      <UserFormModal 
+        isOpen={isProfileModalOpen} 
+        onClose={() => setIsProfileModalOpen(false)} 
+        userToEdit={user} 
+        isOwnProfile={true} 
+      />
     </aside>
   );
 };

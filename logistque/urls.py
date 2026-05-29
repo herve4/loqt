@@ -21,8 +21,10 @@ from logistque.api_views import (
 )
 from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, SendVerificationCodeView, VerifyCodeView, GoogleLoginAPIView
 from logistque.api_user import CurrentUserAPIView
+from accounts.api_views import UserViewSet
 
 router = DefaultRouter()
+router.register(r'members', UserViewSet, basename='member')
 router.register(r'regions', RegionViewSet)
 router.register(r'villes', VilleViewSet)
 router.register(r'eglises', EgliseViewSet)
