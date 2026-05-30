@@ -328,22 +328,21 @@ const MaterielFormModal = ({ item = null, onClose }) => {
                   [ + CRÉER UNE CATÉGORIE ]
                 </button>
               ) : (
-                <div className="mt-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/80 space-y-1.5">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Nouvelle Catégorie</span>
-                  <div className="flex gap-1.5">
+                <div className="mt-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/80 space-y-1.5 font-mono">
+                  <span className="text-[9px] font-bold text-slate-405 dark:text-slate-400 uppercase tracking-widest block font-sans">Nouvelle Catégorie</span>
+                  <div className="flex gap-1.5 items-center">
                     <input
                       type="text"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                       placeholder="Ex: SON & AUDIO"
-                      style={{ backgroundColor: '#020617', color: '#ffffff' }}
-                      className="flex-1 h-7 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-2 text-[11px] focus:outline-none text-slate-900 dark:text-white rounded-none font-mono"
+                      className="flex-1 h-8 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-2 text-[11px] focus:outline-none text-slate-900 dark:text-white rounded-none font-mono"
                     />
                     <button
                       type="button"
                       onClick={handleCreateCategoryInline}
                       disabled={createCategoryMutation.isPending || !newCategoryName.trim()}
-                      className="h-7 px-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                      className="h-8 px-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer shrink-0"
                     >
                       {createCategoryMutation.isPending ? '...' : 'Créer'}
                     </button>
@@ -353,9 +352,9 @@ const MaterielFormModal = ({ item = null, onClose }) => {
                         setIsCreatingCategory(false);
                         setNewCategoryName('');
                       }}
-                      className="h-7 px-2 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white font-mono font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                      className="h-8 w-8 flex items-center justify-center border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-950 rounded-none transition-all cursor-pointer shrink-0"
                     >
-                      [ X ]
+                      <span className="material-symbols-outlined text-[13px] font-bold">close</span>
                     </button>
                   </div>
                 </div>
@@ -391,22 +390,21 @@ const MaterielFormModal = ({ item = null, onClose }) => {
                       [ + CRÉER UNE SOUS-CATÉGORIE ]
                     </button>
                   ) : (
-                    <div className="mt-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/80 space-y-1.5">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Nouvelle Sous-Catégorie</span>
-                      <div className="flex gap-1.5">
+                    <div className="mt-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/80 space-y-1.5 font-mono">
+                      <span className="text-[9px] font-bold text-slate-405 dark:text-slate-400 uppercase tracking-widest block font-sans">Nouvelle Sous-Catégorie</span>
+                      <div className="flex gap-1.5 items-center">
                         <input
                           type="text"
                           value={newSousCategoryName}
                           onChange={(e) => setNewSousCategoryName(e.target.value)}
                           placeholder="Ex: MICRO SANS FIL"
-                          style={{ backgroundColor: '#020617', color: '#ffffff' }}
-                          className="flex-1 h-7 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-2 text-[11px] focus:outline-none text-slate-900 dark:text-white rounded-none font-mono"
+                          className="flex-1 h-8 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-2 text-[11px] focus:outline-none text-slate-900 dark:text-white rounded-none font-mono"
                         />
                         <button
                           type="button"
                           onClick={handleCreateSousCategoryInline}
                           disabled={createSousCategoryMutation.isPending || !newSousCategoryName.trim()}
-                          className="h-7 px-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                          className="h-8 px-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer shrink-0"
                         >
                           {createSousCategoryMutation.isPending ? '...' : 'Créer'}
                         </button>
@@ -416,9 +414,9 @@ const MaterielFormModal = ({ item = null, onClose }) => {
                             setIsCreatingSousCategory(false);
                             setNewSousCategoryName('');
                           }}
-                          className="h-7 px-2 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white font-mono font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                          className="h-8 w-8 flex items-center justify-center border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-950 rounded-none transition-all cursor-pointer shrink-0"
                         >
-                          [ X ]
+                          <span className="material-symbols-outlined text-[13px] font-bold">close</span>
                         </button>
                       </div>
                     </div>
