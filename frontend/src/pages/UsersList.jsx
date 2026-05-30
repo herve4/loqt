@@ -244,7 +244,7 @@ const UsersList = () => {
                           {rolesMap[user.role].label}
                         </span>
                       ) : (
-                        <span className="inline-block text-[9px] px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-none uppercase text-slate-400">
+                        <span className="inline-block text-[9px] px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:border-slate-750 dark:text-slate-400 rounded-none uppercase">
                           {user.role}
                         </span>
                       )}
@@ -339,7 +339,7 @@ const UsersList = () => {
                         {rolesMap[user.role].label}
                       </span>
                     ) : (
-                      <span className="inline-block text-[8px] px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-none uppercase text-slate-400">
+                      <span className="inline-block text-[8px] px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:border-slate-750 dark:text-slate-400 rounded-none uppercase">
                         {user.role}
                       </span>
                     )}

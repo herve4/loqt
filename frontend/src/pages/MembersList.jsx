@@ -51,6 +51,10 @@ const MembersList = () => {
     rll: { label: 'RLL (LOCAL)', style: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800' },
     technicien: { label: 'TECHNICIEN', style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' },
     
+    // Rôles hérités / legacy possibles
+    responsable: { label: 'RESPONSABLE', style: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800' },
+    membre: { label: 'MEMBRE', style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' },
+
     // Nouveaux rôles
     pasteur: { label: 'PASTEUR', style: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' },
     resp_dept: { label: 'RESP. DEPT.', style: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800' },
@@ -176,7 +180,10 @@ const MembersList = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMembers.map(user => {
-              const roleConf = rolesMap[user.role] || { label: (user.role || 'MEMBRE').toUpperCase(), style: 'bg-slate-800/40 text-slate-300 border-slate-700' };
+              const roleConf = rolesMap[user.role] || { 
+                label: (user.role || 'MEMBRE').toUpperCase(), 
+                style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' 
+              };
               const fullName = `${user.first_name} ${user.last_name}`;
 
               return (
