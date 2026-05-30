@@ -53,12 +53,21 @@ const UsersList = () => {
 
   // Role translating & styling
   const rolesMap = {
-    super_admin: { label: 'SUPER-ADMIN', style: 'bg-rose-950/20 text-rose-500 border-rose-900' },
-    pasteur_national: { label: 'PASTEUR NAT.', style: 'bg-emerald-950/20 text-emerald-500 border-emerald-900' },
-    rln: { label: 'RLN (NATIONAL)', style: 'bg-indigo-950/20 text-indigo-400 border-indigo-900' },
-    pasteur_local: { label: 'PASTEUR LOC.', style: 'bg-sky-950/20 text-sky-400 border-sky-900' },
-    rll: { label: 'RLL (LOCAL)', style: 'bg-amber-950/20 text-amber-500 border-amber-900' },
-    technicien: { label: 'TECHNICIEN', style: 'bg-slate-800/40 text-slate-300 border-slate-700' }
+    super_admin: { label: 'SUPER-ADMIN', style: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800' },
+    pasteur_national: { label: 'PASTEUR NAT.', style: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' },
+    rln: { label: 'RLN (NATIONAL)', style: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800' },
+    pasteur_local: { label: 'PASTEUR LOC.', style: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800' },
+    rll: { label: 'RLL (LOCAL)', style: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800' },
+    technicien: { label: 'TECHNICIEN', style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' },
+    
+    // Nouveaux rôles
+    pasteur: { label: 'PASTEUR', style: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' },
+    resp_dept: { label: 'RESP. DEPT.', style: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800' },
+    adj_dept: { label: 'ADJ. DEPT.', style: 'bg-indigo-50/50 text-indigo-600 border-indigo-100 dark:bg-indigo-950/15 dark:text-indigo-300 dark:border-indigo-900' },
+    resp_sec: { label: 'RESP. SEC.', style: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-400 dark:border-sky-800' },
+    adj_sec: { label: 'ADJ. SEC.', style: 'bg-sky-50/50 text-sky-600 border-sky-100 dark:bg-sky-950/15 dark:text-sky-300 dark:border-sky-900' },
+    membre_dept: { label: 'MEMBRE DEPT.', style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' },
+    membre_sec: { label: 'MEMBRE SEC.', style: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/20 dark:text-slate-400 dark:border-slate-800' },
   };
 
   // Toggle active state mutation

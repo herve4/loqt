@@ -12,6 +12,25 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const activeClass = "bg-primary/10 text-primary font-medium";
   const inactiveClass = "hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors";
 
+  const getRoleLabel = (role) => {
+    const rolesMap = {
+      super_admin: 'Super-Administrateur',
+      pasteur_national: 'Pasteur Resp. National',
+      rln: 'Resp. Logistique National',
+      pasteur_local: 'Pasteur Resp. Local',
+      rll: 'Resp. Logistique Local',
+      technicien: 'Membre Technicien',
+      pasteur: 'Pasteur',
+      resp_dept: 'Resp. Département',
+      adj_dept: 'Adjoint Département',
+      resp_sec: 'Resp. Section',
+      adj_sec: 'Adjoint Section',
+      membre_dept: 'Membre Département',
+      membre_sec: 'Membre Section',
+    };
+    return rolesMap[role] || 'Utilisateur';
+  };
+
   const handleLogout = async () => {
     if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
       await logout();
@@ -189,12 +208,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <div className="flex flex-col overflow-hidden">
             <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{user?.first_name} {user?.last_name}</p>
             <p className="text-xs text-slate-500 truncate uppercase">
-              {user?.role === 'super_admin' ? 'Super-Administrateur' : 
-               user?.role === 'pasteur_national' ? 'Pasteur Responsable National' :
-               user?.role === 'rln' ? 'Resp. Logistique National' :
-               user?.role === 'pasteur_local' ? 'Pasteur Responsable Local' :
-               user?.role === 'rll' ? 'Resp. Logistique Local' :
-               user?.role === 'technicien' ? 'Membre Technicien' : 'Utilisateur'}
+              {getRoleLabel(user?.role)}
             </p>
           </div>
         </div>
