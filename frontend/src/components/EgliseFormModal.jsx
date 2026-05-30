@@ -13,7 +13,9 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
     ville: '',
     pasteur: '',
     is_active: true,
-    is_national_hq: false
+    is_national_hq: false,
+    latitude: '',
+    longitude: ''
   });
 
   const [error, setError] = useState('');
@@ -54,7 +56,9 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
         ville: churchToEdit.ville || '',
         pasteur: churchToEdit.pasteur || '',
         is_active: churchToEdit.is_active !== undefined ? churchToEdit.is_active : true,
-        is_national_hq: churchToEdit.is_national_hq !== undefined ? churchToEdit.is_national_hq : false
+        is_national_hq: churchToEdit.is_national_hq !== undefined ? churchToEdit.is_national_hq : false,
+        latitude: churchToEdit.latitude !== null && churchToEdit.latitude !== undefined ? String(churchToEdit.latitude) : '',
+        longitude: churchToEdit.longitude !== null && churchToEdit.longitude !== undefined ? String(churchToEdit.longitude) : ''
       });
     } else {
       setFormData({
@@ -65,7 +69,9 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
         ville: '',
         pasteur: '',
         is_active: true,
-        is_national_hq: false
+        is_national_hq: false,
+        latitude: '',
+        longitude: ''
       });
     }
     setError('');
@@ -109,6 +115,43 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
     }
   });
 
+  const handleCaptureGPS = () => {
+    if (!navigator.geolocation) {
+      toast.error("La géolocalisation n'est pas supportée par votre navigateur.");
+      return;
+    }
+
+    const toastId = toast.loading("Acquisition du signal GPS en cours...");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setFormData(prev => ({
+          ...prev,
+          latitude: String(latitude),
+          longitude: String(longitude)
+        }));
+        toast.success(`Position capturée avec succès ! (Précision : ±${Math.round(accuracy)}m)`, { id: toastId });
+      },
+      (error) => {
+        let msg = "Erreur lors de l'acquisition GPS.";
+        if (error.code === error.PERMISSION_DENIED) {
+          msg = "Permission GPS refusée. Vous devez être sur place et autoriser la géolocalisation.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          msg = "Position indisponible. Signal GPS absent.";
+        } else if (error.code === error.TIMEOUT) {
+          msg = "Délai d'attente d'acquisition GPS dépassé.";
+        }
+        toast.error(msg, { id: toastId });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
@@ -126,7 +169,9 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
       ville: parseInt(formData.ville),
       pasteur: formData.pasteur ? parseInt(formData.pasteur) : null,
       is_active: formData.is_active,
-      is_national_hq: formData.is_national_hq
+      is_national_hq: formData.is_national_hq,
+      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : null
     };
 
     mutation.mutate(payload);
@@ -276,6 +321,50 @@ const EgliseFormModal = ({ isOpen, onClose, churchToEdit = null }) => {
                 ))}
               </select>
               <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-sm">expand_more</span>
+            </div>
+          </div>
+
+          {/* Localisation GPS */}
+          <div className="space-y-2 p-3 bg-slate-950/60 border border-slate-800/80">
+            <div className="flex justify-between items-center border-b border-slate-900 pb-1.5">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">COORDONNÉES GPS DE L'ÉGLISE</span>
+              <button
+                type="button"
+                onClick={handleCaptureGPS}
+                className="px-2 py-1 bg-indigo-650 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[10px] font-bold">my_location</span>
+                CAPTURER SUR PLACE
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">LATITUDE</span>
+                <input
+                  type="number"
+                  step="any"
+                  name="latitude"
+                  placeholder="Ex: 5.3484"
+                  value={formData.latitude}
+                  onChange={handleChange}
+                  style={{ backgroundColor: '#020617', color: '#ffffff' }}
+                  className="w-full px-2 py-1 bg-slate-950 border border-slate-850 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block">LONGITUDE</span>
+                <input
+                  type="number"
+                  step="any"
+                  name="longitude"
+                  placeholder="Ex: -4.0244"
+                  value={formData.longitude}
+                  onChange={handleChange}
+                  style={{ backgroundColor: '#020617', color: '#ffffff' }}
+                  className="w-full px-2 py-1 bg-slate-950 border border-slate-850 text-xs text-white focus:border-slate-500 focus:outline-none focus:ring-0 rounded-none font-mono"
+                />
+              </div>
             </div>
           </div>
 

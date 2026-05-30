@@ -4,14 +4,18 @@ import { useAuth } from '../context/AuthContext';
 import UsersList from './UsersList';
 import RegionManagerModal from '../components/RegionManagerModal';
 import VilleManagerModal from '../components/VilleManagerModal';
+import PoleManagerModal from '../components/PoleManagerModal';
+import CategoryManagerModal from '../components/CategoryManagerModal';
 
 const Settings = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('members'); // 'members' or 'system'
   
-  // Modals for Regions & Villes
+  // Modals for Regions & Villes & Poles & Categories
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [isVilleOpen, setIsVilleOpen] = useState(false);
+  const [isPoleOpen, setIsPoleOpen] = useState(false);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
   // Security Gate: strictly restrict settings to super_admin
   if (!user || user.role !== 'super_admin') {
@@ -124,20 +128,34 @@ const Settings = () => {
               GÉREZ LA RÉPARTITION GÉOGRAPHIQUE ET LES UNITÉS TERRITORIALES DE TRANSPORT ET DE STOCKAGE LOGISTIQUE D'ÉGLISES.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <button
                 onClick={() => setIsRegionOpen(true)}
-                className="flex-1 py-3 bg-slate-950 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 font-bold text-[10px] uppercase tracking-widest border border-slate-800 rounded-none transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                className="py-3 bg-slate-950 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 font-bold text-[10px] uppercase tracking-widest border border-slate-800 rounded-none transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-xs">public</span>
                 GÉRER LES RÉGIONS LOGISTIQUES
               </button>
               <button
                 onClick={() => setIsVilleOpen(true)}
-                className="flex-1 py-3 bg-slate-950 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 font-bold text-[10px] uppercase tracking-widest border border-slate-800 rounded-none transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                className="py-3 bg-slate-950 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 font-bold text-[10px] uppercase tracking-widest border border-slate-800 rounded-none transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-xs">location_city</span>
                 GÉRER LES VILLES & DISTRICTS
+              </button>
+              <button
+                onClick={() => setIsPoleOpen(true)}
+                className="py-3 bg-slate-950 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 font-bold text-[10px] uppercase tracking-widest border border-slate-800 rounded-none transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-xs">engineering</span>
+                GÉRER LES DÉPARTEMENTS
+              </button>
+              <button
+                onClick={() => setIsCategoryOpen(true)}
+                className="py-3 bg-slate-950 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 font-bold text-[10px] uppercase tracking-widest border border-slate-800 rounded-none transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-xs">category</span>
+                GÉRER LES CATÉGORIES
               </button>
             </div>
           </div>
@@ -154,6 +172,16 @@ const Settings = () => {
       <VilleManagerModal
         isOpen={isVilleOpen}
         onClose={() => setIsVilleOpen(false)}
+      />
+
+      <PoleManagerModal
+        isOpen={isPoleOpen}
+        onClose={() => setIsPoleOpen(false)}
+      />
+
+      <CategoryManagerModal
+        isOpen={isCategoryOpen}
+        onClose={() => setIsCategoryOpen(false)}
       />
 
     </div>

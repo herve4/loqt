@@ -20,6 +20,10 @@ const MaterielFormModal = ({ item = null, onClose }) => {
 
   const [formError, setFormError] = useState('');
   
+  // Inline category creation states
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  
   // Image handling states
   const [existingImages, setExistingImages] = useState([]);
   const [newImages, setNewImages] = useState([]); // File objects
@@ -110,6 +114,27 @@ const MaterielFormModal = ({ item = null, onClose }) => {
       toast.error(`Erreur lors de la suppression de l'image : ${err.message}`);
     }
   });
+
+  // Mutation for creating category inline
+  const createCategoryMutation = useMutation({
+    mutationFn: (name) => logisticsService.createCategory({ nom: name }),
+    onSuccess: (res) => {
+      toast.success('Catégorie créée avec succès !');
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      setFormData(prev => ({ ...prev, categorie: String(res.data.id) }));
+      setIsCreatingCategory(false);
+      setNewCategoryName('');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la création de la catégorie.');
+    }
+  });
+
+  const handleCreateCategoryInline = (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    createCategoryMutation.mutate(newCategoryName.trim());
+  };
 
   const handleDeleteExistingImage = (id) => {
     setImageToDelete(id);
@@ -253,6 +278,49 @@ const MaterielFormModal = ({ item = null, onClose }) => {
                   </option>
                 ))}
               </select>
+
+              {!isCreatingCategory ? (
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingCategory(true)}
+                  className="mt-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[12px] font-bold">add</span>
+                  [ + CRÉER UNE CATÉGORIE ]
+                </button>
+              ) : (
+                <div className="mt-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/80 space-y-1.5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Nouvelle Catégorie</span>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Ex: SON & AUDIO"
+                      style={{ backgroundColor: '#020617', color: '#ffffff' }}
+                      className="flex-1 h-7 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-2 text-[11px] focus:outline-none text-slate-900 dark:text-white rounded-none font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreateCategoryInline}
+                      disabled={createCategoryMutation.isPending || !newCategoryName.trim()}
+                      className="h-7 px-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                    >
+                      {createCategoryMutation.isPending ? '...' : 'Créer'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCreatingCategory(false);
+                        setNewCategoryName('');
+                      }}
+                      className="h-7 px-2 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white font-mono font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                    >
+                      [ X ]
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Église */}
