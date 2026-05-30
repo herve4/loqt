@@ -6,7 +6,7 @@ import App from './App';
 import './index.css';
 
 const queryClient = new QueryClient();
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '730173579528-cc6q2jsn5uh0rooan7mnt9gg9e8lj939.apps.googleusercontent.com';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
