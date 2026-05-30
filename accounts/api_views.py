@@ -33,8 +33,11 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        # List / Create / Delete → super_admin only
-        if self.action in ('list', 'create', 'destroy'):
+        # List is accessible to any authenticated user
+        if self.action == 'list':
+            return [permissions.IsAuthenticated()]
+        # Create / Delete → super_admin only
+        if self.action in ('create', 'destroy'):
             return [IsSuperAdmin()]
         # Retrieve / Update / Partial-update → self OR super_admin
         return [IsSelfOrSuperAdmin()]
