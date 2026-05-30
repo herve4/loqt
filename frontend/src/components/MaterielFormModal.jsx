@@ -14,6 +14,7 @@ const MaterielFormModal = ({ item = null, onClose }) => {
     quantite: 1,
     etat: 'OP',
     categorie: '',
+    sous_categorie: '',
     eglise: '',
     identifiant_unique: ''
   });
@@ -23,6 +24,10 @@ const MaterielFormModal = ({ item = null, onClose }) => {
   // Inline category creation states
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  
+  // Inline subcategory creation states
+  const [isCreatingSousCategory, setIsCreatingSousCategory] = useState(false);
+  const [newSousCategoryName, setNewSousCategoryName] = useState('');
   
   // Image handling states
   const [existingImages, setExistingImages] = useState([]);
@@ -39,6 +44,7 @@ const MaterielFormModal = ({ item = null, onClose }) => {
         quantite: item.quantite || 1,
         etat: item.etat || 'OP',
         categorie: item.categorie || '',
+        sous_categorie: item.sous_categorie || '',
         eglise: item.eglise || '',
         identifiant_unique: item.identifiant_unique || ''
       });
@@ -56,10 +62,15 @@ const MaterielFormModal = ({ item = null, onClose }) => {
     };
   }, [newPreviews]);
 
-  // Fetch Categories & Churches for selects
+  // Fetch Categories, Subcategories & Churches for selects
   const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
     queryFn: () => logisticsService.getCategories().then(res => res.data)
+  });
+
+  const { data: sousCatsData } = useQuery({
+    queryKey: ['sous-categories'],
+    queryFn: () => logisticsService.getSousCategories().then(res => res.data)
   });
 
   const { data: churchesData } = useQuery({
@@ -68,6 +79,7 @@ const MaterielFormModal = ({ item = null, onClose }) => {
   });
 
   const categories = categoriesData?.results || (Array.isArray(categoriesData) ? categoriesData : []);
+  const sousCategories = sousCatsData?.results || (Array.isArray(sousCatsData) ? sousCatsData : []);
   const churches = churchesData?.results || (Array.isArray(churchesData) ? churchesData : []);
 
   // Mutation for POST (Create)
@@ -136,6 +148,30 @@ const MaterielFormModal = ({ item = null, onClose }) => {
     createCategoryMutation.mutate(newCategoryName.trim());
   };
 
+  // Mutation for creating subcategory inline
+  const createSousCategoryMutation = useMutation({
+    mutationFn: (name) => logisticsService.createSousCategory({
+      nom: name,
+      categorie: parseInt(formData.categorie)
+    }),
+    onSuccess: (res) => {
+      toast.success('Sous-catégorie créée !');
+      queryClient.invalidateQueries({ queryKey: ['sous-categories'] });
+      setFormData(prev => ({ ...prev, sous_categorie: String(res.data.id) }));
+      setIsCreatingSousCategory(false);
+      setNewSousCategoryName('');
+    },
+    onError: () => {
+      toast.error('Erreur lors de la création de la sous-catégorie.');
+    }
+  });
+
+  const handleCreateSousCategoryInline = (e) => {
+    e.preventDefault();
+    if (!newSousCategoryName.trim() || !formData.categorie) return;
+    createSousCategoryMutation.mutate(newSousCategoryName.trim());
+  };
+
   const handleDeleteExistingImage = (id) => {
     setImageToDelete(id);
   };
@@ -177,6 +213,9 @@ const MaterielFormModal = ({ item = null, onClose }) => {
     payload.append('etat', formData.etat);
     payload.append('categorie', parseInt(formData.categorie, 10));
     
+    if (formData.sous_categorie) {
+      payload.append('sous_categorie', parseInt(formData.sous_categorie, 10));
+    }
     if (formData.eglise) {
       payload.append('eglise', parseInt(formData.eglise, 10));
     }
@@ -269,7 +308,7 @@ const MaterielFormModal = ({ item = null, onClose }) => {
                 required
                 className="w-full h-11 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-855 px-3 text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white text-slate-900 dark:text-white rounded-none cursor-pointer"
                 value={formData.categorie}
-                onChange={(e) => setFormData({ ...formData, categorie: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, categorie: e.target.value, sous_categorie: '' })}
               >
                 <option value="">-- Choisir une Catégorie --</option>
                 {categories.map((c) => (
@@ -323,6 +362,73 @@ const MaterielFormModal = ({ item = null, onClose }) => {
               )}
             </div>
 
+            {/* Sous-Catégorie */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Sous-Catégorie</label>
+              <select
+                disabled={!formData.categorie}
+                className="w-full h-11 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-855 px-3 text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white text-slate-900 dark:text-white rounded-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                value={formData.sous_categorie}
+                onChange={(e) => setFormData({ ...formData, sous_categorie: e.target.value })}
+              >
+                <option value="">{!formData.categorie ? "-- Catégorie requise --" : "-- Choisir une Sous-Catégorie --"}</option>
+                {formData.categorie && sousCategories.filter(sc => sc.categorie === parseInt(formData.categorie)).map((sc) => (
+                  <option key={sc.id} value={sc.id}>
+                    {sc.nom}
+                  </option>
+                ))}
+              </select>
+
+              {formData.categorie && (
+                <>
+                  {!isCreatingSousCategory ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingSousCategory(true)}
+                      className="mt-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[12px] font-bold">add</span>
+                      [ + CRÉER UNE SOUS-CATÉGORIE ]
+                    </button>
+                  ) : (
+                    <div className="mt-2.5 p-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/80 space-y-1.5">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Nouvelle Sous-Catégorie</span>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          value={newSousCategoryName}
+                          onChange={(e) => setNewSousCategoryName(e.target.value)}
+                          placeholder="Ex: MICRO SANS FIL"
+                          style={{ backgroundColor: '#020617', color: '#ffffff' }}
+                          className="flex-1 h-7 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-2 text-[11px] focus:outline-none text-slate-900 dark:text-white rounded-none font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleCreateSousCategoryInline}
+                          disabled={createSousCategoryMutation.isPending || !newSousCategoryName.trim()}
+                          className="h-7 px-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                        >
+                          {createSousCategoryMutation.isPending ? '...' : 'Créer'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCreatingSousCategory(false);
+                            setNewSousCategoryName('');
+                          }}
+                          className="h-7 px-2 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white font-mono font-bold text-[9px] uppercase tracking-wider rounded-none active:scale-95 transition-all cursor-pointer"
+                        >
+                          [ X ]
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             {/* Église */}
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Église d'Origine</label>
@@ -339,18 +445,18 @@ const MaterielFormModal = ({ item = null, onClose }) => {
                 ))}
               </select>
             </div>
-          </div>
 
-          {/* Identifiant Unique */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Identifiant Unique (Optionnel)</label>
-            <input 
-              type="text"
-              className="w-full h-11 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-855 px-3 text-sm font-mono focus:outline-none focus:border-slate-900 dark:focus:border-white text-slate-900 dark:text-white rounded-none"
-              placeholder="ex: EQ-MOJO-01 (laisser vide pour auto-générer)"
-              value={formData.identifiant_unique}
-              onChange={(e) => setFormData({ ...formData, identifiant_unique: e.target.value })}
-            />
+            {/* Identifiant Unique */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Identifiant Unique (Optionnel)</label>
+              <input 
+                type="text"
+                className="w-full h-11 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-855 px-3 text-sm font-mono focus:outline-none focus:border-slate-900 dark:focus:border-white text-slate-900 dark:text-white rounded-none"
+                placeholder="ex: EQ-MOJO-01 (laisser vide pour auto-générer)"
+                value={formData.identifiant_unique}
+                onChange={(e) => setFormData({ ...formData, identifiant_unique: e.target.value })}
+              />
+            </div>
           </div>
 
           {/* Description */}
