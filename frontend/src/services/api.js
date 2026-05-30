@@ -31,6 +31,7 @@ export const authService = {
   confirmPasswordReset: (data) => api.post('auth/password-reset-confirm/', data),
   sendVerificationCode: (email) => api.post('auth/send-code/', { email }),
   verifyCode: (email, code) => api.post('auth/verify-code/', { email, code }),
+  verifyMemberPublic: (id) => api.get(`public/verify-member/${id}/`),
 };
 
 export const logisticsService = {

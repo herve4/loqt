@@ -23,6 +23,7 @@ from logistque.api_auth import LoginAPIView, LogoutAPIView, RegisterAPIView, Sen
 from logistque.api_user import CurrentUserAPIView
 from accounts.api_views import UserViewSet
 from notifications.api_views import NotificationViewSet
+from accounts.api_public import PublicMemberVerifyAPIView
 
 router = DefaultRouter()
 router.register(r'notifications', NotificationViewSet, basename='notification')
@@ -64,6 +65,9 @@ urlpatterns = [
     path('get_sous_categories/', get_sous_categories, name='get_sous_categories'),
     path('evenements/', include('logistque.events.urls')),
     path('evenements/colisage/<int:event_id>/pdf/', PackingListPDFView.as_view(), name='packing-list-pdf'),
+    
+    # Public member verification API endpoint (no auth required)
+    path('api/public/verify-member/<int:user_id>/', PublicMemberVerifyAPIView.as_view(), name='api-public-verify-member'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()

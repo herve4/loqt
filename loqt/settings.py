@@ -351,3 +351,7 @@ IMPORT_FORMATS = [
 # Google OAuth Client ID
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 
+# Site Domain for resolving absolute URLs (e.g. for user/material QR Codes)
+SITE_DOMAIN = os.environ.get('SITE_DOMAIN', 'sglci.sajholding.org')
+
+

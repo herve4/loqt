@@ -25,6 +25,8 @@ const Register = () => {
     region: '',
     eglise: '',
     pole: '',
+    role: 'membre_dept',
+    section: '',
     password: '',
     confirm_password: '',
     accept_terms: false
@@ -189,9 +191,10 @@ const Register = () => {
       phone: formData.phone,
       eglise: formData.eglise,
       pole: formData.pole,
+      role: formData.role,
+      section: formData.section,
       password: formData.password,
-      accept_terms: formData.accept_terms,
-      role: 'technicien' // Rôle par défaut
+      accept_terms: formData.accept_terms
     };
 
     registerMutation.mutate(payload);
@@ -418,8 +421,48 @@ const Register = () => {
                       </div>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-slate-900 dark:text-slate-100 text-xs font-semibold">Type d'Utilisateur / Rôle</label>
+                        <div className="relative">
+                          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">badge</span>
+                          <select 
+                            name="role"
+                            value={formData.role}
+                            onChange={handleChange}
+                            required
+                            className="w-full pl-10 pr-8 py-2.5 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-slate-900 dark:text-slate-100 text-sm appearance-none cursor-pointer transition-all"
+                          >
+                            <option value="membre_dept">Membre de Département</option>
+                            <option value="membre_sec">Membre de Section</option>
+                            <option value="resp_dept">Responsable de Département</option>
+                            <option value="adj_dept">Adjoint Responsable de Département</option>
+                            <option value="resp_sec">Responsable de Section</option>
+                            <option value="adj_sec">Adjoint Responsable de Section</option>
+                            <option value="pasteur">Pasteur</option>
+                          </select>
+                          <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-slate-900 dark:text-slate-100 text-xs font-semibold">Section (Optionnel)</label>
+                        <div className="relative">
+                          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">group_work</span>
+                          <input 
+                            name="section"
+                            value={formData.section}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-4 py-2.5 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-slate-900 dark:text-slate-100 text-sm transition-all" 
+                            placeholder="Ex: Accueil, Intercession..." 
+                            type="text"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-slate-900 dark:text-slate-100 text-xs font-semibold">Pôle Technique</label>
+                      <label className="text-slate-900 dark:text-slate-100 text-xs font-semibold">Département / Pôle Technique</label>
                       <div className="relative">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">handyman</span>
                         <select 
@@ -428,7 +471,7 @@ const Register = () => {
                           onChange={handleChange}
                           className="w-full pl-10 pr-8 py-2.5 bg-background-light dark:bg-background-dark border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-slate-900 dark:text-slate-100 text-sm appearance-none cursor-pointer transition-all"
                         >
-                          <option value="">Sélectionner un pôle</option>
+                          <option value="">Sélectionner un département/pôle</option>
                           {poles.map(pole => (
                             <option key={pole.id} value={pole.id}>{pole.nom}</option>
                           ))}

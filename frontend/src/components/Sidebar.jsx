@@ -109,6 +109,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <span className="material-symbols-outlined">church</span>
             <span className="text-sm">Églises</span>
           </Link>
+          <Link 
+            to="/members" 
+            onClick={closeSidebarMobile}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded ${isActive('/members') ? activeClass : inactiveClass}`}
+          >
+            <span className="material-symbols-outlined">group</span>
+            <span className="text-sm">Annuaire Membres</span>
+          </Link>
 
           {/* Modules à moyen terme mis en veille temporaire */}
           {/*

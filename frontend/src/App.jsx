@@ -25,6 +25,9 @@ import ChronogramLibrary from './pages/ChronogramLibrary';
 import Onboarding from './pages/Onboarding';
 import UsersList from './pages/UsersList';
 import Settings from './pages/Settings';
+import MembersList from './pages/MembersList';
+import PublicVerifyMember from './pages/PublicVerifyMember';
+
 
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -70,6 +73,8 @@ function App() {
           <Route path="/churches" element={<ProtectedRoute><ChurchesList /></ProtectedRoute>} />
           <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/members" element={<ProtectedRoute><MembersList /></ProtectedRoute>} />
+          <Route path="/public/verify-member/:id" element={<PublicVerifyMember />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
