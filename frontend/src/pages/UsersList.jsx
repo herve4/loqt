@@ -68,6 +68,10 @@ const UsersList = () => {
     adj_sec: { label: 'ADJ. SEC.', style: 'bg-sky-50/50 text-sky-600 border-sky-100 dark:bg-sky-950/15 dark:text-sky-300 dark:border-sky-900' },
     membre_dept: { label: 'MEMBRE DEPT.', style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' },
     membre_sec: { label: 'MEMBRE SEC.', style: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/20 dark:text-slate-400 dark:border-slate-800' },
+    
+    // Rôles historiques / par défaut
+    membre: { label: 'MEMBRE', style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' },
+    responsable: { label: 'RESPONSABLE', style: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-800' },
   };
 
   // Toggle active state mutation
@@ -244,8 +248,8 @@ const UsersList = () => {
                           {rolesMap[user.role].label}
                         </span>
                       ) : (
-                        <span className="inline-block text-[9px] px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:border-slate-750 dark:text-slate-400 rounded-none uppercase">
-                          {user.role}
+                        <span className="inline-block text-[9px] px-2 py-0.5 bg-amber-950/20 text-amber-400 border border-amber-900 rounded-none uppercase font-black tracking-wider">
+                          {user.role ? user.role.toUpperCase() : 'SANS RÔLE'}
                         </span>
                       )}
                     </td>
@@ -339,8 +343,8 @@ const UsersList = () => {
                         {rolesMap[user.role].label}
                       </span>
                     ) : (
-                      <span className="inline-block text-[8px] px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:border-slate-750 dark:text-slate-400 rounded-none uppercase">
-                        {user.role}
+                      <span className="inline-block text-[8px] px-2 py-0.5 bg-amber-950/20 text-amber-400 border border-amber-900 rounded-none uppercase font-black tracking-wider">
+                        {user.role ? user.role.toUpperCase() : 'SANS RÔLE'}
                       </span>
                     )}
                   </div>

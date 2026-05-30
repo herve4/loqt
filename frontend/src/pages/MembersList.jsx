@@ -181,8 +181,10 @@ const MembersList = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMembers.map(user => {
               const roleConf = rolesMap[user.role] || { 
-                label: (user.role || 'MEMBRE').toUpperCase(), 
-                style: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700' 
+                label: user.role ? user.role.toUpperCase() : 'SANS RÔLE', 
+                style: user.role 
+                  ? 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700'
+                  : 'bg-amber-950/20 text-amber-400 border-amber-900'
               };
               const fullName = `${user.first_name} ${user.last_name}`;
 

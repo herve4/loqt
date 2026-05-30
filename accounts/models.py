@@ -38,12 +38,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('adj_sec', 'Adjoint Responsable de Section'),
         ('membre_dept', 'Membre de Département'),
         ('membre_sec', 'Membre de Section'),
+        # Rôles historiques et par défaut
+        ('membre', 'Membre'),
+        ('responsable', 'Responsable'),
     )
     email = models.EmailField(unique=True, null=True, blank=True,verbose_name='Adresse email')
     phone = models.CharField(max_length=20, unique=True, null=True, blank=True,verbose_name='Numéro de téléphone')
     first_name = models.CharField(max_length=150, verbose_name='Nom')
     last_name = models.CharField(max_length=150, verbose_name='Prénoms')
-    role = models.CharField(max_length=20, choices=roles, verbose_name='Rôle')
+    role = models.CharField(max_length=20, choices=roles, default='membre', verbose_name='Rôle')
     eglise = models.ForeignKey('logistque.Eglise', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Eglise')
     pole = models.ForeignKey('logistque.PoleCompetence', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Pôle Technique')
     section = models.CharField(max_length=100, blank=True, null=True, verbose_name="Section")
@@ -64,10 +67,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email or self.phone or f"{self.get_full_name()} ({self.role})" or "Utilisateur"
     
     def save(self, *args, **kwargs):
+        # Assigner le rôle par défaut si non spécifié ou invalide
+        valid_roles = [choice[0] for choice in self.roles]
+        if not self.role or self.role not in valid_roles:
+            self.role = 'membre'
+
         # Automatisation des permissions selon le rôle
         admin_roles = [
             'super_admin', 'pasteur_national', 'rln', 'pasteur_local', 'rll',
-            'pasteur', 'resp_dept', 'adj_dept', 'resp_sec', 'adj_sec'
+            'pasteur', 'resp_dept', 'adj_dept', 'resp_sec', 'adj_sec', 'responsable'
         ]
         if self.role in admin_roles:
             self.is_staff = True

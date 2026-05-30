@@ -5,6 +5,16 @@ import toast from 'react-hot-toast';
 
 const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = false }) => {
   const queryClient = useQueryClient();
+
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) {
+      return url;
+    }
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+    const baseUrl = apiUrl.endsWith('/api/') ? apiUrl.replace('/api/', '') : apiUrl.replace('/api', '');
+    return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -52,7 +62,7 @@ const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = fals
           is_active: userToEdit.is_active !== undefined ? userToEdit.is_active : true,
           password: '' // Always empty on load for security
         });
-        setImagePreview(userToEdit.image || '');
+        setImagePreview(userToEdit.image ? getImageUrl(userToEdit.image) : '');
         setImageFile(null);
       } else {
         setFormData({
@@ -209,7 +219,16 @@ const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = fals
     { value: 'rln', label: 'Responsable Logistique National (RLN)' },
     { value: 'pasteur_local', label: 'Pasteur Responsable Local' },
     { value: 'rll', label: 'Responsable Logistique Local (RLL)' },
-    { value: 'technicien', label: 'Membre Technicien' }
+    { value: 'technicien', label: 'Membre Technicien' },
+    { value: 'pasteur', label: 'Pasteur' },
+    { value: 'resp_dept', label: 'Responsable de Département' },
+    { value: 'adj_dept', label: 'Adjoint Responsable de Département' },
+    { value: 'resp_sec', label: 'Responsable de Section' },
+    { value: 'adj_sec', label: 'Adjoint Responsable de Section' },
+    { value: 'membre_dept', label: 'Membre de Département' },
+    { value: 'membre_sec', label: 'Membre de Section' },
+    { value: 'membre', label: 'Membre' },
+    { value: 'responsable', label: 'Responsable' }
   ];
 
   const inputStyle = {
@@ -444,7 +463,7 @@ const UserFormModal = ({ isOpen, onClose, userToEdit = null, isOwnProfile = fals
                     VOTRE ÉGLISE, VOTRE RÔLE ET VOTRE PÔLE TECHNIQUE SONT LIÉS À VOTRE CONTRAT D'ACCÈS ET NE PEUVENT ÊTRE MODIFIÉS QUE PAR UN SUPER-ADMINISTRATEUR.
                   </p>
                   <div className="pt-2 text-[9px] text-slate-300 space-y-1">
-                    <div>RÔLE: <span className="text-white font-bold">{roles.find(r => r.value === formData.role)?.label.toUpperCase()}</span></div>
+                    <div>RÔLE: <span className="text-white font-bold">{(roles.find(r => r.value === formData.role)?.label || formData.role || "SANS RÔLE SPÉCIFIQUE").toUpperCase()}</span></div>
                   </div>
                 </div>
               )}

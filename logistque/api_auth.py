@@ -45,7 +45,7 @@ class LoginAPIView(APIView):
                     request.session.set_expiry(0)
                 return Response({
                     'message': 'Connexion réussie',
-                    'user': UserSerializer(user).data
+                    'user': UserSerializer(user, context={'request': request}).data
                 })
         
         return Response({'message': 'Identifiants incorrects'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -133,7 +133,7 @@ class RegisterAPIView(APIView):
             login(request, user)
             return Response({
                 'message': 'Inscription réussie',
-                'user': UserSerializer(user).data
+                'user': UserSerializer(user, context={'request': request}).data
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -184,7 +184,7 @@ class GoogleLoginAPIView(APIView):
             
             return Response({
                 'message': 'Connexion Google réussie',
-                'user': UserSerializer(user).data
+                'user': UserSerializer(user, context={'request': request}).data
             }, status=status.HTTP_200_OK)
             
         except ValueError as e:

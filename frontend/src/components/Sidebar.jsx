@@ -27,8 +27,20 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       adj_sec: 'Adjoint Section',
       membre_dept: 'Membre Département',
       membre_sec: 'Membre Section',
+      membre: 'Membre',
+      responsable: 'Responsable',
     };
     return rolesMap[role] || 'Utilisateur';
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+    const baseUrl = apiUrl.endsWith('/api/') ? apiUrl.replace('/api/', '') : apiUrl.replace('/api', '');
+    return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   const handleLogout = async () => {
@@ -200,7 +212,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         >
           <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/10 flex-shrink-0">
             {user?.image ? (
-              <img src={user.image} alt={user.first_name} className="w-full h-full object-cover" />
+              <img src={getImageUrl(user.image)} alt={user.first_name} className="w-full h-full object-cover" />
             ) : (
               <span className="material-symbols-outlined text-primary">person</span>
             )}
