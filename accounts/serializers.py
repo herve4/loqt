@@ -2,11 +2,14 @@ from rest_framework import serializers
 from accounts.models import CustomUser
 
 class UserSerializer(serializers.ModelSerializer):
+    eglise_nom = serializers.CharField(source='eglise.nom', read_only=True)
+    pole_nom = serializers.CharField(source='pole.nom', read_only=True)
+
     class Meta:
         model = CustomUser
         fields = [
             'id', 'email', 'phone', 'first_name', 'last_name', 'role', 
-            'eglise', 'pole', 'section', 'image', 'qr_code', 'accept_terms', 
+            'eglise', 'eglise_nom', 'pole', 'pole_nom', 'section', 'image', 'qr_code', 'accept_terms', 
             'onboarding_completed', 'is_active', 'password', 'validation_status'
         ]
         read_only_fields = ['id', 'qr_code']

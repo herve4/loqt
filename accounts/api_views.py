@@ -1,5 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
+from django.conf import settings
+from django.core.mail import send_mail
 from accounts.models import CustomUser
 from accounts.serializers import UserSerializer
 
@@ -114,3 +116,53 @@ class UserViewSet(viewsets.ModelViewSet):
                     if field not in allowed_fields:
                         serializer.fields.pop(field, None)
         return serializer
+
+    def perform_update(self, serializer):
+        old_instance = self.get_object()
+        old_status = old_instance.validation_status
+        user_instance = serializer.save()
+        new_status = user_instance.validation_status
+        
+        if old_status != new_status and new_status in ('approved', 'rejected'):
+            self.send_validation_email(user_instance)
+
+    def send_validation_email(self, user):
+        if not user.email:
+            return
+        
+        subject = ""
+        message = ""
+        
+        if user.validation_status == 'approved':
+            subject = "[SGL-CI] Inscription approuvée"
+            message = (
+                f"Bonjour {user.first_name} {user.last_name},\n\n"
+                f"Nous avons le plaisir de vous informer que votre demande d'accès à la "
+                f"console logistique du SGL-CI a été validée par votre responsable.\n\n"
+                f"Vous pouvez dès à présent vous connecter et accéder à votre espace :\n"
+                f"https://sglci.sajholding.org/login\n\n"
+                f"Cordialement,\n"
+                f"L'équipe logistique SGL-CI"
+            )
+        elif user.validation_status == 'rejected':
+            subject = "[SGL-CI] Inscription rejetée"
+            message = (
+                f"Bonjour {user.first_name} {user.last_name},\n\n"
+                f"Votre demande d'accès à la console logistique du SGL-CI a été rejetée.\n\n"
+                f"Veuillez vous connecter à votre compte pour modifier vos informations "
+                f"d'onboarding si nécessaire ou contactez votre responsable.\n"
+                f"https://sglci.sajholding.org/login\n\n"
+                f"Cordialement,\n"
+                f"L'équipe logistique SGL-CI"
+            )
+            
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=True
+            )
+        except Exception as e:
+            print(f"Erreur d'envoi d'email de validation : {e}")

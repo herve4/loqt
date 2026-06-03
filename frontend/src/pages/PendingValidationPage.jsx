@@ -49,6 +49,7 @@ const PendingValidationPage = () => {
         toast.error('Votre inscription est toujours en cours de validation.');
       }
     } catch (err) {
+      console.error(err);
       toast.error('Erreur lors de la mise à jour du profil.');
     } finally {
       setIsRefreshing(false);
@@ -121,11 +122,11 @@ const PendingValidationPage = () => {
           </div>
           <div className="flex justify-between border-b border-slate-900/50 pb-1.5">
             <span>ÉGLISE LOCALE :</span>
-            <span className="text-slate-200 font-bold">{getChurchName(user?.eglise)}</span>
+            <span className="text-slate-200 font-bold">{user?.eglise_nom?.toUpperCase() || getChurchName(user?.eglise)}</span>
           </div>
           <div className="flex justify-between border-b border-slate-900/50 pb-1.5">
             <span>DÉPARTEMENT / PÔLE :</span>
-            <span className="text-slate-200 font-bold">{getPoleName(user?.pole)}</span>
+            <span className="text-slate-200 font-bold">{user?.pole_nom?.toUpperCase() || getPoleName(user?.pole)}</span>
           </div>
           {user?.section && (
             <div className="flex justify-between border-b border-slate-900/50 pb-1.5">
