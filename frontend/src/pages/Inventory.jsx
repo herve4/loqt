@@ -330,19 +330,21 @@ const Inventory = () => {
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Inventaire du Matériel</h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Gestion centrale des équipements des églises régionales.</p>
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
             {/* Actions de Données Dropdown */}
-            <div className="relative group">
+            <div className="relative group w-full sm:w-auto">
               <button 
                 type="button"
-                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all shadow-sm cursor-pointer active:scale-95"
+                className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
               >
-                <span className="material-symbols-outlined text-lg">database</span>
-                <span>Actions de Données</span>
+                <span className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">database</span>
+                  <span>Actions de Données</span>
+                </span>
                 <span className="material-symbols-outlined text-sm font-black">expand_more</span>
               </button>
               {/* Dropdown Options */}
-              <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-lg py-1.5 z-40 hidden group-hover:block animate-in fade-in duration-100">
+              <div className="absolute right-0 top-full mt-1.5 w-full sm:w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-lg py-1.5 z-40 hidden group-hover:block animate-in fade-in duration-100">
                 <button
                   type="button"
                   onClick={handleExportXLSX}
@@ -390,7 +392,7 @@ const Inventory = () => {
             <button 
               type="button"
               onClick={() => { setEditingItem(null); setIsFormModalOpen(true); }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               <span>Ajout Rapide</span>
