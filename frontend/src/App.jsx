@@ -23,6 +23,8 @@ import TrainingHub from './pages/TrainingHub';
 import ChronogramMaster from './pages/ChronogramMaster';
 import ChronogramLibrary from './pages/ChronogramLibrary';
 import Onboarding from './pages/Onboarding';
+import PendingValidationPage from './pages/PendingValidationPage';
+import RejectedPage from './pages/RejectedPage';
 import UsersList from './pages/UsersList';
 import Settings from './pages/Settings';
 import MembersList from './pages/MembersList';
@@ -48,6 +50,8 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           
           <Route path="/onboarding" element={<ProtectedRoute checkOnboarding={false}><Onboarding /></ProtectedRoute>} />
+          <Route path="/pending-validation" element={<ProtectedRoute checkValidation={false} checkOnboarding={false}><PendingValidationPage /></ProtectedRoute>} />
+          <Route path="/rejected" element={<ProtectedRoute checkValidation={false} checkOnboarding={false}><RejectedPage /></ProtectedRoute>} />
           
           {/* Routes Protégées */}
           <Route path="/dashboard" element={<ProtectedRoute><NationalDashboard /></ProtectedRoute>} />

@@ -1,13 +1,40 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logisticsService } from '../services/api';
 import Layout from '../components/Layout';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const MembersList = () => {
+  const { user: currentUser } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [activeTab, setActiveTab] = useState('directory'); // 'directory' or 'pending'
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
   const [sectionSearch, setSectionSearch] = useState('');
   const [selectedQR, setSelectedQR] = useState(null);
+
+  const isManager = (role) => {
+    return [
+      'super_admin', 'pasteur_national', 'rln', 'pasteur_local', 'rll',
+      'resp_dept', 'adj_dept', 'resp_sec', 'adj_sec'
+    ].includes(role);
+  };
+
+  const showValidationTab = currentUser && isManager(currentUser.role);
+
+  // Mutation for validating a user
+  const validateMutation = useMutation({
+    mutationFn: ({ id, status }) => logisticsService.updateMember(id, { validation_status: status }),
+    onSuccess: (data, variables) => {
+      toast.success(variables.status === 'approved' ? 'Inscription approuvée avec succès !' : 'Inscription rejetée.');
+      queryClient.invalidateQueries({ queryKey: ['members-directory'] });
+    },
+    onError: () => {
+      toast.error("Erreur lors de la modification du statut d'inscription.");
+    }
+  });
 
   // Charger la liste globale des membres
   const { data: membersData, isLoading, isError } = useQuery({
@@ -65,7 +92,12 @@ const MembersList = () => {
     membre_sec: { label: 'MEMBRE SEC.', style: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/20 dark:text-slate-400 dark:border-slate-800' },
   };
 
-  const filteredMembers = members.filter(user => {
+  const approvedMembers = members.filter(m => m.validation_status !== 'pending' && m.validation_status !== 'rejected');
+  const pendingMembers = members.filter(m => m.validation_status === 'pending');
+
+  const currentList = activeTab === 'pending' ? pendingMembers : approvedMembers;
+
+  const filteredMembers = currentList.filter(user => {
     const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
     const email = (user.email || '').toLowerCase();
     const phone = (user.phone || '').toLowerCase();
@@ -107,9 +139,40 @@ const MembersList = () => {
           </div>
           <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase">
             <span className="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-none animate-pulse"></span>
-            <span>{filteredMembers.length} ACCRÉDITÉS FILTRÉS</span>
+            <span>{filteredMembers.length} {activeTab === 'pending' ? 'DEMANDES EN ATTENTE' : 'ACCRÉDITÉS FILTRÉS'}</span>
           </div>
         </div>
+
+        {/* Onglets de Navigation pour Gestionnaires */}
+        {showValidationTab && (
+          <div className="flex gap-4 border-b border-slate-205 dark:border-slate-800 pb-4 mb-6">
+            <button
+              onClick={() => { setActiveTab('directory'); setSearchTerm(''); }}
+              className={`py-2 px-4 font-bold text-[10px] uppercase tracking-widest transition-all rounded-none border border-slate-300 dark:border-slate-800 cursor-pointer ${
+                activeTab === 'directory' 
+                  ? 'bg-slate-800 text-white dark:bg-slate-800 border-slate-700 shadow-md' 
+                  : 'bg-slate-950 text-slate-400 hover:text-slate-205 border-slate-900 hover:bg-slate-900/50'
+              }`}
+            >
+              👥 Annuaire des Membres
+            </button>
+            <button
+              onClick={() => { setActiveTab('pending'); setSearchTerm(''); }}
+              className={`py-2 px-4 font-bold text-[10px] uppercase tracking-widest transition-all rounded-none border border-slate-300 dark:border-slate-800 cursor-pointer relative ${
+                activeTab === 'pending' 
+                  ? 'bg-slate-800 text-white dark:bg-slate-800 border-slate-700 shadow-md' 
+                  : 'bg-slate-950 text-slate-400 hover:text-slate-205 border-slate-900 hover:bg-slate-900/50'
+              }`}
+            >
+              ⏳ Inscriptions en Attente
+              {pendingMembers.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 size-4 bg-amber-500 text-white font-bold text-[8px] flex items-center justify-center rounded-full animate-bounce">
+                  {pendingMembers.length}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Barre de Filtres Monospace */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 mb-6 shadow-sm rounded-none">
@@ -258,33 +321,62 @@ const MembersList = () => {
                     </div>
                   </div>
 
-                  {/* Section QR Code / Téléchargement */}
+                  {/* Section Actions pour Inscriptions en attente / Section QR Code */}
                   <div className="border-t border-slate-100 dark:border-slate-800 pt-3 flex items-center justify-between gap-4 mt-auto">
-                    {user.qr_code ? (
-                      <>
-                        <div 
-                          className="size-10 border border-slate-200 dark:border-slate-800 p-0.5 bg-white flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
-                          onClick={() => setSelectedQR(user)}
-                          title="Agrandir le QR Code"
-                        >
-                          <img 
-                            src={user.qr_code} 
-                            alt="QR Code" 
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
+                    {activeTab === 'pending' ? (
+                      <div className="flex w-full gap-2">
                         <button
-                          onClick={() => handleDownloadQR(user.qr_code, fullName)}
-                          className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300 font-black py-2 text-[9px] uppercase tracking-widest text-center flex items-center justify-center gap-1.5 rounded-none border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary"
+                          onClick={() => {
+                            if (window.confirm(`Approuver l'inscription de ${fullName} ?`)) {
+                              validateMutation.mutate({ id: user.id, status: 'approved' });
+                            }
+                          }}
+                          disabled={validateMutation.isPending}
+                          className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[9px] uppercase tracking-widest text-center flex items-center justify-center gap-1 cursor-pointer border border-emerald-700 disabled:opacity-50"
                         >
-                          <span className="material-symbols-outlined text-[14px]">download</span>
-                          Télécharger Badge
+                          <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                          Approuver
                         </button>
-                      </>
-                    ) : (
-                      <div className="w-full text-center py-2 text-[8px] text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800">
-                        QR Code Non Généré
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Rejeter l'inscription de ${fullName} ?`)) {
+                              validateMutation.mutate({ id: user.id, status: 'rejected' });
+                            }
+                          }}
+                          disabled={validateMutation.isPending}
+                          className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[9px] uppercase tracking-widest text-center flex items-center justify-center gap-1 cursor-pointer border border-rose-700 disabled:opacity-50"
+                        >
+                          <span className="material-symbols-outlined text-[13px]">cancel</span>
+                          Rejeter
+                        </button>
                       </div>
+                    ) : (
+                      user.qr_code ? (
+                        <>
+                          <div 
+                            className="size-10 border border-slate-200 dark:border-slate-800 p-0.5 bg-white flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                            onClick={() => setSelectedQR(user)}
+                            title="Agrandir le QR Code"
+                          >
+                            <img 
+                              src={user.qr_code} 
+                              alt="QR Code" 
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <button
+                            onClick={() => handleDownloadQR(user.qr_code, fullName)}
+                            className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300 font-black py-2 text-[9px] uppercase tracking-widest text-center flex items-center justify-center gap-1.5 rounded-none border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">download</span>
+                            Télécharger Badge
+                          </button>
+                        </>
+                      ) : (
+                        <div className="w-full text-center py-2 text-[8px] text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800">
+                          QR Code Non Généré
+                        </div>
+                      )
                     )}
                   </div>
 

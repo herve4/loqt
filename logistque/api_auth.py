@@ -171,12 +171,14 @@ class GoogleLoginAPIView(APIView):
                     'role': 'technicien',
                     'onboarding_completed': False,
                     'accept_terms': True,
+                    'validation_status': 'pending',
                 }
             )
             
             # Set random password for new user
             if created:
-                user.set_password(User.objects.make_random_password())
+                from django.utils.crypto import get_random_string
+                user.set_password(get_random_string(32))
                 user.save()
                 
             # Perform session login

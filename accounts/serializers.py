@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'phone', 'first_name', 'last_name', 'role', 
             'eglise', 'pole', 'section', 'image', 'qr_code', 'accept_terms', 
-            'onboarding_completed', 'is_active', 'password'
+            'onboarding_completed', 'is_active', 'password', 'validation_status'
         ]
         read_only_fields = ['id', 'qr_code']
         extra_kwargs = {

@@ -54,6 +54,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     qr_code = models.ImageField(upload_to='user_qr_codes/', null=True, blank=True, verbose_name='QR Code')
     accept_terms = models.BooleanField(default=False, verbose_name='Accepter les conditions')
     onboarding_completed = models.BooleanField(default=True, verbose_name="Onboarding terminé")
+    validation_status = models.CharField(
+        max_length=20,
+        choices=(
+            ('pending', 'En attente de validation'),
+            ('approved', 'Approuvé'),
+            ('rejected', 'Rejeté')
+        ),
+        default='approved',
+        verbose_name='Statut de validation'
+    )
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -67,6 +77,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email or self.phone or f"{self.get_full_name()} ({self.role})" or "Utilisateur"
     
     def save(self, *args, **kwargs):
+        # Reset validation status to pending if user was rejected but resets onboarding
+        if self.validation_status == 'rejected' and not self.onboarding_completed:
+            self.validation_status = 'pending'
+
         # Assigner le rôle par défaut si non spécifié ou invalide
         valid_roles = [choice[0] for choice in self.roles]
         if not self.role or self.role not in valid_roles:
@@ -125,6 +139,40 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             except Exception as e:
                 print(f"Erreur lors de la génération du QR code de l'utilisateur: {e}")
     
+    def can_validate(self, member):
+        """
+        Vérifie si cet utilisateur (self) a l'autorité pour valider l'inscription
+        du membre spécifié (member).
+        """
+        if self.role == 'super_admin':
+            return True
+            
+        if self.role in ('pasteur_national', 'rln'):
+            return True
+            
+        if self.role in ('pasteur_local', 'rll'):
+            return self.eglise_id is not None and self.eglise_id == member.eglise_id
+            
+        if self.role in ('resp_dept', 'adj_dept'):
+            if not self.pole_id or self.pole_id != member.pole_id:
+                return False
+            # Restriction régionale si l'église du responsable est rattachée à une région
+            if self.eglise and self.eglise.region_id:
+                if not member.eglise or member.eglise.region_id != self.eglise.region_id:
+                    return False
+            return True
+            
+        if self.role in ('resp_sec', 'adj_sec'):
+            if not self.section or not member.section or self.section.strip().lower() != member.section.strip().lower():
+                return False
+            # Restriction régionale si l'église du responsable est rattachée à une région
+            if self.eglise and self.eglise.region_id:
+                if not member.eglise or member.eglise.region_id != self.eglise.region_id:
+                    return False
+            return True
+            
+        return False
+
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
     

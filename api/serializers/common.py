@@ -28,7 +28,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        fields = ['email', 'phone', 'first_name', 'last_name', 'password', 'password_confirm', 'role', 'eglise', 'accept_terms']
+        fields = ['email', 'phone', 'first_name', 'last_name', 'password', 'password_confirm', 'role', 'eglise', 'pole', 'section', 'accept_terms']
     
     def validate(self, attrs):
         if attrs['password'] != attrs.pop('password_confirm'):
@@ -44,7 +44,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data.get('last_name', ''),
             role=validated_data.get('role', 'membre'),
             eglise=validated_data.get('eglise'),
-            accept_terms=validated_data.get('accept_terms', False)
+            pole=validated_data.get('pole'),
+            section=validated_data.get('section'),
+            accept_terms=validated_data.get('accept_terms', False),
+            validation_status='pending'
         )
         return user
 
