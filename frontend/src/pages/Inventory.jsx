@@ -9,6 +9,8 @@ import MaterielFormModal from '../components/MaterielFormModal';
 import DefectReportModal from '../components/DefectReportModal';
 import ImportMaterielModal from '../components/ImportMaterielModal';
 import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const Inventory = () => {
   const [page, setPage] = useState(1);
@@ -23,8 +25,6 @@ const Inventory = () => {
   const [deletingItem, setDeletingItem] = useState(null);
   const [reportingDefectItem, setReportingDefectItem] = useState(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [printableItems, setPrintableItems] = useState([]);
-  const [isPrinting, setIsPrinting] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -101,23 +101,124 @@ const Inventory = () => {
   };
 
   const handleExportPDF = async () => {
-    const loadToastId = toast.loading("Préparation de l'export PDF...");
+    const loadToastId = toast.loading("Génération du fichier PDF...");
     const items = await fetchAllFilteredMateriels();
     if (items.length === 0) {
       toast.error("Aucune donnée à exporter.", { id: loadToastId });
       return;
     }
 
-    setPrintableItems(items);
-    setIsPrinting(true);
-    toast.success("Impression lancée.", { id: loadToastId });
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-    // Wait for the DOM to update, then print and clean up
-    setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-      setPrintableItems([]);
-    }, 500);
+      // Title & Header SGL-CI
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.text("SYSTEME DE GESTION LOGISTIQUE COTE D'IVOIRE", 14, 18);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text("MINISTERE PROTESTANT BAPTISTE DES OEUVRES ET DE LA LOGISTIQUE", 14, 23);
+
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.5);
+      doc.line(14, 26, 196, 26);
+
+      // Document title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(0);
+      doc.text("INVENTAIRE DU MATERIEL LOGISTIQUE", 14, 34);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      const generatedAt = `Généré le : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`;
+      doc.text(generatedAt, 14, 39);
+
+      // Filters recap
+      doc.setFillColor(245, 247, 250);
+      doc.rect(14, 43, 182, 18, "F");
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(100);
+      doc.text("FILTRES APPLIQUES :", 17, 47);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(60);
+      
+      const catText = category ? (categories.find(c => String(c.id) === String(category))?.nom || category) : "Toutes";
+      const chText = church ? (churches.find(c => String(c.id) === String(church))?.nom || church) : "Toutes";
+      let statText = "Tous";
+      if (status === 'OP') statText = "Opérationnel";
+      else if (status === 'RE') statText = "En réparation";
+      else if (status === 'PA') statText = "En panne";
+      else if (status === 'PE') statText = "Perdu";
+
+      doc.text(`Recherche : ${search || "Aucune"}`, 17, 52);
+      doc.text(`Catégorie : ${catText}`, 17, 57);
+      doc.text(`Église : ${chText}`, 100, 52);
+      doc.text(`Statut : ${statText}`, 100, 57);
+
+      // Table mapping
+      const tableColumn = ["ID / REF", "NOM DU MATERIEL", "CATEGORIE", "EGLISE D'ORIGINE", "STATUT", "QTE"];
+      const tableRows = items.map(item => [
+        item.identifiant_unique || `EQ-${item.id}`,
+        item.nom,
+        item.categorie_nom || item.categorie || '-',
+        item.eglise_nom || 'Siège National',
+        item.etat,
+        item.quantite
+      ]);
+
+      // Generate table
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 66,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [15, 23, 42],
+          textColor: [255, 255, 255],
+          fontSize: 8,
+          fontStyle: 'bold',
+          halign: 'left'
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [30, 41, 59]
+        },
+        columnStyles: {
+          0: { cellWidth: 25, fontStyle: 'bold' },
+          1: { cellWidth: 55 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 35 },
+          4: { cellWidth: 17, halign: 'center' },
+          5: { cellWidth: 15, halign: 'right' }
+        },
+        margin: { top: 66, left: 14, right: 14 },
+        didDrawPage: () => {
+          // Footer page numbering
+          const str = `Page ${doc.internal.getNumberOfPages()}`;
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(str, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+        }
+      });
+
+      doc.save("SGL-CI_Inventaire_Materiel.pdf");
+      toast.success("Téléchargement du PDF réussi !", { id: loadToastId });
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la génération du PDF.", { id: loadToastId });
+    }
   };
 
   const handleDownloadTemplate = () => {
@@ -613,132 +714,6 @@ const Inventory = () => {
 
       {reportingDefectItem && (
         <DefectReportModal item={reportingDefectItem} onClose={() => setReportingDefectItem(null)} />
-      )}
-
-      {/* Native Print Stylesheet Injection */}
-      {isPrinting && (
-        <style>{`
-          @media print {
-            body * {
-              visibility: hidden !important;
-            }
-            #printable-inventory, #printable-inventory * {
-              visibility: visible !important;
-            }
-            #printable-inventory {
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              background: white !important;
-              color: black !important;
-              display: block !important;
-            }
-            .no-print {
-              display: none !important;
-            }
-          }
-        `}</style>
-      )}
-
-      {/* Printable Inventory Layout Target */}
-      {isPrinting && printableItems.length > 0 && (
-        <div id="printable-inventory" className="hidden font-mono text-black bg-white w-full max-w-5xl mx-auto space-y-8 p-10">
-          {/* Header */}
-          <div className="border-4 border-black p-4 text-center space-y-1">
-            <h1 className="text-xl font-bold tracking-widest">SOCIÉTÉ DE GESTION LOGISTIQUE SGL-CI</h1>
-            <p className="text-[10px] uppercase font-semibold">MINISTÈRE PROTESTANT BAPTISTE DES OEUVRES ET DE LA LOGISTIQUE</p>
-            <div className="border-t-2 border-black my-2"></div>
-            <h2 className="text-lg font-bold uppercase tracking-wider">INVENTAIRE DU MATÉRIEL LOGISTIQUE</h2>
-            <p className="text-[10px] font-mono">GÉNÉRÉ LE : {new Date().toLocaleDateString('fr-FR')} À {new Date().toLocaleTimeString('fr-FR')}</p>
-          </div>
-
-          {/* Active Filters */}
-          <div className="border border-black p-3 text-xs bg-slate-50">
-            <span className="font-bold text-[9px] uppercase block mb-1">Filtres Appliqués :</span>
-            <div className="grid grid-cols-2 gap-2 font-mono">
-              <div>
-                Recherche : <span className="font-semibold">{search || "Aucune"}</span>
-              </div>
-              <div>
-                Catégorie : <span className="font-semibold">{category ? (categories.find(c => String(c.id) === String(category))?.nom || category) : "Toutes"}</span>
-              </div>
-              <div>
-                Église : <span className="font-semibold">{church ? (churches.find(c => String(c.id) === String(church))?.nom || church) : "Toutes"}</span>
-              </div>
-              <div>
-                Statut : <span className="font-semibold">
-                  {status === 'OP' ? 'Opérationnel' :
-                   status === 'RE' ? 'En réparation' :
-                   status === 'PA' ? 'En panne' :
-                   status === 'PE' ? 'Perdu' : 'Tous'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="space-y-2">
-            <table className="w-full text-left border-collapse text-xs border border-black">
-              <thead>
-                <tr className="bg-slate-100 border-b border-black text-[9px] font-bold uppercase">
-                  <th className="py-2 px-3 border-r border-black w-24">ID / RÉF</th>
-                  <th className="py-2 px-3 border-r border-black">NOM DU MATÉRIEL</th>
-                  <th className="py-2 px-3 border-r border-black">CATÉGORIE</th>
-                  <th className="py-2 px-3 border-r border-black">ÉGLISE D'ORIGINE</th>
-                  <th className="py-2 px-3 border-r border-black text-center w-16">STATUT</th>
-                  <th className="py-2 px-3 text-right w-16">QTÉ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/40">
-                {printableItems.map((item) => (
-                  <tr key={item.id}>
-                    <td className="py-2 px-3 border-r border-black font-mono">
-                      {item.identifiant_unique || `EQ-${item.id}`}
-                    </td>
-                    <td className="py-2 px-3 border-r border-black font-sans font-medium">
-                      {item.nom}
-                      {item.description && (
-                        <span className="block text-[9px] text-slate-500 font-mono mt-0.5">{item.description}</span>
-                      )}
-                    </td>
-                    <td className="py-2 px-3 border-r border-black font-sans">
-                      {item.categorie_nom || item.categorie}
-                    </td>
-                    <td className="py-2 px-3 border-r border-black font-sans">
-                      {item.eglise_nom || 'Siège National'}
-                    </td>
-                    <td className="py-2 px-3 border-r border-black text-center font-mono font-bold text-[9px]">
-                      {item.etat}
-                    </td>
-                    <td className="py-2 px-3 text-right font-bold font-mono">
-                      {item.quantite}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Signature Block */}
-          <div className="grid grid-cols-2 gap-12 pt-16 text-center text-xs font-mono">
-            <div className="space-y-12">
-              <p className="font-bold uppercase tracking-wider">L'OFFICIER LOGISTIQUE CONTRÔLEUR</p>
-              <div className="border-b border-black w-2/3 mx-auto border-dotted"></div>
-              <p className="text-[10px] text-slate-500">Nom, Date & Signature</p>
-            </div>
-            <div className="space-y-12">
-              <p className="font-bold uppercase tracking-wider">LA DIRECTION DES OPÉRATIONS (SGL)</p>
-              <div className="border-b border-black w-2/3 mx-auto border-dotted"></div>
-              <p className="text-[10px] text-slate-500">Visa pour approbation</p>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="text-[8px] text-slate-400 text-center border-t border-slate-300 pt-4">
-            RAPPORT INVENTAIRE SGL-CI • DOCUMENT OFFICIEL DE CONTRÔLE PHYSIQUE DES STOCKS.
-          </div>
-        </div>
       )}
     </Layout>
   );
