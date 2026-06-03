@@ -10,7 +10,7 @@ import DefectReportModal from '../components/DefectReportModal';
 import ImportMaterielModal from '../components/ImportMaterielModal';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const Inventory = () => {
   const [page, setPage] = useState(1);
@@ -179,7 +179,7 @@ const Inventory = () => {
       ]);
 
       // Generate table
-      doc.autoTable({
+      autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
         startY: 66,
