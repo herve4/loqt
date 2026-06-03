@@ -19,6 +19,11 @@ const ProtectedRoute = ({ children, checkOnboarding = true, checkValidation = tr
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  if (checkOnboarding && user && user.onboarding_completed === false) {
+    // Bloquer l'accès et rediriger vers la console d'onboarding
+    return <Navigate to="/onboarding" replace />;
+  }
+
   if (checkValidation && user) {
     if (user.validation_status === 'pending') {
       return <Navigate to="/pending-validation" replace />;
@@ -26,11 +31,6 @@ const ProtectedRoute = ({ children, checkOnboarding = true, checkValidation = tr
     if (user.validation_status === 'rejected') {
       return <Navigate to="/rejected" replace />;
     }
-  }
-
-  if (checkOnboarding && user && user.onboarding_completed === false) {
-    // Bloquer l'accès et rediriger vers la console d'onboarding
-    return <Navigate to="/onboarding" replace />;
   }
 
   return children;

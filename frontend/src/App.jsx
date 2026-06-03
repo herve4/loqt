@@ -49,7 +49,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
-          <Route path="/onboarding" element={<ProtectedRoute checkOnboarding={false}><Onboarding /></ProtectedRoute>} />
+          <Route path="/onboarding" element={<ProtectedRoute checkOnboarding={false} checkValidation={false}><Onboarding /></ProtectedRoute>} />
           <Route path="/pending-validation" element={<ProtectedRoute checkValidation={false} checkOnboarding={false}><PendingValidationPage /></ProtectedRoute>} />
           <Route path="/rejected" element={<ProtectedRoute checkValidation={false} checkOnboarding={false}><RejectedPage /></ProtectedRoute>} />
           
