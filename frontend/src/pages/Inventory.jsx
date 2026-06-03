@@ -7,6 +7,8 @@ import StatusBadge from '../components/StatusBadge';
 import { logisticsService } from '../services/api';
 import MaterielFormModal from '../components/MaterielFormModal';
 import DefectReportModal from '../components/DefectReportModal';
+import ImportMaterielModal from '../components/ImportMaterielModal';
+import * as XLSX from 'xlsx';
 
 const Inventory = () => {
   const [page, setPage] = useState(1);
@@ -20,8 +22,110 @@ const Inventory = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
   const [reportingDefectItem, setReportingDefectItem] = useState(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const fetchAllFilteredMateriels = async () => {
+    try {
+      const res = await logisticsService.getMateriels({
+        page_size: 10000,
+        search: search || undefined,
+        categorie: category || undefined,
+        eglise: church || undefined,
+        etat: status || undefined
+      });
+      return res.data?.results || [];
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la récupération des données pour l'export.");
+      return [];
+    }
+  };
+
+  const handleExportXLSX = async () => {
+    const loadToastId = toast.loading("Préparation de l'export Excel...");
+    const items = await fetchAllFilteredMateriels();
+    if (items.length === 0) {
+      toast.error("Aucune donnée à exporter.", { id: loadToastId });
+      return;
+    }
+
+    const exportData = items.map(item => ({
+      "IDENTIFIANT_UNIQUE": item.identifiant_unique || `EQ-${item.id}`,
+      "NOM": item.nom,
+      "DESCRIPTION": item.description || '',
+      "QUANTITE": item.quantite,
+      "CATEGORIE": item.categorie_nom || '',
+      "EGLISE_ORIGINE": item.eglise_nom || 'Siège National',
+      "STATUT": item.etat
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventaire");
+    XLSX.writeFile(workbook, "SGL-CI_Inventaire_Materiel.xlsx");
+    toast.success("Export Excel terminé !", { id: loadToastId });
+  };
+
+  const handleExportCSV = async () => {
+    const loadToastId = toast.loading("Préparation de l'export CSV...");
+    const items = await fetchAllFilteredMateriels();
+    if (items.length === 0) {
+      toast.error("Aucune donnée à exporter.", { id: loadToastId });
+      return;
+    }
+
+    const exportData = items.map(item => ({
+      "IDENTIFIANT_UNIQUE": item.identifiant_unique || `EQ-${item.id}`,
+      "NOM": item.nom,
+      "DESCRIPTION": item.description || '',
+      "QUANTITE": item.quantite,
+      "CATEGORIE": item.categorie_nom || '',
+      "EGLISE_ORIGINE": item.eglise_nom || 'Siège National',
+      "STATUT": item.etat
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "SGL-CI_Inventaire_Materiel.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export CSV terminé !", { id: loadToastId });
+  };
+
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        "IDENTIFIANT_UNIQUE": "EQ-99999",
+        "NOM": "Exemple d'équipement (Nom requis)",
+        "DESCRIPTION": "Exemple de description facultative",
+        "QUANTITE": 1,
+        "CATEGORIE": "SON & AUDIO",
+        "EGLISE_ORIGINE": "Eglise Centrale",
+        "STATUT": "OP"
+      },
+      {
+        "IDENTIFIANT_UNIQUE": "",
+        "NOM": "Instructions importantes",
+        "DESCRIPTION": "1. STATUTS valides : OP (Opérationnel), RE (Réparation), PA (Panne), PE (Perdu).",
+        "QUANTITE": "",
+        "CATEGORIE": "2. La CATEGORIE et l'EGLISE_ORIGINE doivent correspondre aux noms existants.",
+        "EGLISE_ORIGINE": "3. IDENTIFIANT_UNIQUE est requis pour la mise à jour, laissez vide pour créer.",
+        "STATUT": ""
+      }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Modele_Import");
+    XLSX.writeFile(workbook, "SGL-CI_Modele_Import_Inventaire.xlsx");
+    toast.success("Modèle d'import téléchargé !");
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id) => logisticsService.deleteMateriel(id),
@@ -103,13 +207,64 @@ const Inventory = () => {
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Inventaire du Matériel</h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Gestion centrale des équipements des églises régionales.</p>
           </div>
-          <button 
-            onClick={() => { setEditingItem(null); setIsFormModalOpen(true); }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all shadow-sm cursor-pointer active:scale-95"
-          >
-            <span className="material-symbols-outlined text-lg">add</span>
-            <span>Ajout Rapide</span>
-          </button>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {/* Actions de Données Dropdown */}
+            <div className="relative group">
+              <button 
+                type="button"
+                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all shadow-sm cursor-pointer active:scale-95"
+              >
+                <span className="material-symbols-outlined text-lg">database</span>
+                <span>Actions de Données</span>
+                <span className="material-symbols-outlined text-sm font-black">expand_more</span>
+              </button>
+              {/* Dropdown Options */}
+              <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-lg py-1.5 z-40 hidden group-hover:block animate-in fade-in duration-100">
+                <button
+                  type="button"
+                  onClick={handleExportXLSX}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none focus:outline-none"
+                >
+                  <span className="material-symbols-outlined text-base">download_for_offline</span>
+                  Exporter en XLSX
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none focus:outline-none"
+                >
+                  <span className="material-symbols-outlined text-base">csv</span>
+                  Exporter en CSV
+                </button>
+                <div className="border-t border-slate-100 dark:border-slate-800/80 my-1" />
+                <button
+                  type="button"
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none focus:outline-none"
+                >
+                  <span className="material-symbols-outlined text-base">upload_file</span>
+                  Importer XLSX / CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none focus:outline-none"
+                >
+                  <span className="material-symbols-outlined text-base">file_download</span>
+                  Télécharger le Modèle
+                </button>
+              </div>
+            </div>
+
+            <button 
+              type="button"
+              onClick={() => { setEditingItem(null); setIsFormModalOpen(true); }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all shadow-sm cursor-pointer active:scale-95 whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              <span>Ajout Rapide</span>
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -369,6 +524,17 @@ const Inventory = () => {
         />
       )}
 
+      {isImportModalOpen && (
+        <ImportMaterielModal
+          categories={categories}
+          churches={churches}
+          onClose={() => setIsImportModalOpen(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['inventory'] });
+          }}
+        />
+      )}
+
       {deletingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 no-print">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md p-6 relative flex flex-col rounded-none shadow-2xl">
@@ -444,7 +610,7 @@ const QrPrintModal = ({ item, onClose }) => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       })
-      .catch(error => {
+      .catch(() => {
         const a = document.createElement('a');
         a.href = qrUrl;
         a.download = `QR_${item.identifiant_unique || 'EQUIPEMENT'}.png`;
