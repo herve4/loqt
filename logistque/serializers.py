@@ -56,6 +56,20 @@ class MaterielSerializer(serializers.ModelSerializer):
     mouvements_count = serializers.IntegerField(source='mouvements.count', read_only=True)
     defauts_count = serializers.IntegerField(source='fiches_defectuosite.count', read_only=True)
     images_materiel = MaterielImageSerializer(many=True, read_only=True)
+    responsable_nom = serializers.SerializerMethodField()
+    responsable_phone = serializers.SerializerMethodField()
+
+    def get_responsable_nom(self, obj):
+        if obj.logistique and obj.logistique.responsable:
+            u = obj.logistique.responsable
+            return f"{u.first_name} {u.last_name}".strip() or u.email or "Non spécifié"
+        return "Non spécifié"
+
+    def get_responsable_phone(self, obj):
+        if obj.logistique and obj.logistique.responsable:
+            return obj.logistique.responsable.phone or "Non spécifié"
+        return "Non spécifié"
+
     class Meta:
         model = Materiel
         fields = '__all__'

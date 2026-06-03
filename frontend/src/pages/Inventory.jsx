@@ -110,7 +110,7 @@ const Inventory = () => {
 
     try {
       const doc = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
         format: 'a4'
       });
@@ -123,11 +123,11 @@ const Inventory = () => {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
       doc.setTextColor(100);
-      doc.text("MINISTERE PROTESTANT BAPTISTE DES OEUVRES ET DE LA LOGISTIQUE", 14, 23);
+      doc.text("DIRECTION DE LA LOGISTIQUE ET DES EQUIPEMENTS", 14, 23);
 
       doc.setDrawColor(0);
       doc.setLineWidth(0.5);
-      doc.line(14, 26, 196, 26);
+      doc.line(14, 26, 283, 26);
 
       // Document title
       doc.setFont("helvetica", "bold");
@@ -141,48 +141,33 @@ const Inventory = () => {
       const generatedAt = `Généré le : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`;
       doc.text(generatedAt, 14, 39);
 
-      // Filters recap
-      doc.setFillColor(245, 247, 250);
-      doc.rect(14, 43, 182, 18, "F");
-      
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(7);
-      doc.setTextColor(100);
-      doc.text("FILTRES APPLIQUES :", 17, 47);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(60);
-      
-      const catText = category ? (categories.find(c => String(c.id) === String(category))?.nom || category) : "Toutes";
-      const chText = church ? (churches.find(c => String(c.id) === String(church))?.nom || church) : "Toutes";
-      let statText = "Tous";
-      if (status === 'OP') statText = "Opérationnel";
-      else if (status === 'RE') statText = "En réparation";
-      else if (status === 'PA') statText = "En panne";
-      else if (status === 'PE') statText = "Perdu";
-
-      doc.text(`Recherche : ${search || "Aucune"}`, 17, 52);
-      doc.text(`Catégorie : ${catText}`, 17, 57);
-      doc.text(`Église : ${chText}`, 100, 52);
-      doc.text(`Statut : ${statText}`, 100, 57);
-
       // Table mapping
-      const tableColumn = ["ID / REF", "NOM DU MATERIEL", "CATEGORIE", "EGLISE D'ORIGINE", "STATUT", "QTE"];
+      const tableColumn = [
+        "ID / REF", 
+        "NOM DU MATERIEL", 
+        "CATEGORIE", 
+        "EGLISE D'ORIGINE", 
+        "STATUT", 
+        "QTE",
+        "RESPONSABLE",
+        "TEL. RESPONSABLE"
+      ];
       const tableRows = items.map(item => [
         item.identifiant_unique || `EQ-${item.id}`,
         item.nom,
         item.categorie_nom || item.categorie || '-',
         item.eglise_nom || 'Siège National',
         item.etat,
-        item.quantite
+        item.quantite,
+        item.responsable_nom || 'Non spécifié',
+        item.responsable_phone || 'Non spécifié'
       ]);
 
       // Generate table
       autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
-        startY: 66,
+        startY: 46,
         theme: 'striped',
         headStyles: {
           fillColor: [15, 23, 42],
@@ -201,9 +186,11 @@ const Inventory = () => {
           2: { cellWidth: 35 },
           3: { cellWidth: 35 },
           4: { cellWidth: 17, halign: 'center' },
-          5: { cellWidth: 15, halign: 'right' }
+          5: { cellWidth: 15, halign: 'right' },
+          6: { cellWidth: 45 },
+          7: { cellWidth: 42 }
         },
-        margin: { top: 66, left: 14, right: 14 },
+        margin: { top: 46, left: 14, right: 14 },
         didDrawPage: () => {
           // Footer page numbering
           const str = `Page ${doc.internal.getNumberOfPages()}`;
