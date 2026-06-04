@@ -3,7 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logisticsService } from '../services/api';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
+import ImportMembreModal from '../components/ImportMembreModal';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import toast from 'react-hot-toast';
+
 
 const MembersList = () => {
   const { user: currentUser } = useAuth();
@@ -14,6 +19,7 @@ const MembersList = () => {
   const [deptFilter, setDeptFilter] = useState('');
   const [sectionSearch, setSectionSearch] = useState('');
   const [selectedQR, setSelectedQR] = useState(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const isManager = (role) => {
     return [
@@ -39,7 +45,7 @@ const MembersList = () => {
   // Charger la liste globale des membres
   const { data: membersData, isLoading, isError } = useQuery({
     queryKey: ['members-directory'],
-    queryFn: () => logisticsService.getMembersList().then(res => res.data)
+    queryFn: () => logisticsService.getMembersList({ page_size: 10000 }).then(res => res.data)
   });
 
   // Charger les pôles (départements)
@@ -51,7 +57,7 @@ const MembersList = () => {
   // Charger les églises
   const { data: churchesData } = useQuery({
     queryKey: ['churches-selector'],
-    queryFn: () => logisticsService.getEglises().then(res => res.data)
+    queryFn: () => logisticsService.getEglises({ page_size: 10000 }).then(res => res.data)
   });
 
   const members = Array.isArray(membersData) ? membersData : (membersData?.results || []);
@@ -92,12 +98,46 @@ const MembersList = () => {
     membre_sec: { label: 'MEMBRE SEC.', style: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/20 dark:text-slate-400 dark:border-slate-800' },
   };
 
+  const getScopedMembers = (allMembers) => {
+    if (!currentUser) return [];
+    
+    // Global access roles
+    if (['super_admin', 'pasteur_national', 'rln'].includes(currentUser.role)) {
+      return allMembers;
+    }
+    
+    return allMembers.filter(m => {
+      // Show own info anyway
+      if (m.id === currentUser.id) return true;
+      
+      // Pasteur local / RLL scope: same church
+      if (['pasteur_local', 'rll'].includes(currentUser.role)) {
+        return currentUser.eglise && m.eglise === currentUser.eglise;
+      }
+      
+      // Resp Dept / Adj Dept scope: same department/pole
+      if (['resp_dept', 'adj_dept'].includes(currentUser.role)) {
+        return currentUser.pole && m.pole === currentUser.pole;
+      }
+      
+      // Resp Sec / Adj Sec scope: same section name
+      if (['resp_sec', 'adj_sec'].includes(currentUser.role)) {
+        return currentUser.section && m.section && m.section.trim().toLowerCase() === currentUser.section.trim().toLowerCase();
+      }
+      
+      // Default role (e.g. member, technicien): only see themselves
+      return false;
+    });
+  };
+
   const approvedMembers = members.filter(m => m.validation_status !== 'pending' && m.validation_status !== 'rejected');
   const pendingMembers = members.filter(m => m.validation_status === 'pending');
 
   const currentList = activeTab === 'pending' ? pendingMembers : approvedMembers;
 
-  const filteredMembers = currentList.filter(user => {
+  const scopedMembers = getScopedMembers(currentList);
+
+  const filteredMembers = scopedMembers.filter(user => {
     const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
     const email = (user.email || '').toLowerCase();
     const phone = (user.phone || '').toLowerCase();
@@ -123,6 +163,242 @@ const MembersList = () => {
     document.body.removeChild(link);
   };
 
+  const fetchAllFilteredMembers = async () => {
+    try {
+      const res = await logisticsService.getMembersList({
+        page_size: 10000
+      });
+      const all = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+      
+      const approvedOnly = all.filter(m => m.validation_status !== 'pending' && m.validation_status !== 'rejected');
+      const pendingOnly = all.filter(m => m.validation_status === 'pending');
+      const targetList = activeTab === 'pending' ? pendingOnly : approvedOnly;
+
+      const scoped = getScopedMembers(targetList);
+
+      const filtered = scoped.filter(user => {
+        const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        const phone = (user.phone || '').toLowerCase();
+        const matchesSearch = fullName.includes(searchTerm.toLowerCase()) || 
+                              email.includes(searchTerm.toLowerCase()) || 
+                              phone.includes(searchTerm.toLowerCase());
+        const matchesDept = !deptFilter || String(user.pole) === String(deptFilter);
+        const matchesSection = !sectionSearch || 
+                               (user.section || '').toLowerCase().includes(sectionSearch.toLowerCase());
+        return matchesSearch && matchesDept && matchesSection;
+      });
+
+      return filtered;
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la récupération des membres.");
+      return [];
+    }
+  };
+
+  const handleExportXLSX = async () => {
+    const loadToastId = toast.loading("Préparation de l'export Excel...");
+    const items = await fetchAllFilteredMembers();
+    if (items.length === 0) {
+      toast.error("Aucune donnée à exporter.", { id: loadToastId });
+      return;
+    }
+
+    const exportData = items.map(item => ({
+      "IDENTIFIANT_UNIQUE": `SGL-MB-${String(item.id).padStart(3, '0')}`,
+      "PRENOM": item.last_name || '',
+      "NOM": item.first_name || '',
+      "EMAIL": item.email || '',
+      "TELEPHONE": item.phone || '',
+      "ROLE": item.role || '',
+      "EGLISE_LOCALE": getChurchName(item.eglise),
+      "DEPARTEMENT": getPoleName(item.pole),
+      "SECTION": item.section || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Membres");
+    XLSX.writeFile(workbook, "SGL-CI_Membres.xlsx");
+    toast.success("Export Excel terminé !", { id: loadToastId });
+  };
+
+  const handleExportCSV = async () => {
+    const loadToastId = toast.loading("Préparation de l'export CSV...");
+    const items = await fetchAllFilteredMembers();
+    if (items.length === 0) {
+      toast.error("Aucune donnée à exporter.", { id: loadToastId });
+      return;
+    }
+
+    const exportData = items.map(item => ({
+      "IDENTIFIANT_UNIQUE": `SGL-MB-${String(item.id).padStart(3, '0')}`,
+      "PRENOM": item.last_name || '',
+      "NOM": item.first_name || '',
+      "EMAIL": item.email || '',
+      "TELEPHONE": item.phone || '',
+      "ROLE": item.role || '',
+      "EGLISE_LOCALE": getChurchName(item.eglise),
+      "DEPARTEMENT": getPoleName(item.pole),
+      "SECTION": item.section || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "SGL-CI_Membres.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export CSV terminé !", { id: loadToastId });
+  };
+
+  const handleExportPDF = async () => {
+    const loadToastId = toast.loading("Génération du fichier PDF...");
+    const items = await fetchAllFilteredMembers();
+    if (items.length === 0) {
+      toast.error("Aucune donnée à exporter.", { id: loadToastId });
+      return;
+    }
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Title & Header SGL-CI
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.text("SYSTEME DE GESTION LOGISTIQUE COTE D'IVOIRE", 14, 18);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text("ANNUAIRE OFFICIEL DES ACCREDITES ET MEMBRES", 14, 23);
+
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.5);
+      doc.line(14, 26, 283, 26);
+
+      // Document title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(0);
+      doc.text(activeTab === 'pending' ? "ACCREDITATIONS ET INSCRIPTIONS EN ATTENTE" : "ANNUAIRE OFFICIEL DES MEMBRES ET ACCREDITES", 14, 34);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      const generatedAt = `Généré le : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`;
+      doc.text(generatedAt, 14, 39);
+
+      // Table mapping
+      const tableColumn = [
+        "ID / REF", 
+        "PRENOM", 
+        "NOM", 
+        "EMAIL", 
+        "TELEPHONE", 
+        "ROLE",
+        "EGLISE LOCALE",
+        "DEPARTEMENT",
+        "SECTION"
+      ];
+      const tableRows = items.map(item => [
+        `SGL-MB-${String(item.id).padStart(3, '0')}`,
+        item.last_name || '',
+        item.first_name || '',
+        item.email || '-',
+        item.phone || '-',
+        (rolesMap[item.role]?.label || item.role || '-'),
+        getChurchName(item.eglise),
+        getPoleName(item.pole),
+        item.section || '-'
+      ]);
+
+      // Generate table
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 46,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [15, 23, 42],
+          textColor: [255, 255, 255],
+          fontSize: 8,
+          fontStyle: 'bold',
+          halign: 'left'
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [30, 41, 59]
+        },
+        columnStyles: {
+          0: { cellWidth: 24, fontStyle: 'bold' },
+          1: { cellWidth: 32 },
+          2: { cellWidth: 32 },
+          3: { cellWidth: 42 },
+          4: { cellWidth: 30 },
+          5: { cellWidth: 26 },
+          6: { cellWidth: 32 },
+          7: { cellWidth: 32 },
+          8: { cellWidth: 20 }
+        },
+        margin: { top: 46, left: 14, right: 14 },
+        didDrawPage: () => {
+          const str = `Page ${doc.internal.getNumberOfPages()}`;
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(str, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+        }
+      });
+
+      doc.save("SGL-CI_Membres.pdf");
+      toast.success("Téléchargement du PDF réussi !", { id: loadToastId });
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la génération du PDF.", { id: loadToastId });
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        "IDENTIFIANT_UNIQUE": "SGL-MB-999",
+        "PRENOM": "Jean Emmanuel (Requis)",
+        "NOM": "Koffi (Requis)",
+        "EMAIL": "jean.koffi@example.com (Unique)",
+        "TELEPHONE": "+225 0707070707 (Unique)",
+        "ROLE": "technicien",
+        "EGLISE_LOCALE": "Eglise Exemple",
+        "DEPARTEMENT": "PÔLE LOGISTIQUE",
+        "SECTION": "Accueil"
+      },
+      {
+        "IDENTIFIANT_UNIQUE": "",
+        "PRENOM": "Instructions d'importation",
+        "NOM": "1. PRENOM et NOM sont requis.",
+        "EMAIL": "2. Soit l'EMAIL soit le TELEPHONE doit etre fourni.",
+        "TELEPHONE": "3. Les doublons seront mis a jour (PATCH).",
+        "ROLE": "4. ROLES valides : super_admin, pasteur_national, rln, pasteur_local, rll, technicien, pasteur, resp_dept, adj_dept, resp_sec, adj_sec, membre_dept, membre_sec, membre, responsable.",
+        "EGLISE_LOCALE": "5. EGLISE_LOCALE et DEPARTEMENT (pôle technique) doivent correspondre a des noms existants.",
+        "DEPARTEMENT": "",
+        "SECTION": ""
+      }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Modele_Import_Membres");
+    XLSX.writeFile(workbook, "SGL-CI_Modele_Import_Membres.xlsx");
+    toast.success("Modele d'importation des Membres telecharge !");
+  };
+
   return (
     <Layout title="Annuaire Membres">
       <div className="flex-1 bg-background-light dark:bg-background-dark p-6 font-mono text-slate-900 dark:text-slate-300">
@@ -137,9 +413,66 @@ const MembersList = () => {
               Annuaire structurel de la logistique EBNG-CI
             </p>
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase">
-            <span className="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-none animate-pulse"></span>
-            <span>{filteredMembers.length} {activeTab === 'pending' ? 'DEMANDES EN ATTENTE' : 'ACCRÉDITÉS FILTRÉS'}</span>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Actions de Données Dropdown */}
+            <div className="relative group">
+              <button 
+                type="button"
+                className="flex items-center gap-2 px-5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 rounded-none font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs uppercase tracking-wider cursor-pointer shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">database</span>
+                <span>Actions de Données</span>
+                <span className="material-symbols-outlined text-xs">expand_more</span>
+              </button>
+              <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-none py-1.5 z-40 hidden group-hover:block animate-in fade-in duration-100">
+                <button
+                  type="button"
+                  onClick={handleExportXLSX}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                >
+                  <span className="material-symbols-outlined text-base">download_for_offline</span>
+                  Exporter en XLSX
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                >
+                  <span className="material-symbols-outlined text-base">csv</span>
+                  Exporter en CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportPDF}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                >
+                  <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+                  Exporter en PDF
+                </button>
+                <div className="border-t border-slate-100 dark:border-slate-800/80 my-1" />
+                <button
+                  type="button"
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                >
+                  <span className="material-symbols-outlined text-base">upload_file</span>
+                  Importer XLSX / CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                >
+                  <span className="material-symbols-outlined text-base">file_download</span>
+                  Télécharger le Modèle
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase">
+              <span className="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-none animate-pulse"></span>
+              <span>{filteredMembers.length} {activeTab === 'pending' ? 'DEMANDES EN ATTENTE' : 'ACCRÉDITÉS FILTRÉS'}</span>
+            </div>
           </div>
         </div>
 
@@ -430,6 +763,15 @@ const MembersList = () => {
         )}
 
       </div>
+      <ImportMembreModal 
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['members-directory'] });
+          queryClient.invalidateQueries({ queryKey: ['members'] });
+          setIsImportModalOpen(false);
+        }}
+      />
     </Layout>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/Layout';
 import { logisticsService } from '../services/api';
@@ -6,6 +6,10 @@ import EgliseFormModal from '../components/EgliseFormModal';
 import RegionManagerModal from '../components/RegionManagerModal';
 import VilleManagerModal from '../components/VilleManagerModal';
 import ConfirmModal from '../components/ConfirmModal';
+import ImportEgliseModal from '../components/ImportEgliseModal';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import toast from 'react-hot-toast';
 
 const ChurchesList = () => {
@@ -18,13 +22,10 @@ const ChurchesList = () => {
     const [isEgliseModalOpen, setIsEgliseModalOpen] = useState(false);
     const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
     const [isVilleModalOpen, setIsVilleModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [churchToEdit, setChurchToEdit] = useState(null);
-
-    useEffect(() => {
-        setPage(1);
-    }, [selectedRegion, searchTerm]);
 
     const { data: regionsData } = useQuery({
         queryKey: ['regions'],
@@ -66,6 +67,210 @@ const ChurchesList = () => {
         setDeleteConfirmOpen(true);
     };
 
+    const fetchAllFilteredEglises = async () => {
+        try {
+            const res = await logisticsService.getEglises({
+                page_size: 10000,
+                region: selectedRegion || undefined,
+                search: searchTerm || undefined
+            });
+            const all = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            return all;
+        } catch (err) {
+            console.error(err);
+            toast.error("Erreur lors du chargement des données.");
+            return [];
+        }
+    };
+
+    const handleExportXLSX = async () => {
+        const loadToastId = toast.loading("Préparation de l'export Excel...");
+        const items = await fetchAllFilteredEglises();
+        if (items.length === 0) {
+            toast.error("Aucune donnée à exporter.", { id: loadToastId });
+            return;
+        }
+
+        const exportData = items.map(item => ({
+            "IDENTIFIANT_UNIQUE": `SGL-EG-${String(item.id).padStart(3, '0')}`,
+            "NOM": item.nom,
+            "VILLE": item.ville_nom || '',
+            "REGION": item.region_nom || '',
+            "PASTEUR": item.pasteur_nom || 'Non assigné',
+            "TELEPHONE": item.phone || '',
+            "HQ_NATIONAL": item.is_national_hq ? "Oui" : "Non"
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Eglises");
+        XLSX.writeFile(workbook, "SGL-CI_Reseau_Eglises.xlsx");
+        toast.success("Export Excel terminé !", { id: loadToastId });
+    };
+
+    const handleExportCSV = async () => {
+        const loadToastId = toast.loading("Préparation de l'export CSV...");
+        const items = await fetchAllFilteredEglises();
+        if (items.length === 0) {
+            toast.error("Aucune donnée à exporter.", { id: loadToastId });
+            return;
+        }
+
+        const exportData = items.map(item => ({
+            "IDENTIFIANT_UNIQUE": `SGL-EG-${String(item.id).padStart(3, '0')}`,
+            "NOM": item.nom,
+            "VILLE": item.ville_nom || '',
+            "REGION": item.region_nom || '',
+            "PASTEUR": item.pasteur_nom || 'Non assigné',
+            "TELEPHONE": item.phone || '',
+            "HQ_NATIONAL": item.is_national_hq ? "Oui" : "Non"
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "SGL-CI_Reseau_Eglises.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Export CSV terminé !", { id: loadToastId });
+    };
+
+    const handleExportPDF = async () => {
+        const loadToastId = toast.loading("Génération du fichier PDF...");
+        const items = await fetchAllFilteredEglises();
+        if (items.length === 0) {
+            toast.error("Aucune donnée à exporter.", { id: loadToastId });
+            return;
+        }
+
+        try {
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // Title & Header SGL-CI
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(15);
+            doc.text("SYSTEME DE GESTION LOGISTIQUE COTE D'IVOIRE", 14, 18);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text("RESEAU DES EGLISES ET DES IMPLANTATIONS LOCALES", 14, 23);
+
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            doc.line(14, 26, 283, 26);
+
+            // Document title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            doc.text("ANNUAIRE OFFICIEL DES IMPLANTATIONS LOCALES", 14, 34);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(120);
+            const generatedAt = `Généré le : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`;
+            doc.text(generatedAt, 14, 39);
+
+            // Table mapping
+            const tableColumn = [
+                "ID / REF", 
+                "NOM DE L'EGLISE", 
+                "VILLE", 
+                "REGION", 
+                "PASTEUR", 
+                "TELEPHONE",
+                "HQ NATIONAL"
+            ];
+            const tableRows = items.map(item => [
+                `SGL-EG-${String(item.id).padStart(3, '0')}`,
+                item.nom,
+                item.ville_nom || '-',
+                item.region_nom || '-',
+                item.pasteur_nom || 'Non assigné',
+                item.phone || '-',
+                item.is_national_hq ? 'Oui' : 'Non'
+            ]);
+
+            // Generate table
+            autoTable(doc, {
+                head: [tableColumn],
+                body: tableRows,
+                startY: 46,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [15, 23, 42],
+                    textColor: [255, 255, 255],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'left'
+                },
+                bodyStyles: {
+                    fontSize: 8,
+                    textColor: [30, 41, 59]
+                },
+                columnStyles: {
+                    0: { cellWidth: 30, fontStyle: 'bold' },
+                    1: { cellWidth: 65 },
+                    2: { cellWidth: 35 },
+                    3: { cellWidth: 35 },
+                    4: { cellWidth: 50 },
+                    5: { cellWidth: 30 },
+                    6: { cellWidth: 24, halign: 'center' }
+                },
+                margin: { top: 46, left: 14, right: 14 },
+                didDrawPage: () => {
+                    const str = `Page ${doc.internal.getNumberOfPages()}`;
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text(str, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+                }
+            });
+
+            doc.save("SGL-CI_Reseau_Eglises.pdf");
+            toast.success("Téléchargement du PDF réussi !", { id: loadToastId });
+        } catch (err) {
+            console.error(err);
+            toast.error("Erreur lors de la génération du PDF.", { id: loadToastId });
+        }
+    };
+
+    const handleDownloadTemplate = () => {
+        const templateData = [
+            {
+                "IDENTIFIANT_UNIQUE": "SGL-EG-999",
+                "NOM": "Eglise Exemple de Test (Requis)",
+                "VILLE": "Abidjan (Requis)",
+                "REGION": "Lagunes (Optionnel)",
+                "PASTEUR": "Jean Koffi (Optionnel, nom existant)",
+                "TELEPHONE": "+225 0102030405 (Unique)",
+                "SIEGE_NATIONAL": "Non"
+            },
+            {
+                "IDENTIFIANT_UNIQUE": "",
+                "NOM": "Instructions d'importation",
+                "VILLE": "1. VILLE est requise. Si elle n'existe pas en base, elle sera creee.",
+                "REGION": "2. REGION sera creee si elle est nouvelle.",
+                "PASTEUR": "3. PASTEUR doit etre le nom d'un membre existant.",
+                "TELEPHONE": "4. TELEPHONE doit etre unique s'il est fourni.",
+                "SIEGE_NATIONAL": "5. SIEGE_NATIONAL : Oui ou Non."
+            }
+        ];
+
+        const worksheet = XLSX.utils.json_to_sheet(templateData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Modele_Import_Eglises");
+        XLSX.writeFile(workbook, "SGL-CI_Modele_Import_Eglises.xlsx");
+        toast.success("Modele d'importation des Eglises telecharge !");
+    };
+
     return (
         <Layout title="Réseau des Églises">
             <div className="p-8 space-y-8 select-none font-mono text-slate-800 dark:text-slate-200">
@@ -99,6 +304,61 @@ const ChurchesList = () => {
                         </div>
                     </div>
                     <div className="flex flex-wrap gap-3">
+                        {/* Actions de Données Dropdown */}
+                        <div className="relative group">
+                            <button 
+                                type="button"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-350 rounded-none font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-xs uppercase tracking-wider cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-sm">database</span>
+                                <span>Actions de Données</span>
+                                <span className="material-symbols-outlined text-xs">expand_more</span>
+                            </button>
+                            <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-none py-1.5 z-40 hidden group-hover:block animate-in fade-in duration-100">
+                                <button
+                                    type="button"
+                                    onClick={handleExportXLSX}
+                                    className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                                >
+                                    <span className="material-symbols-outlined text-base">download_for_offline</span>
+                                    Exporter en XLSX
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleExportCSV}
+                                    className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                                >
+                                    <span className="material-symbols-outlined text-base">csv</span>
+                                    Exporter en CSV
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleExportPDF}
+                                    className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                                >
+                                    <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+                                    Exporter en PDF
+                                </button>
+                                <div className="border-t border-slate-100 dark:border-slate-800/80 my-1" />
+                                <button
+                                    type="button"
+                                    onClick={() => setIsImportModalOpen(true)}
+                                    className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                                >
+                                    <span className="material-symbols-outlined text-base">upload_file</span>
+                                    Importer XLSX / CSV
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadTemplate}
+                                    className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 flex items-center gap-2 cursor-pointer border-0 bg-transparent outline-none w-full"
+                                >
+                                    <span className="material-symbols-outlined text-base">file_download</span>
+                                    Télécharger le Modèle
+                                </button>
+                            </div>
+                        </div>
+
                         <button 
                             onClick={() => setIsRegionModalOpen(true)}
                             className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-all rounded-none text-xs uppercase tracking-wider cursor-pointer"
@@ -132,14 +392,14 @@ const ChurchesList = () => {
                             placeholder="RECHERCHER UNE ÉGLISE OU UNE VILLE..." 
                             className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-none focus:border-slate-400 dark:focus:border-slate-600 focus:outline-none focus:ring-0 text-xs transition-all font-mono"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
                         />
                     </div>
                     <div className="flex gap-4 relative">
                         <select 
                             className="pl-3 pr-8 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-none focus:border-slate-400 dark:focus:border-slate-600 focus:outline-none focus:ring-0 text-xs min-w-[200px] appearance-none cursor-pointer font-mono"
                             value={selectedRegion}
-                            onChange={(e) => setSelectedRegion(e.target.value)}
+                            onChange={(e) => { setSelectedRegion(e.target.value); setPage(1); }}
                         >
                             <option value="">TOUTES LES RÉGIONS</option>
                             {regions.map(r => (
@@ -156,7 +416,7 @@ const ChurchesList = () => {
                         {regions.map(region => (
                             <div 
                                 key={region.id} 
-                                onClick={() => setSelectedRegion(selectedRegion === String(region.id) ? '' : String(region.id))}
+                                onClick={() => { setSelectedRegion(selectedRegion === String(region.id) ? '' : String(region.id)); setPage(1); }}
                                 className={`p-4 border rounded-none text-center min-w-[160px] flex-shrink-0 snap-start hover:border-slate-400 dark:hover:border-slate-600 transition-all cursor-pointer select-none ${
                                     selectedRegion === String(region.id) 
                                         ? 'border-blue-600 dark:border-blue-500 bg-blue-50/10 dark:bg-blue-950/20' 
@@ -283,6 +543,15 @@ const ChurchesList = () => {
                 isOpen={isEgliseModalOpen} 
                 onClose={() => { setIsEgliseModalOpen(false); setChurchToEdit(null); }}
                 churchToEdit={churchToEdit}
+            />
+
+            <ImportEgliseModal 
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ['churches'] });
+                    setIsImportModalOpen(false);
+                }}
             />
 
             <RegionManagerModal 
