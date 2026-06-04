@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import UserFormModal from './UserFormModal';
+import ConfirmModal from './ConfirmModal';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   
   const isActive = (path) => location.pathname === path;
   const activeClass = "bg-primary/10 text-primary font-medium";
@@ -43,10 +45,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
-  const handleLogout = async () => {
-    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      await logout();
-    }
+  const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
   };
 
   const closeSidebarMobile = () => {
@@ -238,6 +238,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       onClose={() => setIsProfileModalOpen(false)} 
       userToEdit={user} 
       isOwnProfile={true} 
+    />
+    <ConfirmModal 
+      isOpen={isLogoutConfirmOpen}
+      title="DÉCONNEXION"
+      message="Voulez-vous vraiment vous déconnecter ?"
+      onConfirm={async () => {
+        setIsLogoutConfirmOpen(false);
+        await logout();
+      }}
+      onCancel={() => setIsLogoutConfirmOpen(false)}
     />
   </>
   );

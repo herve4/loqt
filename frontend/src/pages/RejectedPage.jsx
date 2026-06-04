@@ -4,11 +4,13 @@ import { authService, logisticsService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import ConfirmModal from '../components/ConfirmModal';
 
 const RejectedPage = () => {
   const { user, logout, updateAuthUser } = useAuth();
   const navigate = useNavigate();
   const [isResetting, setIsResetting] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   // Load Churches and Poles for lookup translation
   const { data: churchesData } = useQuery({
@@ -54,11 +56,8 @@ const RejectedPage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      await logout();
-      navigate('/login');
-    }
+  const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
   };
 
   return (
@@ -151,6 +150,17 @@ const RejectedPage = () => {
         </div>
 
       </div>
+      <ConfirmModal 
+        isOpen={isLogoutConfirmOpen}
+        title="DÉCONNEXION"
+        message="Voulez-vous vraiment vous déconnecter ?"
+        onConfirm={async () => {
+          setIsLogoutConfirmOpen(false);
+          await logout();
+          navigate('/login');
+        }}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
     </div>
   );
 };

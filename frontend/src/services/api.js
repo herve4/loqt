@@ -67,6 +67,7 @@ export const logisticsService = {
   getMovements: (params) => api.get('mouvements/', { params }),
   getMaterielMovements: (materielId) => api.get(`mouvements/?materiel=${materielId}`),
   getMaterielDefects: (materielId, params) => api.get(`defectuosites/?materiel=${materielId}`, { params }),
+  getDefects: (params) => api.get('defectuosites/', { params }),
   postMovement: (data) => api.post('mouvements/', data),
   getMembers: () => api.get('users/'),
   getMembersList: (params) => api.get('members/', { params }),

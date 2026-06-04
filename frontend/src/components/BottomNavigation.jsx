@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import ConfirmModal from './ConfirmModal';
 
 const BottomNavigation = ({ onSearch }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
@@ -39,7 +41,7 @@ const BottomNavigation = ({ onSearch }) => {
   };
 
   const handleNotificationClick = () => {
-    toast((t) => (
+    toast(() => (
       <div className="flex flex-col gap-2 font-mono text-xs text-slate-800 dark:text-slate-200">
         <div className="flex items-center gap-2 font-bold border-b border-slate-100 dark:border-slate-800 pb-1.5 uppercase text-[10px] tracking-wider text-slate-400">
           <span className="material-symbols-outlined text-[16px] text-primary">notifications</span>
@@ -68,11 +70,8 @@ const BottomNavigation = ({ onSearch }) => {
     });
   };
 
-  const handleLogout = async () => {
-    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      setIsProfileOpen(false);
-      await logout();
-    }
+  const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
   };
 
   return (
@@ -199,6 +198,17 @@ const BottomNavigation = ({ onSearch }) => {
           animation: laser-beam-pulse 2s infinite ease-in-out;
         }
       `}</style>
+      <ConfirmModal 
+        isOpen={isLogoutConfirmOpen}
+        title="DÉCONNEXION"
+        message="Voulez-vous vraiment vous déconnecter ?"
+        onConfirm={async () => {
+          setIsLogoutConfirmOpen(false);
+          setIsProfileOpen(false);
+          await logout();
+        }}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
     </>
   );
 };
