@@ -105,6 +105,16 @@ const MembersList = () => {
     if (['super_admin', 'pasteur_national', 'rln'].includes(currentUser.role)) {
       return allMembers;
     }
+
+    const matchRegionConstraint = (managerEgliseId, memberEgliseId) => {
+      if (!managerEgliseId || !memberEgliseId) return true;
+      const managerChurch = churches.find(c => c.id === managerEgliseId);
+      const memberChurch = churches.find(c => c.id === memberEgliseId);
+      if (managerChurch && managerChurch.region && memberChurch && memberChurch.region) {
+        return managerChurch.region === memberChurch.region;
+      }
+      return true;
+    };
     
     return allMembers.filter(m => {
       // Show own info anyway
@@ -115,14 +125,16 @@ const MembersList = () => {
         return currentUser.eglise && m.eglise === currentUser.eglise;
       }
       
-      // Resp Dept / Adj Dept scope: same department/pole
+      // Resp Dept / Adj Dept scope: same department/pole and matching region
       if (['resp_dept', 'adj_dept'].includes(currentUser.role)) {
-        return currentUser.pole && m.pole === currentUser.pole;
+        const samePole = currentUser.pole && m.pole === currentUser.pole;
+        return samePole && matchRegionConstraint(currentUser.eglise, m.eglise);
       }
       
-      // Resp Sec / Adj Sec scope: same section name
+      // Resp Sec / Adj Sec scope: same section name and matching region (covers all departments in that section)
       if (['resp_sec', 'adj_sec'].includes(currentUser.role)) {
-        return currentUser.section && m.section && m.section.trim().toLowerCase() === currentUser.section.trim().toLowerCase();
+        const sameSec = currentUser.section && m.section && m.section.trim().toLowerCase() === currentUser.section.trim().toLowerCase();
+        return sameSec && matchRegionConstraint(currentUser.eglise, m.eglise);
       }
       
       // Default role (e.g. member, technicien): only see themselves
