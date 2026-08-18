@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'anymail',
     'django_htmx',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
     'import_export',
     'notifications.apps.NotificationsConfig',

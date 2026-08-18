@@ -26,6 +26,12 @@ import argparse
 from pathlib import Path
 from typing import List, Tuple, Optional
 
+# Force UTF-8 encoding for stdout/stderr to support emojis on Windows terminals
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
+
 # ANSI colors for terminal output
 class Colors:
     HEADER = '\033[95m'
